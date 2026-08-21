@@ -1,0 +1,1 @@
+Sube index.html y la carpeta assets a la raíz del repositorio. Mantén GitHub Pages en main / (root).
