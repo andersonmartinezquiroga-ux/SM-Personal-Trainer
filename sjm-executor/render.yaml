@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sjm-playwright-executor
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: EXECUTOR_TOKEN
+        generateValue: true
