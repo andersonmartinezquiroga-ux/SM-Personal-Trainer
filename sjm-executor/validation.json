@@ -1,0 +1,15 @@
+{
+  "health": 200,
+  "unauthenticated": {
+    "status": 401,
+    "body": {
+      "error": "unauthorized"
+    }
+  },
+  "browser": {
+    "status": 500,
+    "body": {
+      "error": "browser_test_failed"
+    }
+  }
+}
