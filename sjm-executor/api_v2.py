@@ -22,8 +22,9 @@ class API(BaseHTTPRequestHandler):
         pass
 
     def authorized(self):
-        token=os.environ.get("EXECUTOR_TOKEN","")
-        return bool(token) and secrets.compare_digest(self.headers.get("Authorization",""),"Bearer "+token)
+        presented=self.headers.get("Authorization","")
+        tokens=(os.environ.get("EXECUTOR_TOKEN",""),os.environ.get("INSPECTOR_TOKEN",""))
+        return any(bool(token) and secrets.compare_digest(presented,"Bearer "+token) for token in tokens)
 
     def do_GET(self):
         if self.path=="/healthz":
