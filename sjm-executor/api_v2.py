@@ -6,6 +6,25 @@ from applicant import inspect
 from test_form import H
 
 lock=threading.Lock()
+DIAGNOSTIC={"local_browser":"pending","external_form_read_only":"pending","checked_utc":None}
+
+def boot_diagnostic():
+    """Execute Chromium in production, but NEVER submit a real external application."""
+    from datetime import datetime, timezone
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            a=run("http://127.0.0.1:8765/",d+"/navigation.json")
+            b=run("http://127.0.0.1:8765/",d+"/submission.json",submit=True)
+        DIAGNOSTIC["local_browser"]="pass" if (a.get("forms",0)>0 and b.get("submitted") and b.get("confirmation")=="RECIBIDO") else "failed"
+    except Exception as exc:
+        DIAGNOSTIC["local_browser"]="error:"+type(exc).__name__
+    try:
+        a=inspect("https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply")
+        DIAGNOSTIC["external_form_read_only"]="pass" if (a.get("form_fields_total",0)>0 and not a.get("submitted")) else "failed"
+    except Exception as exc:
+        DIAGNOSTIC["external_form_read_only"]="error:"+type(exc).__name__
+    DIAGNOSTIC["checked_utc"]=datetime.now(timezone.utc).isoformat()
+    print("SJM browser production boot diagnostic",json.dumps(DIAGNOSTIC),flush=True)
 
 class API(BaseHTTPRequestHandler):
     def reply(self,status,body):
@@ -30,7 +49,7 @@ class API(BaseHTTPRequestHandler):
         if self.path=="/healthz":
             return self.reply(200,{"service":"sjm-playwright-executor","status":"ready",
                 "version":"application-inspection-v1","external_submission":"disabled",
-                "supabase":"not_connected"})
+                "supabase":"not_connected","diagnostic":DIAGNOSTIC})
         return self.reply(404,{"error":"not_found"})
 
     def do_POST(self):
@@ -66,4 +85,5 @@ class API(BaseHTTPRequestHandler):
 if __name__=="__main__":
     demo=ThreadingHTTPServer(("127.0.0.1",8765),H)
     threading.Thread(target=demo.serve_forever,daemon=True).start()
+    threading.Thread(target=boot_diagnostic,daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0",int(os.environ.get("PORT","10000"))),API).serve_forever()
