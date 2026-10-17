@@ -1,5 +1,6 @@
 """SJM job browser: official career boards, inspection and draft without submission."""
 import re
+import json
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
@@ -69,9 +70,23 @@ def inspect(url, fields=None):
                     return route.continue_()
             except Exception: pass
             if len(blocked_resources)<20:
-                blocked_resources.append({"method":route.request.method,
+                metadata={"method":route.request.method,
                   "host":urlparse(route.request.url).hostname,
-                  "path":urlparse(route.request.url).path[:110]})
+                  "path":urlparse(route.request.url).path[:110]}
+                if (route.request.method=="POST" and
+                    urlparse(route.request.url).hostname=="jobs.ashbyhq.com" and
+                    urlparse(route.request.url).path=="/api/non-user-graphql"):
+                    try:
+                        payload=json.loads(route.request.post_data or "{}")
+                        if isinstance(payload,dict):
+                            q=payload.get("query") or ""
+                            operation=payload.get("operationName") or ""
+                            metadata["graphql_operation"]=str(operation)[:90]
+                            metadata["graphql_kind"]="query" if re.match(r"^\\s*query\\b",q) else (
+                                "mutation" if re.match(r"^\\s*mutation\\b",q) else "other")
+                            metadata["has_query_string"]=bool(q)
+                    except (ValueError,TypeError):metadata["graphql_kind"]="unknown"
+                blocked_resources.append(metadata)
             return route.abort()
         ctx.route("**/*",route_only_known)
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
