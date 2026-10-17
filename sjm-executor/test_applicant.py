@@ -6,6 +6,13 @@ class SecurityTests(unittest.TestCase):
     def test_official(self):
         url="https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply"
         self.assertEqual(checked_url(url),url)
+    def test_verified_ypai_colombia_pages(self):
+        for role in ("model-evaluator-co","data-annotator-co","text-annotator-co","pose-keypoint-annotator-co"):
+            u="https://freelancer.ypai.ai/jobs/openings/"+role
+            self.assertEqual(checked_url(u),u)
+    def test_ypai_arbitrary_path_blocked(self):
+        with self.assertRaises(ValueError):
+            checked_url("https://freelancer.ypai.ai/account/delete")
     def test_disallowed(self):
         for url in ("http://127.0.0.1:8765/","https://localhost/","http://169.254.169.254/",
                     "https://example.com/","https://jobs.lever.co/internal"):
