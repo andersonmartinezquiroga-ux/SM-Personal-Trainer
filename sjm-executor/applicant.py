@@ -82,8 +82,8 @@ def inspect(url, fields=None):
                             q=payload.get("query") or ""
                             operation=payload.get("operationName") or ""
                             metadata["graphql_operation"]=str(operation)[:90]
-                            metadata["graphql_kind"]="query" if re.match(r"^\\s*query\\b",q) else (
-                                "mutation" if re.match(r"^\\s*mutation\\b",q) else "other")
+                            metadata["graphql_kind"]="query" if re.match(r"^\s*query\b",q) else (
+                                "mutation" if re.match(r"^\s*mutation\b",q) else "other")
                             metadata["has_query_string"]=bool(q)
                     except (ValueError,TypeError):metadata["graphql_kind"]="unknown"
                 blocked_resources.append(metadata)
