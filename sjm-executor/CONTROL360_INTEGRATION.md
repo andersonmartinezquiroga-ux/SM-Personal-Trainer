@@ -1,3 +1,13 @@
+## Actualización: monitoreo de candidaturas — 17 oct 2026
+
+- Nueva función `sjm_ops.application_watchdog_v1()`, programada con `pg_cron` job **31**, `sjm-application-watchdog-v1`, **cada 10 minutos**. Revisó correctamente inspecciones fallidas, formularios HTML sin campos, trabajos estancados, candidaturas autorizadas pendientes y acuses verdaderos. Genera/incorpora alertas en `sjm_ops.incidents`, con deduplicación. No envía solicitudes ni mensajes externos.
+- Primera ejecución comprobada: `authorized_applications_not_attempted=1`, `confirmed_applications_with_receipt=0`, `public_form_200_but_invisible=1`, `browser_jobs_stale_waiting=0`. YPAI Data Annotator **sigue sin enviar** mientras el usuario tramita desde Work, que sí dispone de navegador interactivo autorizado.
+- Anyone AI `browser_jobs.id=8`: **HTTP 200 pero 0 campos** en Ashby; inspección marcada `failed` porque página dinámica no expuso formulario, NO por un rechazo laboral. Requiere paso interactivo distinto para encontrar Apply y comprobar sus condiciones. Se registró en `sjm_ops.cases` y en Airtable. No enviar datos personales desde sistema limitado sin revisión.
+- La alerta de YPAI `sjm_ops.notifications_outbox` id 108 está en `awaiting_delivery_channel`: **NO** declarar notificación push o audio enviada. La automatización ChatGPT `SJM Alertas urgentes` está activa cada hora para vigilar cambios significativos, pero la configuración de notificaciones de móvil requiere habilitarse/verificarse separadamente.
+- Si Work obtiene una recepción de YPAI, comprobar la confirmación exacta y/o el correo y reconciliar en `sjm_ops.employer_applications` y `sjm_ops.cases` SIN repetir la candidatura. No tomar 0 campos ni HTTP 200 como prueba de envío. 
+
+---
+
 ## Corrección de latencia Render (17 oct, tarde Colombia)
 
 - Error observado: browser_jobs #4 (YPAI Pose/Keypoint) expiró tras 100 segundos durante el arranque de Render Free, sin HTTP de retorno; inspección fallida **no** es solicitud enviada.
