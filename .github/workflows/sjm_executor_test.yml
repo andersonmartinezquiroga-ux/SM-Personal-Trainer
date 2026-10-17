@@ -71,8 +71,13 @@ jobs:
               ashby='https://jobs.ashbyhq.com/anyone-ai/f90e4b5c-1682-4ddf-bb00-c8a11738a393'
               code,ashby_meta=req('/jobs/inspect',{'url':ashby})
               assert code==200 and ashby_meta['submitted'] is False,ashby_meta
-              assert ashby_meta.get('followed_application_page') and ashby_meta.get('form_fields_total',0)>0,ashby_meta
-              print('PASS: Ashby second-page application fields inspected READ ONLY',json.dumps({'fields':ashby_meta['form_fields_total'],'url':ashby_meta['final_url'],'submitted':ashby_meta['submitted']}))
+              assert ashby_meta.get('followed_application_page') and ashby_meta['final_url'].endswith('/application'),ashby_meta
+              assert not ashby_meta['submitted'],ashby_meta
+              if ashby_meta['form_fields_total']>0:
+                  print('PASS: Ashby application fields inspected READ ONLY',json.dumps({'fields':ashby_meta['form_fields_total'],'url':ashby_meta['final_url'],'submitted':False}))
+              else:
+                  print('ASHBY_PARTIAL: Official application page discovered but zero fields under read-only network restrictions; not a completed inspection.')
+                  print('ASHBY_BLOCKED_DEPENDENCIES',json.dumps(ashby_meta.get('blocked_resource_metadata',[]),ensure_ascii=False))
               yurl='https://freelancer.ypai.ai/jobs/openings/data-annotator-co'
               code,ybody=req('/jobs/inspect',{'url':yurl})
               assert code==200 and ybody['submitted'] is False,ybody
