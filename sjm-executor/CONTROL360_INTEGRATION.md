@@ -1,28 +1,41 @@
-# SJM Control 360 → Playwright: contrato de integración (v1, 2026-10-16)
+# SJM Control 360 → Playwright — estado técnico verificado
 
-Estado: diseño versionado, **NO desplegado ni conectado**. Sin servicios pagos.
+Última revisión: 17 de octubre de 2026, 10:40 Colombia.
 
-## Flujo de extremo a extremo
-1. Control 360 crea trabajo de prueba en `sjm_ops.work_queue` con `is_test=true`, `dedupe_key` único, `kind` de prueba y estado inicial permitido por el esquema.
-2. Un despachador autenticado toma una tarea a la vez con bloqueo transaccional y marca el intento. Nunca enviar una tarea a un proveedor con `verified=false` en `sjm_ops.failover_routes`.
-3. El despachador llama `POST /self-test` del servicio Render con `Authorization: Bearer EXECUTOR_TOKEN`, secreto exclusivamente en el gestor de secretos del servidor.
-4. Exige HTTP 200 y valida que los dos resultados de Playwright indiquen éxito y que el formulario ficticio confirme `RECIBIDO`. Un 200 por sí solo no prueba un trabajo real.
-5. Persiste resultado JSON sin datos sensibles, hora, identificador de trabajo y evidencia en Supabase. Actualiza estado `done` solo si se confirmó persistencia; si no, reintento limitado con backoff.
-6. Registra `sjm_ops.runs` y muestra estado en Control 360. Verifica también errores, 401, 429, 500, reinicio y duplicados.
+## Instalado y comprobado
+- Repositorio: `andersonmartinezquiroga-ux/SM-Personal-Trainer`, rama `sjm-executor-render`.
+- Servidor existente: `sjm-playwright-executor`, Render Free, `https://sjm-playwright-executor.onrender.com`.
+- API `api_v2.py`: `GET /healthz`, `POST /self-test`, `POST /jobs/inspect`, `POST /jobs/draft`. Las operaciones POST requieren bearer privado. No hay una ruta de presentación externa.
+- El navegador Chromium de Render pasa su prueba local de relleno y pulsación de formulario ficticio `RECIBIDO`, e inspecciona páginas externas de lectura solamente. Verificado desde GitHub Actions: https://github.com/andersonmartinezquiroga-ux/SM-Personal-Trainer/actions/runs/39040982197
+- Comprobación adicional de formularios de Welo y de YPAI Data Annotator: https://github.com/andersonmartinezquiroga-ux/SM-Personal-Trainer/actions/runs/39045633888
+- Supabase `dfqjwlsgqetyxdrsuviy`, tabla privada `sjm_ops.browser_jobs`, RLS activado, sin políticas para anon/authenticated, sin credenciales en repositorio ni en informes.
+- Funciones privadas `sjm_ops.browser_dispatch_v1()` (envío HTTP limitado a inspección o formulario ficticio), `sjm_ops.browser_collect_v1()` (recupera respuesta y guarda resumen sin datos personales), `sjm_ops.browser_tick_v1()` (control de concurrencia y ciclo).
+- Credencial almacenada como secreto de Supabase Vault bajo el identificador `sjm_render_executor_inspector_v1`; no registrar su valor.
+- `pg_cron` job n.º 28, `sjm-browser-workflow-v1`, ejecuta cada 2 minutos, comprobado en `cron.job_run_details` a 15:34, 15:36, 15:38 y 15:40 UTC.
 
-## Límites de seguridad
-- `/self-test` únicamente usa localhost y datos ficticios. **Prohibido** usarlo para formularios o postulaciones externas.
-- Ningún trabajo externo sin validación de elegibilidad, autorización correspondiente, reglas del sitio y comprobante.
-- Aislar clientes, controlar acceso a resultados, no guardar tokens en logs ni GitHub.
-- Render Free puede dormir: una prueba exitosa no garantiza disponibilidad permanente.
-- `GET /healthz` solo verifica HTTP, no Chromium ni conexión a Supabase.
+## Evidencia extremo a extremo Supabase → Render → Supabase
+- `sjm_ops.browser_jobs.id=1`: prueba local ficticia, estado `done`, petición 105, HTTP 200, confirmación `RECIBIDO`, sin candidaturas reales.
+- `id=2`: página oficial Welo AI Trainers Network, `done`, petición 106, HTTP 200, 45 campos, `submitted=false`.
+- `id=3`: página oficial YPAI Data Annotator Colombia, `done`, petición 107, HTTP 200, 10 campos, `submitted=false`. Importante: trabajo DESPACHADO AUTOMÁTICAMENTE por cron a las 15:38 UTC y RECOGIDO AUTOMÁTICAMENTE a las 15:40 UTC, sin intervención manual.
+- Las rutas aceptan solo dominios y rutas concretas: empleos oficiales de Welo/Appen (Lever), Anyone AI (Ashby) y cuatro publicaciones YPAI Colombia. Todo HTTP externo GET/HEAD; sin POST a empleadores.
 
-## Criterios de aceptación
-- [ ] Un trabajo de prueba atraviesa cola → despachador → Render → Supabase → Control 360.
-- [ ] Evidencia consultable con idempotencia y sin duplicados.
-- [ ] Fallo simulado genera reintento controlado y aviso, no falso éxito.
-- [ ] Prueba de acceso denegado y secreto protegido.
-- [ ] Recién entonces habilitar la ruta Playwright como `verified=true`.
+## Qué NO está hecho todavía
+- **Ninguna candidatura laboral externa enviada con este ejecutor**. No contabilizar formularios leídos como aplicaciones.
+- El flujo de datos personales, archivos CV, revisión de requisitos, autorización de consentimiento legal y pulsación real de Enviar requiere un adaptador por empleador y prueba final.
+- El sistema principal `sjm_ops.work_queue` no está migrado a `browser_jobs`; esta última es la primera cola autónoma verificada. No confundir las dos.
+- No activar `sjm_ops.failover_routes.browser_automation.playwright` como envío verificado; solamente `job_form_inspection/playwright_render` tiene prueba y marca `verified=true`.
+- No sortear CAPTCHA, OTP, Turnstile, login, T&C o permisos personales. No guardar datos personales en GitHub.
 
-## Próxima implementación
-Crear despachador de mínimo privilegio (por ejemplo, Edge Function Supabase) con secreto de Render; añadir tabla de evidencias con políticas de acceso; instrumentar pruebas; conectar vista de Control 360. Mantener TinyFish y Floot como herramientas complementarias.
+## Primera candidata para envío autorizado
+YPAI `https://freelancer.ypai.ai/jobs/openings/data-annotator-co`:
+- Página activa para remoto Colombia, CV opcional, teléfono opcional, campos nombre, email, país y consentimiento; puede crear un perfil Freelance YPAI.
+- Exige aprobación personal de la política de privacidad y tratamiento de los datos de la solicitud (hasta 2 años según formulario); no consentir por el fundador sin su autorización explícita.
+- Se requiere validar el envío real, el acuse visible y/o correo oficial. Antes de ello mantener `0` candidaturas nuevas de YPAI.
+
+## Operación / supervisión
+Consulta manual de estado solo lectura:
+```sql
+select id,job_key,operation,state,request_id,response_summary,last_error,completed_at
+from sjm_ops.browser_jobs order by id desc limit 15;
+```
+No añadir trabajos genéricos: el despachador solo permite `self_test` e `inspect`. Un error debe registrarse, nunca falsear éxito.
