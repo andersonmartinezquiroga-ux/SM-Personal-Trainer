@@ -52,6 +52,8 @@ def examine(s):
   d['page_title']=' '.join(p.title).strip()[:160]
   d['source_sha256']=hashlib.sha256(raw).hexdigest()
   d['availability_signal']=classify(content)
+  if s.get('active_official_feed') and d['availability_signal']=='no_open_signal_verified':
+   d['availability_signal']='active_in_official_feed'
   d['evidence_excerpt']=re.sub(r'\s+',' ',content).strip()[:280]
  except (HTTPError,URLError,TimeoutError,ValueError,OSError) as e:
   d['error']=type(e).__name__+': '+str(e)[:180];d['availability_signal']='unreachable'
@@ -77,7 +79,7 @@ def discover_welo_colombia():
   if not re.fullmatch(r'[a-f0-9-]{36}',identifier) or not url.startswith('https://jobs.lever.co/weloglobal/'):
    continue
   selected.append({'id':'welo-'+identifier,'project':'income','kind':'job','name':title,'url':url,
-   'eligibility_note':'Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.'})
+   'eligibility_note':'Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.','active_official_feed':True})
  return selected[:12]
 
 def main():
