@@ -1,6 +1,6 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect,is_security_challenge_title
+from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset
 
 class SecurityTests(unittest.TestCase):
     def test_official(self):
@@ -37,6 +37,14 @@ class SecurityTests(unittest.TestCase):
         for url in forbidden:
             with self.subTest(url=url),self.assertRaises(ValueError):
                 checked_url(url)
+    def test_only_public_ashby_static_assets_get(self):
+        self.assertTrue(is_safe_readonly_asset("https://cdn.ashbyprd.com/frontend_non_user/app/.vite/manifest.json","GET"))
+        self.assertTrue(is_safe_readonly_asset("https://app.ashbyhq.com/api/images/org-theme-logo/known.png","GET"))
+        self.assertFalse(is_safe_readonly_asset("https://app.ashbyhq.com/api/applications","POST"))
+        self.assertFalse(is_safe_readonly_asset("https://app.ashbyhq.com/api/candidates","GET"))
+        self.assertFalse(is_safe_readonly_asset("https://app.ashbyhq.com/api/images/org-theme-logo/known.png","POST"))
+        self.assertFalse(is_safe_readonly_asset("http://127.0.0.1/api/images/a","GET"))
+        self.assertFalse(is_safe_readonly_asset("https://cdn.ashbyprd.com/internal/admin","GET"))
     def test_detect_challenge_without_claiming_listing(self):
         self.assertTrue(is_security_challenge_title("Just a moment..."))
         self.assertTrue(is_security_challenge_title("Verify you are human"))
