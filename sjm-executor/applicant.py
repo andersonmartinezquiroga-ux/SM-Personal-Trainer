@@ -77,13 +77,13 @@ def inspect(url, fields=None):
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
         page.wait_for_timeout(1200)
         if urlparse(page.url).hostname!=source: raise ValueError("Unexpected cross-site redirect")
-        # On Ashby the public vacancy description contains no form inputs; the
-        # official application page is a separate, same-origin /application URL.
-        # Visit this READ-ONLY page before reporting a zero-field failure.
+        # Job boards often put the full application on a separate official URL.
+        # FOLLOW PUBLIC GET ONLY: never click Submit and never transmit applicant data.
         result["followed_application_page"]=False
-        if source=="jobs.ashbyhq.com" and page.locator("input,select,textarea").count()==0:
-            if not urlparse(page.url).path.rstrip("/").endswith("/application"):
-                application_url=url.rstrip("/")+"/application"
+        apply_suffix={"jobs.ashbyhq.com":"/application","jobs.lever.co":"/apply"}.get(source)
+        if apply_suffix and page.locator("input,select,textarea").count()==0:
+            if not urlparse(page.url).path.rstrip("/").endswith(apply_suffix):
+                application_url=url.rstrip("/")+apply_suffix
                 checked_url(application_url)
                 page.goto(application_url,wait_until="domcontentloaded",timeout=25000)
                 page.wait_for_timeout(1400)
