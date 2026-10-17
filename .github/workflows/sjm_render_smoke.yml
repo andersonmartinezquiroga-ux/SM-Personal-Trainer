@@ -60,6 +60,7 @@ jobs:
                   assert exc.code==401,(path,exc.code)
               print('PASS authentication denies anonymous',path)
           print('PASS Render deployed version:',health['version'])
+          assert diagnosis.get('checked_utc'), 'live browser test timestamp missing'
           print('PASS production browser diagnostic',json.dumps(diagnosis))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
               f.write('## SJM Playwright live server\\n- ✅ HTTP 200 with application-inspection-v1\\n- ✅ All anonymous POST calls blocked with HTTP 401\\n- 🔒 External submissions disabled until explicit, verified authorization\\n')
