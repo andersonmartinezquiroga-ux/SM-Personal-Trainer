@@ -62,6 +62,12 @@ jobs:
               except Exception as e:
                   print('EXTERNAL_INSPECT_NOT_YET_VERIFIED:',type(e).__name__,str(e)[:180])
                   raise
+              yurl='https://freelancer.ypai.ai/jobs/openings/data-annotator-co'
+              code,ybody=req('/jobs/inspect',{'url':yurl})
+              assert code==200 and ybody['submitted'] is False,ybody
+              assert ybody['form_fields_total']>=2,ybody
+              print('PASS YPAI Data Annotator form inspected without submission',json.dumps({'title':ybody['title'],'fields':ybody['form_fields_total'],'consent_present':ybody['consent_or_captcha_present'],'submitted':False}))
+              print('YPAI_PUBLIC_FIELDS',json.dumps([{'name':x['name'],'type':x['type'],'label':x['label']} for x in ybody['fields']],ensure_ascii=False))
               with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
                   f.write('## SJM Browser Executor\\n\\n- ✅ Local form completed: RECIBIDO\\n- ✅ Authentication gate tested\\n- ✅ Official external job form inspected without submission\\n- 🔒 **0 external applications submitted**\\n')
           finally:proc.terminate()
