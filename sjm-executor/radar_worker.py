@@ -60,6 +60,30 @@ def examine(s):
  return d
 
 
+def discover_appen_colombia():
+ """Read Appen public Lever job API, matching Colombian Spanish roles."""
+ req=Request('https://api.lever.co/v0/postings/appen?mode=json',
+             headers={'User-Agent':'SJM-Radar/1.1 (public-read-only)','Accept':'application/json'})
+ with urlopen(req,timeout=22) as res:
+  postings=json.loads(res.read(12000000).decode('utf-8'))
+ if not isinstance(postings,list):raise ValueError('Unexpected Appen public jobs format')
+ selected=[]
+ for job in postings:
+  cats=job.get('categories') or {}
+  regions=' '.join(str(x) for x in (cats.get('allLocations') or [cats.get('location') or '']))
+  title=str(job.get('text') or '')
+  url=str(job.get('hostedUrl') or '')
+  identifier=str(job.get('id') or '')
+  if 'colombia' not in regions.lower() and 'colombian' not in title.lower():
+   continue
+  if not re.search(r'spanish|español',title,re.I):continue
+  if not re.fullmatch(r'[a-f0-9-]{36}',identifier) or not url.startswith('https://jobs.lever.co/appen/'):
+   continue
+  selected.append({'id':'appen-'+identifier,'project':'income','kind':'job','name':title,'url':url,
+   'eligibility_note':'Official posting mentions Colombian Spanish. Validate residence, pay, country of birth and recording consent, possible voice-data reuse and rights. No application submitted.','active_official_feed':True})
+ return selected[:12]
+
+
 def discover_welo_colombia():
  """Read Welo's public Lever JSON job feed, filtering explicit Colombia vacancies."""
  req=Request('https://api.lever.co/v0/postings/weloglobal?mode=json',
@@ -96,7 +120,11 @@ def main():
  try:
   sources.extend(discover_welo_colombia())
  except (HTTPError,URLError,TimeoutError,ValueError,OSError,json.JSONDecodeError) as exc:
-  discovery_error=type(exc).__name__+': '+str(exc)[:150]
+  discovery_error='welo: '+type(exc).__name__+': '+str(exc)[:150]
+ try:
+  sources.extend(discover_appen_colombia())
+ except (HTTPError,URLError,TimeoutError,ValueError,OSError,json.JSONDecodeError) as exc:
+  discovery_error=(discovery_error+'; ' if discovery_error else '')+'appen: '+type(exc).__name__+': '+str(exc)[:150]
  unique={s['id']:s for s in sources}
  outcomes=[examine(s) for s in unique.values()]
  data={'schema_version':1,'dynamic_discovery_error':discovery_error,'generated_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'disclaimer':'Read-only official page checks. NO applications sent. Check requirements, terms, language, identity and prior submissions separately.','checked':len(outcomes),'reachable':sum(x['error'] is None for x in outcomes),'route_visible':sum(x['availability_signal']=='application_route_visible' for x in outcomes),'formal_submissions_created':0,'sources':outcomes}
