@@ -57,6 +57,29 @@ def examine(s):
   d['error']=type(e).__name__+': '+str(e)[:180];d['availability_signal']='unreachable'
  return d
 
+
+def discover_welo_colombia():
+ """Read Welo's public Lever JSON job feed, filtering explicit Colombia vacancies."""
+ req=Request('https://api.lever.co/v0/postings/weloglobal?mode=json',
+             headers={'User-Agent':'SJM-Radar/1.1 (public-read-only)','Accept':'application/json'})
+ with urlopen(req,timeout=22) as res:
+  postings=json.loads(res.read(12000000).decode('utf-8'))
+ if not isinstance(postings,list):raise ValueError('Unexpected Welo public jobs format')
+ selected=[]
+ for job in postings:
+  cats=job.get('categories') or {}
+  regions=' '.join(str(x) for x in (cats.get('allLocations') or [cats.get('location') or '']))
+  title=str(job.get('text') or '')
+  url=str(job.get('hostedUrl') or '')
+  identifier=str(job.get('id') or '')
+  if 'colombia' not in regions.lower() or not title or not re.search(r'spanish|español',title,re.I):
+   continue
+  if not re.fullmatch(r'[a-f0-9-]{36}',identifier) or not url.startswith('https://jobs.lever.co/weloglobal/'):
+   continue
+  selected.append({'id':'welo-'+identifier,'project':'income','kind':'job','name':title,'url':url,
+   'eligibility_note':'Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.'})
+ return selected[:12]
+
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--output',default='radar_results.json');ap.add_argument('--self-test',action='store_true');args=ap.parse_args()
  if args.self_test:
@@ -66,8 +89,14 @@ def main():
   assert len(SOURCES)==len({s['id'] for s in SOURCES})
   assert all(urlparse(s['url']).scheme=='https' for s in SOURCES)
   print('Radar SJM self-test PASS: 5 checks');return
- outcomes=[examine(s) for s in SOURCES]
- data={'schema_version':1,'generated_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'disclaimer':'Read-only official page checks. NO applications sent. Check requirements, terms, language, identity and prior submissions separately.','checked':len(outcomes),'reachable':sum(x['error'] is None for x in outcomes),'route_visible':sum(x['availability_signal']=='application_route_visible' for x in outcomes),'formal_submissions_created':0,'sources':outcomes}
+ sources=list(SOURCES); discovery_error=None
+ try:
+  sources.extend(discover_welo_colombia())
+ except (HTTPError,URLError,TimeoutError,ValueError,OSError,json.JSONDecodeError) as exc:
+  discovery_error=type(exc).__name__+': '+str(exc)[:150]
+ unique={s['id']:s for s in sources}
+ outcomes=[examine(s) for s in unique.values()]
+ data={'schema_version':1,'dynamic_discovery_error':discovery_error,'generated_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'disclaimer':'Read-only official page checks. NO applications sent. Check requirements, terms, language, identity and prior submissions separately.','checked':len(outcomes),'reachable':sum(x['error'] is None for x in outcomes),'route_visible':sum(x['availability_signal']=='application_route_visible' for x in outcomes),'formal_submissions_created':0,'sources':outcomes}
  dest=Path(args.output);dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text(json.dumps(data,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
  print(json.dumps({'checked':data['checked'],'reachable':data['reachable'],'visible_routes':data['route_visible'],'sent':0,'output':str(dest)},ensure_ascii=False))
 
