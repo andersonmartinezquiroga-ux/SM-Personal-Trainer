@@ -1,4 +1,5 @@
 name: SJM Browser Executor — E2E test
+# Ashby public GraphQL read classifier investigation
 # Ashby public CDN assets, human-challenge classification and exact URL gates
 on:
   workflow_dispatch:
