@@ -7,11 +7,16 @@ from playwright.sync_api import sync_playwright
 ALLOWED={
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
  "jobs.ashbyhq.com": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/application)?/?$"),
- "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co)$")
+ "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co)$"),
+ # Public, exact-case jobs only. No generic domain-wide browsing.
+ "www.workana.com": re.compile(r"^/es/job/(?:asistente-virtual-y-soporte-al-cliente-remoto-en-espanol|asistente-virtual-full-time-para-configuracion-de-apps-y-gestion-de-clientes)/?$"),
+ "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
+ "myvirtualtrainer.co": re.compile(r"^/$")
 }
 STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com","cdn.ashbyhq.com",
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
-              "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai"}
+              "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
+              "www.workana.com","community.transperfect.com","myvirtualtrainer.co"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def checked_url(url):
@@ -27,6 +32,8 @@ def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
     fields=fields or {}
+    if fields and urlparse(url).hostname not in ("jobs.lever.co","jobs.ashbyhq.com","freelancer.ypai.ai"):
+        raise ValueError("Drafting is disabled for newly approved public listing sites")
     if not isinstance(fields,dict) or len(fields)>20: raise ValueError("Invalid field mapping")
     if any(not isinstance(k,str) or not isinstance(v,str) or len(v)>3000 for k,v in fields.items()):
         raise ValueError("Invalid field value")
@@ -83,6 +90,11 @@ def inspect(url, fields=None):
             result["fields"].append({"name":name,"type":typ,"label":label[:120],"required":bool(required)})
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
+        # Public preflight evidence; absence of fields is NEVER evidence of an application.
+        result["listing_visible"]=bool(result["title"]) and bool(page.locator("h1,h2").count())
+        result["application_form_visible"]=bool(result["form_count"] and result["form_fields_total"])
+        result["login_link_visible"]=page.locator('a[href*="/login"],a[href*="/signup"],a[href*="/auth/"]').count()>0
+        result["apply_link_visible"]=page.locator('a[href*="/apply"], a[href*="/application"], a[href*="/signup"]').count()>0
         result["blocked_resource_metadata"]=blocked_resources[:12] if not result["fields"] else []
         result["consent_or_captcha_present"]=page.locator('iframe[src*="captcha"], [class*="captcha"], input[type="checkbox"]').count()>0
         if fields:
