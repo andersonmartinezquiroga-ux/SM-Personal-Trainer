@@ -24,7 +24,7 @@ jobs:
       - run: python -m playwright install chromium --with-deps
       - name: Verify domain and SSRF restrictions
         working-directory: sjm-executor
-        run: python -m unittest -v test_applicant
+        run: python -m unittest -v test_applicant test_submit_ypai
       - name: Browser test, local form submission, then public form inspection
         working-directory: sjm-executor
         env:
@@ -49,6 +49,12 @@ jobs:
                   raise AssertionError('unauthorized unexpectedly worked')
               except urllib.error.HTTPError as e:
                   assert e.code==401,e.code
+              try:
+                  req('/jobs/submit-ypai',{'case_key':'sjm-ypai-data-annotator-20261017-v1','name':'Test Person','email':'test@example.invalid','country':'Colombia','consent_approved':True,'agreement_approved':True})
+                  raise AssertionError('inspector credential unexpectedly authorized employer submission')
+              except urllib.error.HTTPError as e:
+                  assert e.code==401,e.code
+              print('PASS: employer submission inaccessible using inspector token')
               code,res=req('/self-test',{})
               assert code==200 and res['form']['submitted'] is True and res['form']['confirmation']=='RECIBIDO',res
               print('PASS: authenticated browser navigation + local form completed and confirmation RECIBIDO')
