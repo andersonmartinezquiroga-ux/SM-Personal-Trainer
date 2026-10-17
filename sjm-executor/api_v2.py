@@ -1,9 +1,8 @@
-"""SJM authenticated browser executor: one narrowly scoped employer submission with approval."""
+"""SJM browser inspector; former one-shot employer submission is closed after Work success."""
 import json,os,secrets,threading,tempfile
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from executor import run
 from applicant import inspect
-from submit_ypai import apply_ypai
 from test_form import H
 
 lock=threading.Lock()
@@ -58,7 +57,7 @@ class API(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path=="/healthz":
             return self.reply(200,{"service":"sjm-playwright-executor","status":"ready",
-                "version":"application-inspection-v2","external_submission":"case_approved_only",
+                "version":"application-inspection-v3","external_submission":"disabled_already_submitted",
                 "supabase":"not_connected","diagnostic":DIAGNOSTIC})
         return self.reply(404,{"error":"not_found"})
 
@@ -67,7 +66,10 @@ class API(BaseHTTPRequestHandler):
             return self.reply(404,{"error":"not_found"})
         if self.path=="/jobs/submit-ypai":
             if not self.authorized_submission(): return self.reply(401,{"error":"unauthorized"})
-        elif not self.authorized(): return self.reply(401,{"error":"unauthorized"})
+            # This specific Work-submitted application has already been completed.
+            # A stale scheduled job MUST NOT be allowed to submit a duplicate.
+            return self.reply(410,{"error":"application_already_submitted","duplicate_prevented":True})
+        if not self.authorized(): return self.reply(401,{"error":"unauthorized"})
         try:
             length=int(self.headers.get("Content-Length","0"))
         except (ValueError,TypeError):
@@ -81,15 +83,6 @@ class API(BaseHTTPRequestHandler):
                     submission=run("http://127.0.0.1:8765/",d+"/submission.json",submit=True)
                     return self.reply(200,{"navigation":navigation,"form":submission})
             params=json.loads(self.rfile.read(length).decode("utf-8"))
-            if self.path=="/jobs/submit-ypai":
-                allowed={"case_key","name","email","country","consent_approved","agreement_approved"}
-                if not isinstance(params,dict) or set(params)!=allowed:
-                    return self.reply(400,{"error":"expected_authorized_case_fields"})
-                if params["case_key"]!="sjm-ypai-data-annotator-20261017-v1":
-                    return self.reply(403,{"error":"case_not_authorized"})
-                result=apply_ypai(params["name"],params["email"],params["country"],
-                                  params["consent_approved"],params["agreement_approved"])
-                return self.reply(200,result)
             if not isinstance(params,dict) or not isinstance(params.get("url"),str):
                 return self.reply(400,{"error":"url_required"})
             allowed={"url"} if self.path=="/jobs/inspect" else {"url","fields"}
