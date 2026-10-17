@@ -19,6 +19,17 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "www.workana.com","community.transperfect.com","myvirtualtrainer.co"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
+def is_safe_readonly_asset(url,method):
+    """Only GET/HEAD to fixed public job sites and vendor-owned static assets."""
+    p=urlparse(url)
+    if p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD"):
+        return False
+    if p.hostname=="app.ashbyhq.com":
+        return p.path.startswith("/api/images/")
+    if p.hostname=="cdn.ashbyprd.com":
+        return p.path.startswith("/frontend_non_user/") or p.path.startswith("/cdn_assets/")
+    return p.hostname in STATIC_HOSTS
+
 def is_security_challenge_title(title):
     """Classification only: NEVER bypass or solve a browser challenge."""
     value=(title or "").strip().lower()
@@ -54,7 +65,7 @@ def inspect(url, fields=None):
         def route_only_known(route):
             try:
                 u=urlparse(route.request.url)
-                if u.scheme=="https" and u.hostname in STATIC_HOSTS and u.port in (None,443) and route.request.method in ("GET","HEAD"):
+                if is_safe_readonly_asset(route.request.url,route.request.method):
                     return route.continue_()
             except Exception: pass
             if len(blocked_resources)<20:
