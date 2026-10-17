@@ -95,8 +95,13 @@ jobs:
               for listing_url in listing_urls:
                   code,listing=req('/jobs/inspect',{'url':listing_url})
                   assert code==200 and listing['submitted'] is False,listing
-                  assert listing.get('title') and listing.get('listing_visible'),listing
-                  print('PASS: PUBLIC LISTING GET only',json.dumps({'url':listing_url,'title':listing['title'],'fields':listing['form_fields_total'],'submitted':listing['submitted']}))
+                  assert listing.get('title'),listing
+                  if listing.get('challenge_detected'):
+                      assert not listing.get('listing_visible'),listing
+                      print('PASS: HUMAN CHALLENGE correctly blocked, never treated as a job',json.dumps({'url':listing_url,'title':listing['title']}))
+                  else:
+                      assert listing.get('listing_visible'),listing
+                      print('PASS: PUBLIC LISTING GET only',json.dumps({'url':listing_url,'title':listing['title'],'fields':listing['form_fields_total'],'submitted':listing['submitted']}))
               yurl='https://freelancer.ypai.ai/jobs/openings/data-annotator-co'
               code,ybody=req('/jobs/inspect',{'url':yurl})
               assert code==200 and ybody['submitted'] is False,ybody
