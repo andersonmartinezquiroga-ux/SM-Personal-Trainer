@@ -114,8 +114,8 @@ def inspect(url, fields=None):
         ][:20]
         req_text=" ".join((x["name"]+" "+x["label"]).lower()
                           for x in result["required_fields"])
-        result["required_phone"]=bool(re.search(r"\\b(phone|telephone|tel[eé]fono|celular|mobile)\\b",req_text))
-        result["required_cv"]=bool(re.search(r"\\b(resume|curriculum|cv)\\b",req_text))
+        result["required_phone"]=bool(re.search(r"\b(phone|telephone|tel[eé]fono|celular|mobile)\b",req_text))
+        result["required_cv"]=bool(re.search(r"\b(resume|curriculum|cv)\b",req_text))
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
