@@ -1,0 +1,63 @@
+name: SJM Radar Independiente (fuentes oficiales)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sjm_radar.yml'
+  schedule:
+    - cron: '15 11,23 * * *' # Colombia approx. 06:15 and 18:15; GitHub may delay
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sjm-radar-independiente
+  cancel-in-progress: false
+
+jobs:
+  official-source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Read SJM development branch
+        uses: actions/checkout@v4
+        with:
+          ref: sjm-executor-render
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test radar safety rules
+        run: python sjm-executor/radar_worker.py --self-test
+      - name: Inspect official sources (READ ONLY)
+        run: python sjm-executor/radar_worker.py --output sjm-executor/radar_results.json
+      - name: Report observations, not applications
+        run: |
+          python - <<'PY'
+          import json, os
+          d=json.load(open('sjm-executor/radar_results.json',encoding='utf-8'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
+              f.write('## SJM: verificación independiente de fuentes oficiales\n\n')
+              f.write(f"Fuentes: {d['checked']} · Accesibles: {d['reachable']} · Rutas de postulación visibles: {d['route_visible']} · **Solicitudes enviadas: 0**\n\n")
+              f.write('| Fuente | Señal | URL |\n|---|---|---|\n')
+              for item in d['sources']:
+                  f.write(f"| {item['name']} | {item['availability_signal']} | [Fuente]({item['official_url']}) |\n")
+              f.write('\nSolo comprobación de páginas públicas, no elegibilidad personal ni aplicación enviada.\n')
+          PY
+      - name: Preserve evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sjm-radar-verificacion
+          path: sjm-executor/radar_results.json
+          retention-days: 30
+      - name: Publish latest source snapshot to SJM development branch
+        run: |
+          git config user.name 'SJM Radar Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sjm-executor/radar_results.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'SJM Radar: last read-only official-source snapshot'
+            git push origin HEAD:sjm-executor-render
+          fi
