@@ -1,5 +1,5 @@
 name: SJM Radar Independiente (fuentes oficiales)
-# 2026-10-16: execute updated automatic Colombia jobs discovery
+# 2026-10-16: recurring dynamic Colombia jobs discovery; improve official job apply link detection
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
     paths:
       - '.github/workflows/sjm_radar.yml'
   schedule:
-    - cron: '15 11,23 * * *' # Colombia approx. 06:15 and 18:15; GitHub may delay
+    - cron: '15 */3 * * *' # Cada 3 horas, puede haber retrasos de GitHub
 
 permissions:
   contents: write
