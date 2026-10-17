@@ -42,7 +42,7 @@ jobs:
                   with urllib.request.urlopen(base+'/healthz',timeout=25) as res:
                       health=json.load(res)
                   diagnosis=health.get('diagnostic') or {}
-                  if diagnosis.get('local_browser')=='pass' and diagnosis.get('external_form_read_only')=='pass':
+                  if diagnosis.get('local_browser')=='pass' and diagnosis.get('external_form_read_only')=='pass' and diagnosis.get('checked_utc'):
                       print('PASS live Render Chromium local form and read-only external form')
                       break
                   print('Awaiting live browser proof:',diagnosis)
