@@ -1,3 +1,12 @@
+## Corrección de latencia Render (17 oct, tarde Colombia)
+
+- Error observado: browser_jobs #4 (YPAI Pose/Keypoint) expiró tras 100 segundos durante el arranque de Render Free, sin HTTP de retorno; inspección fallida **no** es solicitud enviada.
+- Causa técnica probable: `api_v2.py` lanzaba la autoprueba Chromium local y múltiples inspecciones externas en un hilo cada vez que Render despertaba. Esa carga competía por la memoria/CPU del plan gratuito.
+- Cambio desplegado en commit `d207e8e45231c52bce715a2f70c2c8f895080435`: autoprueba pesada desactivada durante el arranque normal (`RUN_BOOT_DIAGNOSTIC=0`), `/healthz` rápido y mecanismos privados de inspección preservados. Despliegue Render `dep-db9tmhe1egvs738je1ug` marcado LIVE; GitHub smoke `39067112906` APROBADO, HTTP 200 y rutas POST anónimas bloqueadas.
+- Browser jobs #5 Text/NLP y #6 Model Evaluator finalizaron `done`, HTTP 200, 10 campos cada uno, `submitted=false`, registradas también en Control 360 y Airtable. #7 es inspección reintentada con clave nueva, en espera de verificación en la última consulta. No reintentar ninguna postulación real ambigua.
+- El puente `sjm_ops.bridge_public_browser_cases_v1`, cron #30 cada 5 minutos, actualiza solo `eligibility_review` / casos no enviados; nunca declara `application_sent` sin acuse.
+- Persisten pendientes: envío formal autorizado YPAI Data Annotator (0 intentos confirmados) y proveedor real de avisos push (no conectado). 
+
 # ACTUALIZACIÓN OPERATIVA — 17 OCT 2026, después del diagnóstico de colas
 
 - **Diagnóstico de raíz**: `sjm_ops.worker_tick('cron')` es explícitamente `safe-control-only`; solo completa tareas `kind=self_check`, marca vencimientos y cuenta trabajos que esperan conector. `sjm_ops.orchestrator_tick` procesa revisiones internas y señales oficiales, pero no envía solicitudes laborales por sí solo. Un cron exitoso con `processed_count=0` no acredita postulaciones.
