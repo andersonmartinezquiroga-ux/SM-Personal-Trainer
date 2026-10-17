@@ -1,6 +1,6 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect
+from applicant import checked_url,inspect,is_security_challenge_title
 
 class SecurityTests(unittest.TestCase):
     def test_official(self):
@@ -37,6 +37,11 @@ class SecurityTests(unittest.TestCase):
         for url in forbidden:
             with self.subTest(url=url),self.assertRaises(ValueError):
                 checked_url(url)
+    def test_detect_challenge_without_claiming_listing(self):
+        self.assertTrue(is_security_challenge_title("Just a moment..."))
+        self.assertTrue(is_security_challenge_title("Verify you are human"))
+        self.assertFalse(is_security_challenge_title("AI Agent Evaluator"))
+        self.assertFalse(is_security_challenge_title("Data Annotator, Colombia | YPAI Jobs"))
     def test_no_personal_draft_on_listing_pages(self):
         with self.assertRaises(ValueError):
             inspect("https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol",{"name":"PROHIBITED_TEST"})
