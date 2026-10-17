@@ -106,5 +106,8 @@ class API(BaseHTTPRequestHandler):
 if __name__=="__main__":
     demo=ThreadingHTTPServer(("127.0.0.1",8765),H)
     threading.Thread(target=demo.serve_forever,daemon=True).start()
-    # The cold start must stay lightweight on a free instance. Chromium diagnostics\n    # run through separately authorized tests, NOT every boot.\n    if os.environ.get("RUN_BOOT_DIAGNOSTIC","0")=="1":\n        threading.Thread(target=boot_diagnostic,daemon=True).start()
+    # The cold start must stay lightweight on a free instance. Chromium diagnostics
+    # run through separately authorized tests, NOT every boot.
+    if os.environ.get("RUN_BOOT_DIAGNOSTIC","0")=="1":
+        threading.Thread(target=boot_diagnostic,daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0",int(os.environ.get("PORT","10000"))),API).serve_forever()
