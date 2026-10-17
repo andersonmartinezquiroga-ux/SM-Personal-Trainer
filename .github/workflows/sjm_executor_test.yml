@@ -97,6 +97,10 @@ jobs:
                   code,listing=req('/jobs/inspect',{'url':listing_url})
                   assert code==200 and listing['submitted'] is False,listing
                   assert listing.get('title'),listing
+                  if listing_url.startswith('https://jobs.lever.co/'):
+                      assert listing.get('followed_application_page') and listing.get('form_fields_total',0)>=2,listing
+                      assert listing['final_url'].endswith('/apply'),listing
+                      print('PASS: Welo listing followed GET /apply and form metadata read without candidate data',listing['form_fields_total'])
                   if listing.get('challenge_detected'):
                       assert not listing.get('listing_visible'),listing
                       print('PASS: HUMAN CHALLENGE correctly blocked, never treated as a job',json.dumps({'url':listing_url,'title':listing['title']}))
