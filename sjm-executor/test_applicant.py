@@ -1,6 +1,6 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url
+from applicant import checked_url,inspect
 
 class SecurityTests(unittest.TestCase):
     def test_official(self):
@@ -37,6 +37,9 @@ class SecurityTests(unittest.TestCase):
         for url in forbidden:
             with self.subTest(url=url),self.assertRaises(ValueError):
                 checked_url(url)
+    def test_no_personal_draft_on_listing_pages(self):
+        with self.assertRaises(ValueError):
+            inspect("https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol",{"name":"PROHIBITED_TEST"})
     def test_disallowed(self):
         for url in ("http://127.0.0.1:8765/","https://localhost/","http://169.254.169.254/",
                     "https://example.com/","https://jobs.lever.co/internal"):
