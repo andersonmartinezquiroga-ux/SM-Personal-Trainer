@@ -106,6 +106,16 @@ def inspect(url, fields=None):
                 return (lab?.innerText || el.getAttribute("aria-label") || el.getAttribute("placeholder") || "").slice(0,120)
             }""")
             result["fields"].append({"name":name,"type":typ,"label":label[:120],"required":bool(required)})
+        # Only public field names/labels are collected. Never return or persist entered values.
+        # This lets Control 360 stop BEFORE requesting forbidden personal details.
+        result["required_fields"]=[
+            {"name":x["name"],"type":x["type"],"label":x["label"][:95]}
+            for x in result["fields"] if x["required"]
+        ][:20]
+        req_text=" ".join((x["name"]+" "+x["label"]).lower()
+                          for x in result["required_fields"])
+        result["required_phone"]=bool(re.search(r"\\b(phone|telephone|tel[eé]fono|celular|mobile)\\b",req_text))
+        result["required_cv"]=bool(re.search(r"\\b(resume|curriculum|cv)\\b",req_text))
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
