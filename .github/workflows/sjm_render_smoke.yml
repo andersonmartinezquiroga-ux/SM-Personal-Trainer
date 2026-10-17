@@ -1,0 +1,50 @@
+name: SJM Executor - Render production smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sjm_render_smoke.yml
+  schedule:
+    - cron: '37 */2 * * *'
+permissions:
+  contents: read
+jobs:
+  verify-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Verify public health and deny anonymous browser operations
+        env:
+          EXECUTOR_URL: https://sjm-playwright-executor.onrender.com
+        run: |
+          python - <<'PY'
+          import json,os,time,urllib.request,urllib.error
+          base=os.environ['EXECUTOR_URL'].rstrip('/')
+          health=None
+          for i in range(12):
+              try:
+                  with urllib.request.urlopen(base+'/healthz',timeout=25) as res:
+                      assert res.status==200,res.status
+                      health=json.load(res)
+                  if health.get('version')=='application-inspection-v1':
+                      break
+                  print('version pending',health.get('version'))
+              except Exception as exc:
+                  print('Waiting for free Render service:',type(exc).__name__)
+              time.sleep(10)
+          else:
+              raise AssertionError('Current executor version not healthy')
+          assert health['external_submission']=='disabled',health
+          for path,payload in [('/self-test',{}),('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}})]:
+              req=urllib.request.Request(base+path,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'})
+              try:
+                  urllib.request.urlopen(req,timeout=30)
+                  raise AssertionError('Unauthenticated request was accepted: '+path)
+              except urllib.error.HTTPError as exc:
+                  assert exc.code==401,(path,exc.code)
+              print('PASS authentication denies anonymous',path)
+          print('PASS Render deployed version:',health['version'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('## SJM Playwright live server\\n- ✅ HTTP 200 with application-inspection-v1\\n- ✅ All anonymous POST calls blocked with HTTP 401\\n- 🔒 External submissions disabled until explicit, verified authorization\\n')
+          PY
