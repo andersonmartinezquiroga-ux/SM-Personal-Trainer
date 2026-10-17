@@ -23,6 +23,11 @@ def boot_diagnostic():
         DIAGNOSTIC["external_form_read_only"]="pass" if (a.get("form_fields_total",0)>0 and not a.get("submitted")) else "failed"
     except Exception as exc:
         DIAGNOSTIC["external_form_read_only"]="error:"+type(exc).__name__
+    try:
+        y=inspect("https://freelancer.ypai.ai/jobs/openings/data-annotator-co")
+        DIAGNOSTIC["ypai_public_form"]="pass" if (y.get("form_fields_total",0)>=5 and y.get("consent_or_captcha_present") and not y.get("submitted")) else "failed"
+    except Exception as exc:
+        DIAGNOSTIC["ypai_public_form"]="error:"+type(exc).__name__
     DIAGNOSTIC["checked_utc"]=datetime.now(timezone.utc).isoformat()
     print("SJM browser production boot diagnostic",json.dumps(DIAGNOSTIC),flush=True)
 
