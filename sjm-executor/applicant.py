@@ -19,6 +19,11 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "www.workana.com","community.transperfect.com","myvirtualtrainer.co"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
+def is_security_challenge_title(title):
+    """Classification only: NEVER bypass or solve a browser challenge."""
+    value=(title or "").strip().lower()
+    return value in ("just a moment...","just a moment","attention required!","verify you are human") or "cloudflare challenge" in value
+
 def checked_url(url):
     if not isinstance(url,str) or len(url)>500: raise ValueError("Invalid URL")
     p=urlparse(url)
@@ -76,6 +81,8 @@ def inspect(url, fields=None):
                 result["followed_application_page"]=True
         result["final_url"]=page.url
         result["title"]=(page.title() or "")[:180]
+        result["challenge_detected"]=is_security_challenge_title(result["title"]) or (
+            page.locator("iframe[src*='turnstile'], iframe[src*='recaptcha'], .cf-challenge-running, #challenge-running").count()>0)
         result["form_count"]=page.locator("form").count()
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
@@ -91,8 +98,8 @@ def inspect(url, fields=None):
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
-        result["listing_visible"]=bool(result["title"]) and bool(page.locator("h1,h2").count())
-        result["application_form_visible"]=bool(result["form_count"] and result["form_fields_total"])
+        result["listing_visible"]=(not result["challenge_detected"]) and bool(result["title"]) and bool(page.locator("h1,h2").count())
+        result["application_form_visible"]=(not result["challenge_detected"]) and bool(result["form_count"] and result["form_fields_total"])
         result["login_link_visible"]=page.locator('a[href*="/login"],a[href*="/signup"],a[href*="/auth/"]').count()>0
         result["apply_link_visible"]=page.locator('a[href*="/apply"], a[href*="/application"], a[href*="/signup"]').count()>0
         result["blocked_resource_metadata"]=blocked_resources[:12] if not result["fields"] else []
