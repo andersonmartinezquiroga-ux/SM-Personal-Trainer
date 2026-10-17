@@ -1,5 +1,5 @@
 name: SJM Radar Independiente (fuentes oficiales)
-# 2026-10-16: recurring dynamic Colombia jobs discovery; improve official job apply link detection
+# 2026-10-16: dynamic Colombia job discovery with employer API open-status classification
 
 on:
   workflow_dispatch:
