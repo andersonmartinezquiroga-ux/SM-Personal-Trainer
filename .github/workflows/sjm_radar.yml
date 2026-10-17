@@ -1,4 +1,5 @@
 name: SJM Radar Independiente (fuentes oficiales)
+# 2026-10-16: execute updated automatic Colombia jobs discovery
 
 on:
   workflow_dispatch:
