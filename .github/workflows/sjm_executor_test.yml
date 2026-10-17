@@ -45,7 +45,7 @@ jobs:
                   except Exception:time.sleep(1)
               else:raise RuntimeError('server failed to start')
               try:
-                  req('/self-test',{})
+                  req('/self-test',{},authorized=False)
                   raise AssertionError('unauthorized unexpectedly worked')
               except urllib.error.HTTPError as e:
                   assert e.code==401,e.code
