@@ -7,7 +7,7 @@ from submit_ypai import apply_ypai
 from test_form import H
 
 lock=threading.Lock()
-DIAGNOSTIC={"local_browser":"pending","external_form_read_only":"pending","checked_utc":None}
+DIAGNOSTIC={"local_browser":"on_demand","external_form_read_only":"on_demand","checked_utc":None}
 
 def boot_diagnostic():
     """Execute Chromium in production, but NEVER submit a real external application."""
@@ -58,7 +58,7 @@ class API(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path=="/healthz":
             return self.reply(200,{"service":"sjm-playwright-executor","status":"ready",
-                "version":"application-inspection-v1","external_submission":"disabled",
+                "version":"application-inspection-v2","external_submission":"case_approved_only",
                 "supabase":"not_connected","diagnostic":DIAGNOSTIC})
         return self.reply(404,{"error":"not_found"})
 
@@ -106,5 +106,5 @@ class API(BaseHTTPRequestHandler):
 if __name__=="__main__":
     demo=ThreadingHTTPServer(("127.0.0.1",8765),H)
     threading.Thread(target=demo.serve_forever,daemon=True).start()
-    threading.Thread(target=boot_diagnostic,daemon=True).start()
+    # The cold start must stay lightweight on a free instance. Chromium diagnostics\n    # run through separately authorized tests, NOT every boot.\n    if os.environ.get("RUN_BOOT_DIAGNOSTIC","0")=="1":\n        threading.Thread(target=boot_diagnostic,daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0",int(os.environ.get("PORT","10000"))),API).serve_forever()
