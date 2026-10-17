@@ -1,3 +1,15 @@
+## Revalidación y avisos — 17 oct 2026, 21:29 UTC
+
+- Cron de clasificación #33 comprobado `succeeded` a 21:15, 21:20 y 21:25 UTC; cron de instrucciones #34 `succeeded` a 21:16, 21:21 y 21:26 UTC; ambos sin duplicar los 11 expedientes al repetir.
+- Seguridad Supabase comprobada: `application_pipeline`, `application_pipeline_events`, `application_handoffs`, `browser_jobs` tienen `RLS=true`; `anon` y `authenticated` **no tienen permiso SELECT**.
+- Gmail: aviso real enviado a **la propia cuenta conectada** con asunto `[SJM Control 360] Avance automático — 17 oct`, Gmail message ID `1a14bc496969aae5`; búsqueda de Gmail verificó el mensaje. `sjm_ops.notifications_outbox.id=112` marcado `delivered` con `channel=gmail` y recibo. Esto prueba **un envío por conector**, NO todavía entrega push de la automatización sin intervención ni sonido Android.
+- El endpoint de YPAI anteriormente autorizado quedó cerrado de forma permanente para esa candidatura (`HTTP 410`) y en Render `live`; GitHub E2E `39070433084` y smoke remoto `39070672086` aprobados. Sin enviar dos veces.
+- La semilla de inspección diaria `seed_job_form_inspections_v1` ahora **excluye casos `application_sent`, `response`, `approved`, `rejected`** para evitar trabajo repetido sobre solicitudes ya completadas.
+- Elegibilidad oficial de las tres oportunidades YPAI restantes verificada y registrada en `sjm_ops.cases` y Airtable; Text/NLP y Model Evaluator potencialmente accesibles desde Colombia sin CV ni tasas, con consentimiento para cada vacante. Pose/Keypoint exige disponer de PC/pantalla adecuados. Ninguna de las tres enviada.
+- Anyone AI formulario verdadero `/application` localizado y registrado; exige revisar experiencia y privacidad de uso de servicios conectados. Inspector propio read-only sigue con 0 campos (job #9, fallo de renderizado JavaScript); no postulación.
+
+---
+
 # SJM Control 360 — Autopiloto de postulaciones (estado verificable)
 
 **Fecha:** 17 de octubre de 2026. **Entorno:** Supabase `dfqjwlsgqetyxdrsuviy`, Render gratuito `sjm-playwright-executor`, GitHub rama `sjm-executor-render`.
