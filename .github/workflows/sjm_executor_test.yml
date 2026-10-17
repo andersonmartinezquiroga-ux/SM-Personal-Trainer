@@ -68,6 +68,11 @@ jobs:
               except Exception as e:
                   print('EXTERNAL_INSPECT_NOT_YET_VERIFIED:',type(e).__name__,str(e)[:180])
                   raise
+              ashby='https://jobs.ashbyhq.com/anyone-ai/f90e4b5c-1682-4ddf-bb00-c8a11738a393'
+              code,ashby_meta=req('/jobs/inspect',{'url':ashby})
+              assert code==200 and ashby_meta['submitted'] is False,ashby_meta
+              assert ashby_meta.get('followed_application_page') and ashby_meta.get('form_fields_total',0)>0,ashby_meta
+              print('PASS: Ashby second-page application fields inspected READ ONLY',json.dumps({'fields':ashby_meta['form_fields_total'],'url':ashby_meta['final_url'],'submitted':ashby_meta['submitted']}))
               yurl='https://freelancer.ypai.ai/jobs/openings/data-annotator-co'
               code,ybody=req('/jobs/inspect',{'url':yurl})
               assert code==200 and ybody['submitted'] is False,ybody
