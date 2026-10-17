@@ -38,12 +38,17 @@ def inspect(url, fields=None):
         ctx=browser.new_context(ignore_https_errors=False,accept_downloads=False,service_workers="block")
         page=ctx.new_page()
         page.set_default_timeout(7000)
+        blocked_resources=[]
         def route_only_known(route):
             try:
                 u=urlparse(route.request.url)
                 if u.scheme=="https" and u.hostname in STATIC_HOSTS and u.port in (None,443) and route.request.method in ("GET","HEAD"):
                     return route.continue_()
             except Exception: pass
+            if len(blocked_resources)<20:
+                blocked_resources.append({"method":route.request.method,
+                  "host":urlparse(route.request.url).hostname,
+                  "path":urlparse(route.request.url).path[:110]})
             return route.abort()
         ctx.route("**/*",route_only_known)
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
@@ -77,6 +82,8 @@ def inspect(url, fields=None):
             }""")
             result["fields"].append({"name":name,"type":typ,"label":label[:120],"required":bool(required)})
         result["form_fields_total"]=len(result["fields"])
+        result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
+        result["blocked_resource_metadata"]=blocked_resources[:12] if not result["fields"] else []
         result["consent_or_captcha_present"]=page.locator('iframe[src*="captcha"], [class*="captcha"], input[type="checkbox"]').count()>0
         if fields:
             filled=[]
