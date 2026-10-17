@@ -36,7 +36,7 @@ class VisibleHTML(HTMLParser):
 def classify(text):
  t=re.sub(r'\s+',' ',text).lower()
  if re.search(r'(applications? (are )?closed|this (job|position) (is|has been) (closed|filled)|no longer accepting applications)',t):return 'possibly_closed'
- if re.search(r'(apply now|apply today|application[s]? open|postularme|submit (an? )?application|join the community)',t):return 'application_route_visible'
+ if re.search(r'(apply now|apply today|apply for this job|submit your application|application[s]? open|postularme|submit (an? )?application|join the community)',t):return 'application_route_visible'
  return 'no_open_signal_verified'
 
 def examine(s):
@@ -84,6 +84,7 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument('--output',default='radar_results.json');ap.add_argument('--self-test',action='store_true');args=ap.parse_args()
  if args.self_test:
   assert classify('Apply now!')=='application_route_visible'
+  assert classify('apply for this job')=='application_route_visible'
   assert classify('Applications are closed')=='possibly_closed'
   assert classify('Nothing about jobs')=='no_open_signal_verified'
   assert len(SOURCES)==len({s['id'] for s in SOURCES})
