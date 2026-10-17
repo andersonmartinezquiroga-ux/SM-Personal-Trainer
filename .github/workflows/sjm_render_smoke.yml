@@ -1,4 +1,5 @@
 name: SJM Executor - Render production smoke
+# Recheck after live rollout of permanent duplicate lockout
 on:
   workflow_dispatch:
   push:
