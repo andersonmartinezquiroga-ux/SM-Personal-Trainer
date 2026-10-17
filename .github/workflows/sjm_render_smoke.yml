@@ -51,7 +51,7 @@ jobs:
               time.sleep(10)
           else:
               raise AssertionError('Production browser/form inspection failed or not completed: '+str(diagnosis))
-          for path,payload in [('/self-test',{}),('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}})]:
+          for path,payload in [('/self-test',{}),('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}}),('/jobs/submit-ypai',{'case_key':'sjm-ypai-data-annotator-20261017-v1','name':'Test Person','email':'test@example.invalid','country':'Colombia','consent_approved':True,'agreement_approved':True})]:
               req=urllib.request.Request(base+path,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'})
               try:
                   urllib.request.urlopen(req,timeout=30)
