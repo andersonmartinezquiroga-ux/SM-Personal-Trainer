@@ -58,6 +58,7 @@ jobs:
                   code,body=req('/jobs/inspect',{'url':url})
                   assert code==200 and body['submitted'] is False,body
                   print('PASS: official external form read-only inspection',json.dumps({'title':body['title'],'fields':body['form_fields_total'],'forms':body['form_count'],'submitted':body['submitted']}))
+                  print('REQUIRED_JOB_FIELDS_METADATA',json.dumps([{'name':x['name'],'type':x['type'],'label':x['label']} for x in body['fields'] if x['required']][:25],ensure_ascii=False))
               except Exception as e:
                   print('EXTERNAL_INSPECT_NOT_YET_VERIFIED:',type(e).__name__,str(e)[:180])
                   raise
