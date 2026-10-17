@@ -40,7 +40,7 @@ def inspect(url, fields=None):
         def route_only_known(route):
             try:
                 u=urlparse(route.request.url)
-                if u.scheme=="https" and u.hostname in STATIC_HOSTS and u.port in (None,443):
+                if u.scheme=="https" and u.hostname in STATIC_HOSTS and u.port in (None,443) and route.request.method in ("GET","HEAD"):
                     return route.continue_()
             except Exception: pass
             return route.abort()
