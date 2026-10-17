@@ -49,6 +49,19 @@ def inspect(url, fields=None):
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
         page.wait_for_timeout(1200)
         if urlparse(page.url).hostname!=source: raise ValueError("Unexpected cross-site redirect")
+        # On Ashby the public vacancy description contains no form inputs; the
+        # official application page is a separate, same-origin /application URL.
+        # Visit this READ-ONLY page before reporting a zero-field failure.
+        result["followed_application_page"]=False
+        if source=="jobs.ashbyhq.com" and page.locator("input,select,textarea").count()==0:
+            if not urlparse(page.url).path.rstrip("/").endswith("/application"):
+                application_url=url.rstrip("/")+"/application"
+                checked_url(application_url)
+                page.goto(application_url,wait_until="domcontentloaded",timeout=25000)
+                page.wait_for_timeout(1400)
+                if urlparse(page.url).hostname!=source:
+                    raise ValueError("Unexpected cross-site redirect from application")
+                result["followed_application_page"]=True
         result["final_url"]=page.url
         result["title"]=(page.title() or "")[:180]
         result["form_count"]=page.locator("form").count()
