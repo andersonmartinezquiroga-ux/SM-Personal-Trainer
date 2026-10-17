@@ -1,0 +1,67 @@
+name: SJM Browser Executor — E2E test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sjm_executor_test.yml
+permissions:
+  contents: read
+jobs:
+  form-automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout active executor development branch
+        uses: actions/checkout@v4
+        with:
+          ref: sjm-executor-render
+      - name: Python and Playwright
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r sjm-executor/requirements.txt
+      - run: python -m playwright install chromium --with-deps
+      - name: Verify domain and SSRF restrictions
+        working-directory: sjm-executor
+        run: python -m unittest -v test_applicant
+      - name: Browser test, local form submission, then public form inspection
+        working-directory: sjm-executor
+        env:
+          EXECUTOR_TOKEN: gha-local-test-only
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, time, urllib.request, urllib.error
+          env=dict(os.environ); proc=subprocess.Popen(['python','api_v2.py'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+          def req(path,body=None,authorized=True):
+              data=None if body is None else json.dumps(body).encode()
+              headers={'Content-Type':'application/json'}
+              if authorized: headers['Authorization']='Bearer gha-local-test-only'
+              with urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:10000'+path,data=data,headers=headers),timeout=60) as r:
+                  return r.status,json.load(r)
+          try:
+              for attempt in range(30):
+                  try: req('/healthz');break
+                  except Exception:time.sleep(1)
+              else:raise RuntimeError('server failed to start')
+              try:
+                  req('/self-test',{})
+                  raise AssertionError('unauthorized unexpectedly worked')
+              except urllib.error.HTTPError as e:
+                  assert e.code==401,e.code
+              code,res=req('/self-test',{})
+              assert code==200 and res['form']['submitted'] is True and res['form']['confirmation']=='RECIBIDO',res
+              print('PASS: authenticated browser navigation + local form completed and confirmation RECIBIDO')
+              print('PASS: unauthenticated form submission blocked')
+              url='https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'
+              try:
+                  code,body=req('/jobs/inspect',{'url':url})
+                  assert code==200 and body['submitted'] is False,body
+                  print('PASS: official external form read-only inspection',json.dumps({'title':body['title'],'fields':body['form_fields_total'],'forms':body['form_count'],'submitted':body['submitted']}))
+              except Exception as e:
+                  print('EXTERNAL_INSPECT_NOT_YET_VERIFIED:',type(e).__name__,str(e)[:180])
+                  raise
+              with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
+                  f.write('## SJM Browser Executor\\n\\n- ✅ Local form completed: RECIBIDO\\n- ✅ Authentication gate tested\\n- ✅ Official external job form inspected without submission\\n- 🔒 **0 external applications submitted**\\n')
+          finally:proc.terminate()
+          PY
