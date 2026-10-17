@@ -86,6 +86,17 @@ jobs:
               else:
                   print('ASHBY_PARTIAL: Official application page discovered but zero fields under read-only network restrictions; not a completed inspection.')
                   print('ASHBY_BLOCKED_DEPENDENCIES',json.dumps(ashby_meta.get('blocked_resource_metadata',[]),ensure_ascii=False))
+              # Verify new exact-URL public listing connectors; never fill or submit
+              listing_urls=[
+                'https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol',
+                'https://community.transperfect.com/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia',
+                'https://jobs.lever.co/weloglobal/9bf1acc5-82ec-446b-9cb0-429f08b9d8f1'
+              ]
+              for listing_url in listing_urls:
+                  code,listing=req('/jobs/inspect',{'url':listing_url})
+                  assert code==200 and listing['submitted'] is False,listing
+                  assert listing.get('title') and listing.get('listing_visible'),listing
+                  print('PASS: PUBLIC LISTING GET only',json.dumps({'url':listing_url,'title':listing['title'],'fields':listing['form_fields_total'],'submitted':listing['submitted']}))
               yurl='https://freelancer.ypai.ai/jobs/openings/data-annotator-co'
               code,ybody=req('/jobs/inspect',{'url':yurl})
               assert code==200 and ybody['submitted'] is False,ybody
