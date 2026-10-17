@@ -27,7 +27,7 @@ jobs:
                   with urllib.request.urlopen(base+'/healthz',timeout=25) as res:
                       assert res.status==200,res.status
                       health=json.load(res)
-                  if health.get('version')=='application-inspection-v2':
+                  if health.get('version')=='application-inspection-v3':
                       break
                   print('version pending',health.get('version'))
               except Exception as exc:
@@ -35,7 +35,7 @@ jobs:
               time.sleep(10)
           else:
               raise AssertionError('Current executor version not healthy')
-          assert health['external_submission']=='case_approved_only',health
+          assert health['external_submission']=='disabled_already_submitted',health
           # Chromium end-to-end proof is checked separately through Supabase browser_jobs.
           # Avoid heavy browser tests during every free-tier server cold start.
           for path,payload in [('/self-test',{}),('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}}),('/jobs/submit-ypai',{'case_key':'sjm-ypai-data-annotator-20261017-v1','name':'Test Person','email':'test@example.invalid','country':'Colombia','consent_approved':True,'agreement_approved':True})]:
@@ -49,5 +49,5 @@ jobs:
           print('PASS Render deployed version:',health['version'])
           print('PASS lightweight readiness; browser evidence stored in Supabase queue')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('## SJM Playwright live server\\n- ✅ HTTP 200 with application-inspection-v2\\n- ✅ All anonymous POST calls blocked with HTTP 401\\n- 🔒 Real employer submission still unverified; case-specific authorization required\\n')
+              f.write('## SJM Playwright live server\\n- ✅ HTTP 200 with application-inspection-v3\\n- ✅ All anonymous POST calls blocked with HTTP 401\\n- 🔒 Real employer submission still unverified; case-specific authorization required\\n')
           PY
