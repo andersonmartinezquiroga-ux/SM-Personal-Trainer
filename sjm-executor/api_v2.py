@@ -1,8 +1,9 @@
-"""SJM authenticated browser executor. External submit is prohibited until case-specific review."""
+"""SJM authenticated browser executor: one narrowly scoped employer submission with approval."""
 import json,os,secrets,threading,tempfile
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from executor import run
 from applicant import inspect
+from submit_ypai import apply_ypai
 from test_form import H
 
 lock=threading.Lock()
@@ -50,6 +51,10 @@ class API(BaseHTTPRequestHandler):
         tokens=(os.environ.get("EXECUTOR_TOKEN",""),os.environ.get("INSPECTOR_TOKEN",""))
         return any(bool(token) and secrets.compare_digest(presented,"Bearer "+token) for token in tokens)
 
+    def authorized_submission(self):
+        token=os.environ.get("SUBMISSION_TOKEN","")
+        return bool(token) and secrets.compare_digest(self.headers.get("Authorization",""),"Bearer "+token)
+
     def do_GET(self):
         if self.path=="/healthz":
             return self.reply(200,{"service":"sjm-playwright-executor","status":"ready",
@@ -58,9 +63,11 @@ class API(BaseHTTPRequestHandler):
         return self.reply(404,{"error":"not_found"})
 
     def do_POST(self):
-        if self.path not in ("/self-test","/jobs/inspect","/jobs/draft"):
+        if self.path not in ("/self-test","/jobs/inspect","/jobs/draft","/jobs/submit-ypai"):
             return self.reply(404,{"error":"not_found"})
-        if not self.authorized(): return self.reply(401,{"error":"unauthorized"})
+        if self.path=="/jobs/submit-ypai":
+            if not self.authorized_submission(): return self.reply(401,{"error":"unauthorized"})
+        elif not self.authorized(): return self.reply(401,{"error":"unauthorized"})
         try:
             length=int(self.headers.get("Content-Length","0"))
         except (ValueError,TypeError):
@@ -74,6 +81,15 @@ class API(BaseHTTPRequestHandler):
                     submission=run("http://127.0.0.1:8765/",d+"/submission.json",submit=True)
                     return self.reply(200,{"navigation":navigation,"form":submission})
             params=json.loads(self.rfile.read(length).decode("utf-8"))
+            if self.path=="/jobs/submit-ypai":
+                allowed={"case_key","name","email","country","consent_approved","agreement_approved"}
+                if not isinstance(params,dict) or set(params)!=allowed:
+                    return self.reply(400,{"error":"expected_authorized_case_fields"})
+                if params["case_key"]!="sjm-ypai-data-annotator-20261017-v1":
+                    return self.reply(403,{"error":"case_not_authorized"})
+                result=apply_ypai(params["name"],params["email"],params["country"],
+                                  params["consent_approved"],params["agreement_approved"])
+                return self.reply(200,result)
             if not isinstance(params,dict) or not isinstance(params.get("url"),str):
                 return self.reply(400,{"error":"url_required"})
             allowed={"url"} if self.path=="/jobs/inspect" else {"url","fields"}
