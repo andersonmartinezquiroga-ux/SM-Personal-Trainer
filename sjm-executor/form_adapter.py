@@ -30,12 +30,24 @@ def classify_application_form(url, fields, *, challenge=False, form_visible=Fals
         name = str(field.get('name') or '')[:90]
         typ = str(field.get('type') or '').lower()[:32]
         label = str(field.get('label') or '')[:120]
-        inspected.append((typ, name + ' ' + label, field.get('required') is True))
-    required_phone = any(req and (typ == 'tel' or PHONE.search(name)) for typ, name, req in inspected)
-    required_cv = any(req and (typ == 'file' or CV.search(name) or '_systemfield_resume' in name) for typ, name, req in inspected)
-    file_upload = any(typ == 'file' for typ, _, _ in inspected)
-    legal_consent = any((typ == 'checkbox' or req) and LEGAL.search(name) for typ, name, req in inspected)
-    unknown_required_checkbox = any(typ == 'checkbox' and req for typ, _, req in inspected)
+        inspected.append((typ, name, label, field.get('required') is True))
+    # A required legal-consent checkbox may mention phone or CV but is NOT
+    # itself a phone or CV field. Identify the actual input, not nearby text.
+    required_phone = any(
+        req and typ not in ('checkbox', 'radio', 'hidden') and
+        (typ == 'tel' or PHONE.search(name + ' ' + label))
+        for typ, name, label, req in inspected
+    )
+    required_cv = any(
+        req and typ not in ('checkbox', 'radio', 'hidden') and
+        ('_systemfield_resume' in name.lower() or CV.search(name) or
+         (typ == 'file' and CV.search(label)))
+        for typ, name, label, req in inspected
+    )
+    file_upload = any(typ == 'file' for typ, _, _, _ in inspected)
+    legal_consent = any((typ == 'checkbox' or req) and LEGAL.search(name + ' ' + label)
+                        for typ, name, label, req in inspected)
+    unknown_required_checkbox = any(typ == 'checkbox' and req for typ, _, _, req in inspected)
     legal_review = bool(legal_consent or unknown_required_checkbox)
     if challenge:
         state = 'requires_human_challenge'
