@@ -1,5 +1,5 @@
 name: SJM Executor - Render production smoke
-# Recheck after live rollout of permanent duplicate lockout
+# Verify v4 gated submission: public health, zero implicit approvals, auth required.
 on:
   workflow_dispatch:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
-      - name: Verify public health and deny anonymous browser operations
+      - name: Verify public health and deny anonymous browser/submission operations
         env:
           EXECUTOR_URL: https://sjm-playwright-executor.onrender.com
         run: |
@@ -28,7 +28,7 @@ jobs:
                   with urllib.request.urlopen(base+'/healthz',timeout=25) as res:
                       assert res.status==200,res.status
                       health=json.load(res)
-                  if health.get('version')=='application-inspection-v3':
+                  if health.get('version')=='application-gated-submit-v4':
                       break
                   print('version pending',health.get('version'))
               except Exception as exc:
@@ -36,10 +36,24 @@ jobs:
               time.sleep(10)
           else:
               raise AssertionError('Current executor version not healthy')
-          assert health['external_submission']=='disabled_already_submitted',health
-          # Chromium end-to-end proof is checked separately through Supabase browser_jobs.
-          # Avoid heavy browser tests during every free-tier server cold start.
-          for path,payload in [('/self-test',{}),('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}}),('/jobs/submit-ypai',{'case_key':'sjm-ypai-data-annotator-20261017-v1','name':'Test Person','email':'test@example.invalid','country':'Colombia','consent_approved':True,'agreement_approved':True})]:
+          assert health['external_submission']=='disabled_without_exact_case_approval',health
+          assert health.get('approved_case_count')==0,health
+          assert set(health.get('ypai_role_allowlist',[]))=={
+              'data-annotator-co','text-annotator-co','model-evaluator-co','pose-keypoint-annotator-co'
+          },health
+          probes=[
+            ('/self-test',{}),
+            ('/jobs/inspect',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply'}),
+            ('/jobs/draft',{'url':'https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply','fields':{}}),
+            ('/jobs/submit-ypai',{'case_key':'radar:commercial:ingresos-ypai-data-annotator-co-20261016'}),
+            ('/jobs/submit-ypai-role',{
+                'role_slug':'text-annotator-co',
+                'case_key':'radar:commercial:ingresos-ypai-text-annotator-co-20261016',
+                'name':'Test Person','email':'test@example.invalid','country':'Colombia',
+                'privacy_consent':True,'contributor_agreement':True
+            }),
+          ]
+          for path,payload in probes:
               req=urllib.request.Request(base+path,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'})
               try:
                   urllib.request.urlopen(req,timeout=30)
@@ -48,7 +62,7 @@ jobs:
                   assert exc.code==401,(path,exc.code)
               print('PASS authentication denies anonymous',path)
           print('PASS Render deployed version:',health['version'])
-          print('PASS lightweight readiness; browser evidence stored in Supabase queue')
+          print('PASS no YPAI case is implicitly approved for submission')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('## SJM Playwright live server\\n- ✅ HTTP 200 with application-inspection-v3\\n- ✅ All anonymous POST calls blocked with HTTP 401\\n- 🔒 Real employer submission still unverified; case-specific authorization required\\n')
+              f.write('## SJM Playwright live server\n- ✅ HTTP 200 with application-gated-submit-v4\n- ✅ Approved cases default to 0\n- ✅ Role submission endpoint exists but requires secret auth + exact approved case\n- ✅ Anonymous POST calls blocked with HTTP 401\n- 🔒 No external application submitted by this smoke test\n')
           PY
