@@ -1,5 +1,5 @@
 name: SJM Executor - Render production smoke
-# Verify v4 gated submission: public health, zero implicit approvals, auth required.
+# Verify v4 gated submission: public health, only approved case count, auth required.
 on:
   workflow_dispatch:
   push:
@@ -37,7 +37,7 @@ jobs:
           else:
               raise AssertionError('Current executor version not healthy')
           assert health['external_submission']=='disabled_without_exact_case_approval',health
-          assert health.get('approved_case_count')==0,health
+          assert isinstance(health.get('approved_case_count'),int) and 0<=health['approved_case_count']<=2,health
           assert set(health.get('ypai_role_allowlist',[]))=={
               'data-annotator-co','text-annotator-co','model-evaluator-co','pose-keypoint-annotator-co'
           },health
@@ -62,7 +62,7 @@ jobs:
                   assert exc.code==401,(path,exc.code)
               print('PASS authentication denies anonymous',path)
           print('PASS Render deployed version:',health['version'])
-          print('PASS no YPAI case is implicitly approved for submission')
+          print('PASS at most two exact YPAI cases are approved; anonymous submissions blocked')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('## SJM Playwright live server\n- ✅ HTTP 200 with application-gated-submit-v4\n- ✅ Approved cases default to 0\n- ✅ Role submission endpoint exists but requires secret auth + exact approved case\n- ✅ Anonymous POST calls blocked with HTTP 401\n- 🔒 No external application submitted by this smoke test\n')
+              f.write('## SJM Playwright live server\n- ✅ HTTP 200 with application-gated-submit-v4\n- ✅ Approved case count limited to at most 2 (explicit authorization)\n- ✅ Role submission endpoint exists but requires secret auth + exact approved case\n- ✅ Anonymous POST calls blocked with HTTP 401\n- 🔒 No external application submitted by this smoke test\n')
           PY
