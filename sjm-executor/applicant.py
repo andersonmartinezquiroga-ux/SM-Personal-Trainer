@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright,TimeoutError as PlaywrightTimeoutError
+from form_adapter import classify_application_form
 
 ALLOWED={
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
@@ -220,6 +221,10 @@ def inspect(url, fields=None):
         result["apply_link_visible"]=page.locator('a[href*="/apply"], a[href*="/application"], a[href*="/signup"]').count()>0
         result["blocked_resource_metadata"]=blocked_resources[:12] if not result["fields"] else []
         result["consent_or_captcha_present"]=page.locator('iframe[src*="captcha"], [class*="captcha"], input[type="checkbox"]').count()>0
+        result["adapter_summary"]=classify_application_form(
+            url, result["fields"], challenge=result["challenge_detected"],
+            form_visible=result["application_form_visible"]
+        )
         if fields:
             filled=[]
             for name,value in fields.items():
