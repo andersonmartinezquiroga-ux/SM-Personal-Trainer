@@ -124,6 +124,9 @@ def inspect(url, fields=None):
                             metadata["graphql_kind"]="query" if re.match(r"^\s*query\b",q) else (
                                 "mutation" if re.match(r"^\s*mutation\b",q) else "other")
                             metadata["has_query_string"]=bool(q)
+                            metadata["body_length"]=len(route.request.post_data or "")
+                            metadata["graphql_query_prefix"]=str(q).strip()[:85]
+                            metadata["variable_keys"]=list((payload.get("variables") or {}).keys())[:12] if isinstance(payload.get("variables"),dict) else []
                     except (ValueError,TypeError):metadata["graphql_kind"]="unknown"
                 blocked_resources.append(metadata)
             return route.abort()
