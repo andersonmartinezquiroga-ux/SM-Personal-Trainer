@@ -201,13 +201,21 @@ def inspect(url, fields=None):
         ][:20]
         req_text=" ".join((x["name"]+" "+x["label"]).lower()
                           for x in result["required_fields"])
-        result["required_phone"]=bool(re.search(r"\b(phone|telephone|tel[eé]fono|celular|mobile)\b",req_text))
-        result["required_cv"]=bool(re.search(r"\b(resume|curriculum|cv)\b",req_text))
+        result["required_phone"]=any(x["type"]=="tel" or bool(re.search(
+            r"\b(phone|telephone|tel[eé]fono|celular|mobile)\b",
+            (x["name"]+" "+x["label"]).lower())) for x in result["required_fields"])
+        result["required_cv"]=any(
+            x["name"]=="_systemfield_resume" or bool(re.search(
+                r"\b(resume|curriculum|cv)\b",(x["name"]+" "+x["label"]).lower()))
+            for x in result["required_fields"])
+        result["required_file_upload"]=any(x["type"]=="file" for x in result["required_fields"])
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
         result["listing_visible"]=(not result["challenge_detected"]) and bool(result["title"]) and bool(page.locator("h1,h2").count())
-        result["application_form_visible"]=(not result["challenge_detected"]) and bool(result["form_count"] and result["form_fields_total"])
+        result["application_form_visible"]=(not result["challenge_detected"]) and bool(
+            result["form_fields_total"] and (result["form_count"] or
+              (source=="jobs.ashbyhq.com" and urlparse(page.url).path.endswith("/application"))))
         result["login_link_visible"]=page.locator('a[href*="/login"],a[href*="/signup"],a[href*="/auth/"]').count()>0
         result["apply_link_visible"]=page.locator('a[href*="/apply"], a[href*="/application"], a[href*="/signup"]').count()>0
         result["blocked_resource_metadata"]=blocked_resources[:12] if not result["fields"] else []
