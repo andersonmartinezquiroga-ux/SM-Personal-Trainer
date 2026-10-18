@@ -56,12 +56,25 @@ def is_safe_public_ashby_query(request):
         if re.search(r"\bmutation\b|\bsubscription\b",query,re.IGNORECASE):
             return False
         variables=data.get("variables") or {}
-        if not isinstance(variables,dict) or len(variables)>10:
+        # Only public Ashby listing identifiers observed on the official page.
+        # 'organizationHostedJobsPageName' is a PUBLIC organization slug, not a person.
+        if not isinstance(variables,dict) or set(variables)-{
+            "organizationHostedJobsPageName","jobPostingId","searchContext"}:
             return False
-        if any(not isinstance(key,str) or re.search(r"email|phone|name|password|resume|candidate|application|token|auth|file",key,re.I)
-               or not isinstance(value,(str,bool,int)) or len(str(value))>180
-               or "@" in str(value) for key,value in variables.items()):
+        if variables.get("organizationHostedJobsPageName")!="anyone-ai":
             return False
+        job=variables.get("jobPostingId")
+        if job is not None and (not isinstance(job,str)
+                or not re.fullmatch(r"[a-fA-F0-9-]{36}",job)):
+            return False
+        context=variables.get("searchContext")
+        if context is not None:
+            if not isinstance(context,(dict,str)) or len(json.dumps(context))>550:
+                return False
+            if "@" in json.dumps(context) or re.search(
+                r'"(?:email|phone|password|token|accessToken|fullName|firstName|lastName)"\\s*:',
+                json.dumps(context),re.I):
+                return False
         return True
     except (TypeError,ValueError,AttributeError):
         return False
