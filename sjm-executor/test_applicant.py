@@ -44,9 +44,12 @@ class SecurityTests(unittest.TestCase):
                 self.method="POST";self.url=url
                 self.post_data=json.dumps({"operationName":op,
                     "query":query or ("query "+op+"($slug:String!) { job: jobPosting(slug:$slug) { id } }"),
-                    "variables":{"slug":"anyone-ai"} if variables is None else variables})
+                    "variables":{"organizationHostedJobsPageName":"anyone-ai","jobPostingId":"f90e4b5c-1682-4ddf-bb00-c8a11738a393"} if variables is None else variables})
         for op in ("ApiJobPosting","ApiOrganizationFromHostedJobsPageName"):
             self.assertTrue(is_safe_public_ashby_query(R(op)),op)
+        self.assertTrue(is_safe_public_ashby_query(R(
+            "ApiOrganizationFromHostedJobsPageName",
+            variables={"organizationHostedJobsPageName":"anyone-ai","searchContext":{}})))
         forbidden=[
             R("CreateApplication"),
             R("ApiJobPosting",query="mutation ApiJobPosting { createApplication }"),
