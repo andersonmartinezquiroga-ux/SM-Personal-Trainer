@@ -1,3 +1,13 @@
+# ACTUALIZACIÓN EN PRODUCCIÓN — 18 OCT 2026 — PUNTO 1
+
+- **Motor y conexión reales:** Supabase `browser_jobs #21` se despachó desde la base al Render existente, HTTP request `159`, y volvió `done` / `200` / `passed=true`. `submitted=true` corresponde exclusivamente al **formulario ficticio local de autoprueba**, NO a una candidatura externa.
+- **Puente a la cola central:** nueva función `sjm_ops.safe_job_queue_bridge_v1()`, pg_cron cada 5 minutos; enlaza `cases` del radar con `work_queue` (investigación) y `browser_jobs` (inspección pública). Primera ejecución: 8 entradas añadidas y conciliadas con 8 inspecciones ya realizadas; segunda ejecución: 0 duplicados. Nunca envía solicitudes. Código migración: `sjm-executor/sql/sjm_control360_main_queue_to_browser_bridge_20261018.sql`.
+- **Recuperación de fallos pasajeros:** `sjm_ops.browser_safe_retry_v1()`, cron #36 cada 20 min; reintento read-only SOLO para errores HTTP 429/502/503/504 o timeout sin respuesta; exige URL allowlisted, excluye candidaturas enviadas y limita el total a 3 inspecciones/24 h por URL. Ensayo de falla simulada HTTP 503 dio positivo y fue totalmente revertido: 0 filas de prueba persistentes. Migración: `sjm-executor/sql/sjm_browser_safe_retry_backoff_20261018.sql`.
+- **Control de acceso:** `browser_jobs` con RLS; ambas funciones nuevas sin ejecución anónima ni autenticada común, solo `service_role` (cron opera por propietario). La misión YPAI Data Annotator permanece `confirmed`, `attempts=1` y excluida del circuito.
+- **Alcance y pendientes reales:** conectado el circuito radar → cola central → navegador → registro **para inspecciones de lectura**. El envío general de candidaturas, sus consentimientos individuales, recibos oficiales y las notificaciones audibles Android siguen pendientes. El `work_queue` preexistente de revisión de financiación conserva su flujo distinto y no se modificó. Render está en plan gratuito, con autoDeploy desactivado. No se adquirieron planes ni servicios.
+
+---
+
 # PRUEBA PUNTO 1 — producción y detección de requisitos — 17 OCT 2026, 21:38 Colombia
 
 **Verificación extremo a extremo ejecutada en esta sesión:**
