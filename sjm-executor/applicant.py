@@ -3,7 +3,7 @@ import re
 import json
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright,TimeoutError as PlaywrightTimeoutError
 
 ALLOWED={
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
@@ -111,6 +111,13 @@ def inspect(url, fields=None):
         page=ctx.new_page()
         page.set_default_timeout(7000)
         blocked_resources=[]
+        ashby_query_statuses=[]
+        def record_public_graphql_status(response):
+            dest=urlparse(response.url)
+            if dest.hostname=="jobs.ashbyhq.com" and dest.path=="/api/non-user-graphql" and len(ashby_query_statuses)<12:
+                ashby_query_statuses.append(response.status)
+        if source=="jobs.ashbyhq.com":
+            page.on("response",record_public_graphql_status)
         def route_only_known(route):
             try:
                 u=urlparse(route.request.url)
@@ -160,6 +167,16 @@ def inspect(url, fields=None):
                 if urlparse(page.url).hostname!=source:
                     raise ValueError("Unexpected cross-site redirect from application")
                 result["followed_application_page"]=True
+        # On a CPU-limited free Render instance, public Ashby GraphQL hydration
+        # may take much longer than on GitHub Actions. Wait for the actual fields,
+        # not a fixed 1.4s sleep, and never mistake a blank shell for an inspection.
+        if source=="jobs.ashbyhq.com":
+            try:
+                page.locator("input, select, textarea").first.wait_for(state="attached",timeout=26000)
+                result["public_form_rendered"]=True
+            except PlaywrightTimeoutError:
+                result["public_form_rendered"]=False
+            result["public_graphql_http_statuses"]=ashby_query_statuses[:10]
         result["final_url"]=page.url
         result["title"]=(page.title() or "")[:180]
         result["challenge_detected"]=is_security_challenge_title(result["title"]) or (
