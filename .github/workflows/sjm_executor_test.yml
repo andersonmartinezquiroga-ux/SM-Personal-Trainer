@@ -93,8 +93,8 @@ jobs:
               if ashby_meta['form_fields_total']>0:
                   print('PASS: Ashby application fields inspected READ ONLY',json.dumps({'fields':ashby_meta['form_fields_total'],'url':ashby_meta['final_url'],'submitted':False}))
               else:
-                  print('ASHBY_PARTIAL: Official application page discovered but zero fields under read-only network restrictions; not a completed inspection.')
                   print('ASHBY_BLOCKED_DEPENDENCIES',json.dumps(ashby_meta.get('blocked_resource_metadata',[]),ensure_ascii=False))
+                  raise AssertionError('Ashby adapter still cannot inspect live form fields — not fixed')
               # Verify new exact-URL public listing connectors; never fill or submit
               listing_urls=[
                 'https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol',
