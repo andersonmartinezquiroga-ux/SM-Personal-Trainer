@@ -31,6 +31,41 @@ def is_safe_readonly_asset(url,method):
         return p.path.startswith("/frontend_non_user/") or p.path.startswith("/cdn_assets/")
     return p.hostname in STATIC_HOSTS
 
+ASHBY_PUBLIC_QUERIES=frozenset(("ApiJobPosting","ApiOrganizationFromHostedJobsPageName"))
+
+def is_safe_public_ashby_query(request):
+    """Two named public GraphQL QUERIES only, never a mutation/application POST."""
+    try:
+        u=urlparse(request.url)
+        if not (request.method=="POST" and u.scheme=="https"
+                and u.hostname=="jobs.ashbyhq.com" and u.port in (None,443)
+                and u.path=="/api/non-user-graphql" and not u.username and not u.password):
+            return False
+        raw=request.post_data or ""
+        if len(raw)>18000:
+            return False
+        data=json.loads(raw)
+        if not isinstance(data,dict) or set(data)-{"query","operationName","variables"}:
+            return False
+        op=data.get("operationName")
+        query=data.get("query")
+        if op not in ASHBY_PUBLIC_QUERIES or not isinstance(query,str):
+            return False
+        if not re.match(r"^\s*query\s+"+re.escape(op)+r"\b",query):
+            return False
+        if re.search(r"\bmutation\b|\bsubscription\b",query,re.IGNORECASE):
+            return False
+        variables=data.get("variables") or {}
+        if not isinstance(variables,dict) or len(variables)>10:
+            return False
+        if any(not isinstance(key,str) or re.search(r"email|phone|name|password|resume|candidate|application|token|auth|file",key,re.I)
+               or not isinstance(value,(str,bool,int)) or len(str(value))>180
+               or "@" in str(value) for key,value in variables.items()):
+            return False
+        return True
+    except (TypeError,ValueError,AttributeError):
+        return False
+
 def is_security_challenge_title(title):
     """Classification only: NEVER bypass or solve a browser challenge."""
     value=(title or "").strip().lower()
@@ -67,6 +102,10 @@ def inspect(url, fields=None):
             try:
                 u=urlparse(route.request.url)
                 if is_safe_readonly_asset(route.request.url,route.request.method):
+                    return route.continue_()
+                # Ashby renders public form fields through two strictly READ-ONLY GraphQL
+                # queries sent as POST. Refuse every mutation, personal data, and other POST.
+                if is_safe_public_ashby_query(route.request):
                     return route.continue_()
             except Exception: pass
             if len(blocked_resources)<20:
