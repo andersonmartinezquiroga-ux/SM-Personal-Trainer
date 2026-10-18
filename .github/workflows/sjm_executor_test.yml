@@ -90,6 +90,7 @@ jobs:
               assert code==200 and ashby_meta['submitted'] is False,ashby_meta
               assert ashby_meta.get('followed_application_page') and ashby_meta['final_url'].endswith('/application'),ashby_meta
               assert not ashby_meta['submitted'],ashby_meta
+              assert ashby_meta.get('public_form_rendered'),ashby_meta
               if ashby_meta['form_fields_total']>0:
                   print('PASS: Ashby application fields inspected READ ONLY',json.dumps({'fields':ashby_meta['form_fields_total'],'url':ashby_meta['final_url'],'submitted':False}))
               else:
