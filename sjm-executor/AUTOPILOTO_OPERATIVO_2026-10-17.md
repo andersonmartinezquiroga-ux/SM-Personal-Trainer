@@ -1,3 +1,15 @@
+# AVANCE PUNTO 2 — 18 OCT 2026: ADAPTADOR DE FORMULARIOS EN PRODUCCIÓN
+
+- **Código desplegado en Render Free:** `form_adapter.py`, `applicant.py`, `Dockerfile` y `test_form_adapter.py` actualizados en la rama existente `sjm-executor-render`. Primera compilación falló porque Dockerfile omitía `form_adapter.py`; corregido y verificado en despliegue `dep-dbad7r3bc2fs73aupkq0` LIVE. La segunda versión, que corrige una falsa detección de CV en texto legal, quedó LIVE en despliegue `dep-dbad9svbtjjs73enab3g`.
+- **Pruebas offline:** 10 pruebas unitarias aprobadas de clasificación de requisitos (teléfono, CV, casillas legales, archivos opcionales, archivo genérico, challenge humano, formularios dinámicos y bloqueo de envío). No se ingresaron datos personales en pruebas ni se enviaron candidaturas.
+- **Prueba producción Supabase → Render → Supabase, solo lectura:** `browser_jobs.id=26`, HTTP request `163`, YPAI Text/NLP Colombia, `HTTP 200`, `state=done`, **10 campos**, `adapter=ypai_colombia`, `required_phone=false`, `required_cv=false`, `legal_consent_review_required=true`, `approval_scopes=["terms_or_privacy"]`, `submitted=false`. Precisión comprobada contra campos obligatorios visibles: nombre, email, consentimiento. NO postulación.
+- **Error detectado y reparado:** el aviso del consentimiento decía 'any CV I upload' y el detector anterior interpretaba equivocadamente que el CV era obligatorio. Ahora la detección distingue el tipo del campo: una casilla legal nunca equivale a requisito de CV ni teléfono. La prueba nueva detecta esa regresión.
+- **Supabase registro:** `sjm_ops.browser_collect_v1()` conserva exclusivamente metadatos públicos de adaptador/autorización, no nombres ni correos del candidato. Migración versionada en `sjm-executor/sql/sjm_browser_collect_adapters_metadata_20261018.sql`.
+- **Reconciliación:** `sjm_ops.application_pipeline_tick_v1()` y `sjm_ops.application_handoffs_sync_v1()` ejecutadas; el expediente YPAI Text/NLP apunta a inspección #26, `stage=needs_authorization`, `handoff_status=needs_user_approval`. YPAI Data Annotator sigue en `awaiting_response` y NO se ha duplicado.
+- **Estado no concluido:** ningún adaptador ha enviado candidaturas externas automáticamente. Work no se puede lanzar desatendido desde Supabase; queda pendiente consentimiento específico, ejecución autorizada y acuse oficial. No declarar envío, respuesta ni ingreso sin evidencia.
+
+---
+
 # ACTUALIZACIÓN EN PRODUCCIÓN — 18 OCT 2026 — PUNTO 1
 
 - **Motor y conexión reales:** Supabase `browser_jobs #21` se despachó desde la base al Render existente, HTTP request `159`, y volvió `done` / `200` / `passed=true`. `submitted=true` corresponde exclusivamente al **formulario ficticio local de autoprueba**, NO a una candidatura externa.
