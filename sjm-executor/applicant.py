@@ -72,7 +72,7 @@ def is_safe_public_ashby_query(request):
             if not isinstance(context,(dict,str)) or len(json.dumps(context))>550:
                 return False
             if "@" in json.dumps(context) or re.search(
-                r'"(?:email|phone|password|token|accessToken|fullName|firstName|lastName)"\\s*:',
+                r'"(?:email|phone|password|token|accessToken|fullName|firstName|lastName)"\s*:',
                 json.dumps(context),re.I):
                 return False
         return True
