@@ -13,6 +13,24 @@ class FormAdapterTests(unittest.TestCase):
         self.assertEqual(r['required_approval_scopes'],['terms_or_privacy'])
         self.assertFalse(r['automatic_submission_enabled'])
 
+    def test_ypai_consent_mentions_optional_cv(self):
+        r=classify('https://freelancer.ypai.ai/jobs/openings/text-annotator-co',
+          [{'name':'name','type':'text','required':True},
+           {'name':'consent','type':'checkbox',
+            'label':'I consent to YPAI processing my application, and any CV I upload',
+            'required':True}],form_visible=True)
+        self.assertFalse(r['required_cv'])
+        self.assertFalse(r['required_phone'])
+        self.assertEqual(r['required_approval_scopes'],['terms_or_privacy'])
+
+    def test_generic_required_file_not_assume_cv(self):
+        r=classify('https://jobs.lever.co/weloglobal/uuid/apply',
+          [{'name':'sample_audio','label':'Audio sample','type':'file','required':True}],
+          form_visible=True)
+        self.assertFalse(r['required_cv'])
+        self.assertTrue(r['file_upload_present'])
+        self.assertFalse(r['automatic_submission_enabled'])
+
     def test_ashby_requires_phone_cv(self):
         r=classify('https://jobs.ashbyhq.com/anyone-ai/uuid/application',
           [{'name':'phone','type':'tel','required':True},
