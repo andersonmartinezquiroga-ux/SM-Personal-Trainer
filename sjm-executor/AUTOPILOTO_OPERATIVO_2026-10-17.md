@@ -1,3 +1,15 @@
+# PRUEBA PUNTO 1 — producción y detección de requisitos — 17 OCT 2026, 21:38 Colombia
+
+**Verificación extremo a extremo ejecutada en esta sesión:**
+- Supabase `browser_jobs.id=20`, solicitud HTTP `140`, sitio oficial `https://jobs.ashbyhq.com/anyone-ai/f90e4b5c-1682-4ddf-bb00-c8a11738a393/application`.
+- Despachada por `sjm_ops.browser_tick_v1()`; Render Playwright inspeccionó la solicitud con HTTPS; Supabase recogió respuesta `HTTP 200`, estado `done`, **11 campos**, `required_phone=true`, `required_cv=true`, `submitted=false`; evidencia en `sjm_ops.browser_jobs.response_summary`. NO se presentó candidatura.
+- Corregida función `sjm_ops.application_pipeline_tick_v1()` mediante migración `sjm_application_require_phone_and_cv_dual_gate_v1`: si ambos son obligatorios no reporta solo teléfono ni solo CV; pone `needs_authorization` con las dos exigencias.
+- Corregida `sjm_ops.application_handoffs_sync_v1()` mediante migración `sjm_handoff_combined_phone_cv_prevent_stale_instruction_v1`: detecta simultáneamente ambos campos y **actualiza las instrucciones aunque no cambie la etapa**, evitando acciones desactualizadas. Probada sobre Anyone AI: `application_handoffs.status=needs_user_approval`, instrucción explícita de NO enviar, NO cargar CV, NO dar teléfono y pedir autorizaciones separadas.
+- Estas verificaciones muestran una **cadena autónoma de lectura y clasificación** radar→cola→Render→resultado→preparación. **NO validan todavía la ejecución autónoma universal del último paso Enviar ni la activación automática de ChatGPT Work**.
+- Permanece prueba GitHub Actions E2E `39086181070` exitosa, Render `dep-dba1k8vbtjjs73deg8j0` LIVE. Protecciones de privacidad: solo metadatos de campos; no se transmiten datos del candidato.
+
+---
+
 # REPARACIÓN EN CURSO — SJM AUTÓNOMO 360 — 17 OCT 2026
 
 ## Lo realizado con pruebas reales (no confundir con candidaturas enviadas)
