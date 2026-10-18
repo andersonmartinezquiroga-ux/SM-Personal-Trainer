@@ -1,6 +1,7 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset
+from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset,is_safe_public_ashby_query
+import json
 
 class SecurityTests(unittest.TestCase):
     def test_official(self):
@@ -37,6 +38,30 @@ class SecurityTests(unittest.TestCase):
         for url in forbidden:
             with self.subTest(url=url),self.assertRaises(ValueError):
                 checked_url(url)
+    def test_allow_only_two_public_ashby_readonly_graphql_operations(self):
+        class R:
+            def __init__(self,op,query=None,variables=None,url="https://jobs.ashbyhq.com/api/non-user-graphql"):
+                self.method="POST";self.url=url
+                self.post_data=json.dumps({"operationName":op,
+                    "query":query or ("query "+op+"($slug:String!) { job: jobPosting(slug:$slug) { id } }"),
+                    "variables":{"slug":"anyone-ai"} if variables is None else variables})
+        for op in ("ApiJobPosting","ApiOrganizationFromHostedJobsPageName"):
+            self.assertTrue(is_safe_public_ashby_query(R(op)),op)
+        forbidden=[
+            R("CreateApplication"),
+            R("ApiJobPosting",query="mutation ApiJobPosting { createApplication }"),
+            R("ApiJobPosting",query="query ApiJobPosting { job {id} } mutation MakeApplication {apply}"),
+            R("ApiJobPosting",variables={"email":"private@example.com"}),
+            R("ApiJobPosting",variables={"name":"Samuel"}),
+            R("ApiJobPosting",url="https://evil.example.com/api/non-user-graphql"),
+            R("ApiJobPosting",url="https://jobs.ashbyhq.com/api/candidates")
+        ]
+        for bad in forbidden:
+            with self.subTest(body=bad.post_data,url=bad.url):
+                self.assertFalse(is_safe_public_ashby_query(bad))
+        bad_method=R("ApiJobPosting");bad_method.method="GET"
+        self.assertFalse(is_safe_public_ashby_query(bad_method))
+
     def test_only_public_ashby_static_assets_get(self):
         self.assertTrue(is_safe_readonly_asset("https://cdn.ashbyprd.com/frontend_non_user/app/.vite/manifest.json","GET"))
         self.assertTrue(is_safe_readonly_asset("https://app.ashbyhq.com/api/images/org-theme-logo/known.png","GET"))
