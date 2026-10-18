@@ -127,6 +127,14 @@ jobs:
               assert ybody['form_fields_total']>=2,ybody
               print('PASS YPAI Data Annotator form inspected without submission',json.dumps({'title':ybody['title'],'fields':ybody['form_fields_total'],'consent_present':ybody['consent_or_captcha_present'],'submitted':False}))
               print('YPAI_PUBLIC_FIELDS',json.dumps([{'name':x['name'],'type':x['type'],'label':x['label']} for x in ybody['fields']],ensure_ascii=False))
+              # Former Workana 400 cases: check only two exact public listing URLs.
+              for listing_url in (
+                  'https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol',
+                  'https://www.workana.com/es/job/asistente-virtual-full-time-para-configuracion-de-apps-y-gestion-de-clientes'):
+                  code, listing=req('/jobs/inspect',{'url':listing_url})
+                  assert code==200 and listing['submitted'] is False,listing
+                  assert listing.get('listing_visible') is True and not listing.get('challenge_detected'),listing
+                  print('PASS Workana listing read-only',json.dumps({'url':listing_url,'title':listing['title'],'fields':listing['form_fields_total'],'submitted':False}))
               with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
                   f.write('## SJM Browser Executor\\n\\n- ✅ Local form completed: RECIBIDO\\n- ✅ Authentication gate tested\\n- ✅ Official external job form inspected without submission\\n- 🔒 **0 external applications submitted**\\n')
           finally:proc.terminate()
