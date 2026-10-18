@@ -202,12 +202,18 @@ def inspect(url, fields=None):
         ][:20]
         req_text=" ".join((x["name"]+" "+x["label"]).lower()
                           for x in result["required_fields"])
-        result["required_phone"]=any(x["type"]=="tel" or bool(re.search(
-            r"\b(phone|telephone|tel[eé]fono|celular|mobile)\b",
-            (x["name"]+" "+x["label"]).lower())) for x in result["required_fields"])
+        result["required_phone"]=any(
+            x["type"] not in ("checkbox","radio","hidden") and
+            (x["type"]=="tel" or bool(re.search(
+                r"\b(phone|telephone|tel[eé]fono|celular|mobile)\b",
+                (x["name"]+" "+x["label"]).lower())))
+            for x in result["required_fields"])
         result["required_cv"]=any(
-            x["name"]=="_systemfield_resume" or bool(re.search(
-                r"\b(resume|curriculum|cv)\b",(x["name"]+" "+x["label"]).lower()))
+            x["type"] not in ("checkbox","radio","hidden") and
+            (x["name"].lower()=="_systemfield_resume" or
+              bool(re.search(r"\b(resume|curriculum|cv)\b",x["name"].lower())) or
+              (x["type"]=="file" and bool(re.search(
+               r"\b(resume|curriculum|cv)\b",x["label"].lower()))))
             for x in result["required_fields"])
         result["required_file_upload"]=any(x["type"]=="file" for x in result["required_fields"])
         result["form_fields_total"]=len(result["fields"])
