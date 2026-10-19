@@ -8,6 +8,13 @@
       "path": "autopilot/tasks/SJM_TASK_001_VisionBase.py",
       "sha256": "885e58313c7cae9950d2de9b517c1173fdf5c3d71713d26383d8f30d8e488dea",
       "enabled": true
+    },
+    {
+      "id": "002",
+      "name": "CoreAndExerciseSession",
+      "path": "autopilot/tasks/SJM_TASK_002_CoreAndExerciseSession.py",
+      "sha256": "4dd21c8858260f5b074cf98467fe20e06ef74260fcbb916f102123d5df964cf8",
+      "enabled": true
     }
   ]
 }
