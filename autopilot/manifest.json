@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "channel": "main",
+  "tasks": [
+    {
+      "id": "001",
+      "name": "VisionBase",
+      "path": "autopilot/tasks/SJM_TASK_001_VisionBase.py",
+      "sha256": "885e58313c7cae9950d2de9b517c1173fdf5c3d71713d26383d8f30d8e488dea",
+      "enabled": true
+    }
+  ]
+}
