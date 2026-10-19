@@ -1,0 +1,33 @@
+name: SJM Control 360 - Mentor gateway QA (offline)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - sjm-mentor-secure-panel-20261019
+    paths:
+      - "control360/mentor_panel/**"
+      - ".github/workflows/sjm_mentor_gateway_qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  gateway-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout secure gateway development
+        uses: actions/checkout@v4
+      - name: Set up Python without external runtime integrations
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Test owner verification, fail closed, dedup, and output sanitization
+        run: python -m unittest discover -s control360/mentor_panel -p "test_gateway_core.py" -v
+      - name: Record proof, no real external commands
+        run: |
+          echo "## SJM Mentor gateway" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tests de autorización e interfaz servidor: satisfactorios." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Sin acceso a Supabase, sin tokens, sin datos de clientes." >> "$GITHUB_STEP_SUMMARY"
+          echo "- 0 órdenes externas; el panel Android real aún requiere sesión autenticada." >> "$GITHUB_STEP_SUMMARY"
