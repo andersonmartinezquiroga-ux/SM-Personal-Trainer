@@ -1,0 +1,111 @@
+name: SJM Control 360 - Respaldo navegador independiente
+
+# Prueba ficticia local de Chromium en GitHub Actions, independiente de Render.
+# NO interactúa con formularios externos, NO envía candidaturas ni datos del usuario.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sjm_control_browser_fallback.yml
+  schedule:
+    - cron: "47 */4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sjm-control-local-browser-fallback
+  cancel-in-progress: false
+
+jobs:
+  independent-browser-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - name: Obtain SJM browser executor existing source
+        uses: actions/checkout@v4
+        with:
+          ref: sjm-executor-render
+
+      - name: Python runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install free browser test dependencies
+        run: |
+          python -m pip install -r sjm-executor/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Offline unit tests (no external submissions)
+        working-directory: sjm-executor
+        run: python -m unittest -v test_form_adapter test_submit_ypai
+
+      - name: Test local fake form and auth without Render
+        working-directory: sjm-executor
+        env:
+          EXECUTOR_TOKEN: local-mock-browser-test-token
+          YPAI_APPROVED_CASES: ""
+          RUN_BOOT_DIAGNOSTIC: "0"
+        run: |
+          python - <<'PY'
+          import json,os,subprocess,sys,time,urllib.request,urllib.error
+
+          env=dict(os.environ)
+          env.pop("SUBMISSION_TOKEN",None)
+          env["PORT"]="10000"
+          server=subprocess.Popen([sys.executable,"api_v2.py"],env=env,
+                                  stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+          def request(path,body=None,token=None):
+              headers={"Content-Type":"application/json"}
+              if token:
+                  headers["Authorization"]="Bearer "+token
+              data=None if body is None else json.dumps(body).encode()
+              req=urllib.request.Request("http://127.0.0.1:10000"+path,data=data,headers=headers)
+              with urllib.request.urlopen(req,timeout=70) as res:
+                  return res.status,json.load(res)
+          try:
+              for _ in range(45):
+                  try:
+                      code,health=request("/healthz")
+                      break
+                  except (urllib.error.URLError,TimeoutError):
+                      time.sleep(1)
+              else:
+                  raise AssertionError("Local browser server did not start")
+              assert code==200,code
+              assert health["version"]=="application-gated-submit-v4",health
+              assert health["approved_case_count"]==0,health
+              assert health["external_submission"]=="disabled_without_exact_case_approval",health
+
+              for path in ("/self-test","/jobs/submit-ypai","/jobs/submit-ypai-role"):
+                  try:
+                      request(path,{},None)
+                      raise AssertionError("Unauthenticated endpoint accepted: "+path)
+                  except urllib.error.HTTPError as error:
+                      assert error.code==401,(path,error.code)
+              print("PASS: unauthenticated browser and employment submission endpoints blocked")
+
+              status,response=request("/self-test",{},os.environ["EXECUTOR_TOKEN"])
+              assert status==200,status
+              assert response["navigation"].get("forms",0)>0,response
+              assert response["form"]["submitted"] is True,response
+              assert response["form"]["confirmation"]=="RECIBIDO",response
+              print("PASS: full Chromium browser local fixture submitted and confirmed RECIBIDO")
+              print("PASS: test did not use Render or any employer website")
+              print("PASS: YPAI_APPROVED_CASES empty; no approved or attempted real application")
+              with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as summary:
+                  summary.write(
+                    "## SJM Control 360 - respaldo navegador\n\n"
+                    "- ✅ Chromium se ejecutó en GitHub Actions sin Render.\n"
+                    "- ✅ Formulario **ficticio local** terminó con RECIBIDO.\n"
+                    "- ✅ Autenticación no autorizada: bloqueada (401).\n"
+                    "- 🔒 **0 postulaciones y 0 envíos externos.**\n"
+                    "- ⚠️ Prueba de ejecución independiente, no conmutación automática de producción.\n"
+                  )
+          finally:
+              server.terminate()
+              try: server.wait(timeout=8)
+              except subprocess.TimeoutExpired: server.kill()
+          PY
