@@ -113,6 +113,10 @@ def get_owner_mentor_receipt(
 
     # The allowlist ensures SQL future extra fields (including private results)
     # can never reach the mobile/browser caller automatically.
+    # Reject nested values even if their field names are allowlisted.
+    for name in _RECEIPT_KEYS:
+        if name in raw and type(raw[name]) not in (str, int, bool, type(None)):
+            return {"found": False, "state": "blocked", "details_exposed": False}
     result = {name: raw[name] for name in _RECEIPT_KEYS if name in raw}
     result["details_exposed"] = False
     return result
