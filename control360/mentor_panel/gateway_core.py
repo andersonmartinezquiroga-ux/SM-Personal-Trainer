@@ -83,7 +83,10 @@ def submit_owner_mentor_text(
     if route not in _ROUTES or state not in _STATES:
         return {"state": "blocked", "reason": "unrecognized_backend_state"}
     result = response.get("result")
-    was_duplicate = bool(result.get("duplicate")) if isinstance(result, Mapping) else False
+    duplicate_value = result.get("duplicate", False) if isinstance(result, Mapping) else False
+    if type(duplicate_value) is not bool:
+        return {"state": "blocked", "reason": "malformed_duplicate_flag"}
+    was_duplicate = duplicate_value
     return {
         "state": state,
         "route": route,
@@ -110,6 +113,11 @@ def get_owner_mentor_receipt(
         return {"found": False, "state": "blocked", "details_exposed": False}
     if raw.get("state") not in _STATES:
         return {"found": False, "state": "blocked", "details_exposed": False}
+
+    # Receipt flags must be genuine booleans: strings like "false" are unsafe.
+    for flag in ("found", "is_final", "evidence_present", "details_exposed"):
+        if flag in raw and type(raw[flag]) is not bool:
+            return {"found": False, "state": "blocked", "details_exposed": False}
 
     # The allowlist ensures SQL future extra fields (including private results)
     # can never reach the mobile/browser caller automatically.
