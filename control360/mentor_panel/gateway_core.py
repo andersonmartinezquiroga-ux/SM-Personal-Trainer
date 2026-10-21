@@ -114,6 +114,15 @@ def get_owner_mentor_receipt(
     if raw.get("state") not in _STATES:
         return {"found": False, "state": "blocked", "details_exposed": False}
 
+    # Reject missing or contradictory provenance; never reinterpret a privacy
+    # disclosure warning as a safe response just by hiding that warning.
+    if type(raw.get("found")) is not bool or raw.get("details_exposed") is True:
+        return {"found": False, "state": "blocked", "details_exposed": False}
+    if raw["found"] is False and raw.get("state") not in ("not_found", "invalid_request_key"):
+        return {"found": False, "state": "blocked", "details_exposed": False}
+    if raw["found"] is True and raw.get("state") in ("not_found", "invalid_request_key"):
+        return {"found": False, "state": "blocked", "details_exposed": False}
+
     # Receipt flags must be genuine booleans: strings like "false" are unsafe.
     for flag in ("found", "is_final", "evidence_present", "details_exposed"):
         if flag in raw and type(raw[flag]) is not bool:
