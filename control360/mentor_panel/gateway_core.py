@@ -128,6 +128,13 @@ def get_owner_mentor_receipt(
         if flag in raw and type(raw[flag]) is not bool:
             return {"found": False, "state": "blocked", "details_exposed": False}
 
+    # A receipt must not claim completion while its state is still active.
+    # Contradictory status flags fail closed instead of misleading the owner.
+    if raw["found"] and "is_final" in raw:
+        terminal = raw["state"] in {"completed", "failed", "blocked", "cancelled"}
+        if raw["is_final"] != terminal:
+            return {"found": False, "state": "blocked", "details_exposed": False}
+
     # The allowlist ensures SQL future extra fields (including private results)
     # can never reach the mobile/browser caller automatically.
     # Reject nested values even if their field names are allowlisted.
