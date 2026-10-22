@@ -28,6 +28,21 @@ _REQUEST_RE = re.compile(r"^/v1/mentor/commands/([A-Za-z0-9_-]{4,100})$")
 _MAX_BODY_BYTES = 8192
 
 
+def _reject_duplicate_keys(pairs):
+    """Reject ambiguous JSON object keys, including in nested objects."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate_json_key")
+        result[key] = value
+    return result
+
+
+def _reject_non_json_constant(value):
+    """Reject NaN/Infinity, which Python accepts but JSON does not."""
+    raise ValueError("nonstandard_json_constant")
+
+
 class MentorHTTPApp:
     """WSGI adapter. Authentication and database access are injected by host."""
 
@@ -124,7 +139,11 @@ class MentorHTTPApp:
             return respond("413 Content Too Large", {"error": "body_length_rejected"})
         try:
             raw = environ["wsgi.input"].read(nbytes)
-            body = json.loads(raw.decode("utf-8"))
+            body = json.loads(
+                raw.decode("utf-8"),
+                object_pairs_hook=_reject_duplicate_keys,
+                parse_constant=_reject_non_json_constant,
+            )
         except (UnicodeDecodeError, ValueError, KeyError):
             return respond("400 Bad Request", {"error": "invalid_json"})
         if not isinstance(body, dict) or set(body) != {"phrase", "request_key"}:
