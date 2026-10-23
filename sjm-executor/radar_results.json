@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "dynamic_discovery_error": null,
-  "generated_utc": "2026-10-23T15:05:08.664812+00:00",
+  "generated_utc": "2026-10-23T19:13:59.253302+00:00",
   "disclaimer": "Read-only official page checks. NO applications sent. Check requirements, terms, language, identity and prior submissions separately.",
   "checked": 9,
-  "reachable": 8,
+  "reachable": 9,
   "route_visible": 5,
   "formal_submissions_created": 0,
   "sources": [
@@ -15,7 +15,7 @@
       "name": "Audio QA Reviewer Spanish Colombia",
       "official_url": "https://community.transperfect.com/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia",
       "eligibility_note": "Good English required; candidate skill and eligibility not verified",
-      "checked_at_utc": "2026-10-23T15:04:51.517791+00:00",
+      "checked_at_utc": "2026-10-23T19:13:56.555979+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "application_route_visible",
@@ -23,7 +23,7 @@
       "http_status": 200,
       "resolved_url": "https://community.transperfect.com/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia",
       "page_title": "Audio Quality Assurance Reviewer - Spanish (Colombia) - TransPerfect",
-      "source_sha256": "cc2e57d189187891a158e2952e12859eec578cd4b872902bbfd0894ffef3c2b1",
+      "source_sha256": "6174984f4e865f1126c511300b7d0285aee8a5bb055a88f8acc626d8a2a8408b",
       "evidence_excerpt": "Skip to main content This website uses cookies to ensure you get the best experience. TransPerfect and our selected partners use cookies and similar technologies (together “cookies”) that are necessary to present this website, and to ensure you get the best experience of it. If y"
     },
     {
@@ -33,7 +33,7 @@
       "name": "Voice Director Spanish Colombia",
       "official_url": "https://community.transperfect.com/jobs/720577-voice-director-spanish-colombia",
       "eligibility_note": "Relevant voice direction/linguistics/speech tech experience and good English required",
-      "checked_at_utc": "2026-10-23T15:04:52.066404+00:00",
+      "checked_at_utc": "2026-10-23T19:13:57.239721+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "application_route_visible",
@@ -41,7 +41,7 @@
       "http_status": 200,
       "resolved_url": "https://community.transperfect.com/jobs/720577-voice-director-spanish-colombia",
       "page_title": "Voice Director - Spanish (Colombia) - TransPerfect",
-      "source_sha256": "0ca01f61d38995dae60bdc954658546f0f23b481021b6491fc71fb5d506a8127",
+      "source_sha256": "a8d12b1b283e3f23aa1776b47884f6a197b336b801f2ef5cc1da54fb03e56aed",
       "evidence_excerpt": "Skip to main content This website uses cookies to ensure you get the best experience. TransPerfect and our selected partners use cookies and similar technologies (together “cookies”) that are necessary to present this website, and to ensure you get the best experience of it. If y"
     },
     {
@@ -51,7 +51,7 @@
       "name": "Welo Data — AI work community",
       "official_url": "https://welodata.ai/join-the-community/",
       "eligibility_note": "Account, assessments and individual offers require separate review",
-      "checked_at_utc": "2026-10-23T15:04:52.572219+00:00",
+      "checked_at_utc": "2026-10-23T19:13:57.742296+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "application_route_visible",
@@ -59,7 +59,7 @@
       "http_status": 200,
       "resolved_url": "https://aitrainers.tech/",
       "page_title": "Train AI and Get Paid | Remote Work | aitrainers.tech",
-      "source_sha256": "31224f7c6521fea7243a6af417326f90515b1548228c2f94aa189845259cea6c",
+      "source_sha256": "0002707ae0665c723b00d692ef7f48aac599436bbc17a01d281040d8b90debbe",
       "evidence_excerpt": "Skip to Content How it works About FAQs Sign Up Apply Now 500K+ contributors worldwide Get paid for what you already know . Whether you’re a gamer, a graduate, or an engineer – we have work for you. From everyday know-how to specialized expertise, we’ve got projects live right no"
     },
     {
@@ -69,7 +69,7 @@
       "name": "Techstars Anywhere",
       "official_url": "https://www.techstars.com/accelerators/anywhere",
       "eligibility_note": "Already applied via SJM; do not duplicate. Equity requires founder's approval",
-      "checked_at_utc": "2026-10-23T15:04:53.465774+00:00",
+      "checked_at_utc": "2026-10-23T19:13:57.896360+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "application_route_visible",
@@ -77,7 +77,7 @@
       "http_status": 200,
       "resolved_url": "https://www.techstars.com/accelerators/anywhere",
       "page_title": "Techstars Anywhere Accelerator | Techstars",
-      "source_sha256": "adb724becf4a8f7a58d945397d71129cb12e78b2750a3e5b501752ae687b5c7f",
+      "source_sha256": "f700b5b1f7a41263818ce500a51abbc43d3ef7b0fdd6f410df3d167f1d6a9be9",
       "evidence_excerpt": "Join Us Portfolio Locations I Am... Resources About Techstars Apply Today Home / Techstars Accelerators / Techstars Anywhere Accelerator ACCELERATORS Techstars Anywhere Accelerator Techstars’ remote-first Anywhere program was launched in 2017 and supports companies innovating acr"
     },
     {
@@ -87,7 +87,7 @@
       "name": "Awesome Foundation — chapters",
       "official_url": "https://www.awesomefoundation.org/en",
       "eligibility_note": "Chapter fit and any prior submissions require checking before application",
-      "checked_at_utc": "2026-10-23T15:04:53.654571+00:00",
+      "checked_at_utc": "2026-10-23T19:13:58.175304+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "application_route_visible",
@@ -95,7 +95,7 @@
       "http_status": 200,
       "resolved_url": "https://www.awesomefoundation.org/en",
       "page_title": "The Awesome Foundation",
-      "source_sha256": "20498c4bedd722131bd428238bbc22d18680db1c8d33e73d7fdb84abdaea9cf4",
+      "source_sha256": "0a5a2bb2af5306003601693bb92dbdee939ca63a10ee0188bb8c07eb00b42e08",
       "evidence_excerpt": "The Awesome Foundation Home About Us Chapters Projects Apply Awesome Everywhere! Worldwide Conservation and Climate Disability Dragon Dreaming On the Water Armenia Javakhk Yerevan Australia Adelaide Fleurieu Lake Mac Lower Hunter Newcastle Sydney Canada Amherstburg Kingston Kitch"
     },
     {
@@ -105,7 +105,7 @@
       "name": "AI Trainers Network - Spanish",
       "official_url": "https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd",
       "eligibility_note": "Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.",
-      "checked_at_utc": "2026-10-23T15:04:54.170040+00:00",
+      "checked_at_utc": "2026-10-23T19:13:58.329327+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "active_in_official_feed",
@@ -123,11 +123,16 @@
       "name": "Hydrus - Session Director - Spanish (Colombia) - V2",
       "official_url": "https://jobs.lever.co/weloglobal/9727a0a4-dc3f-4a1a-abac-5ec2428f2308",
       "eligibility_note": "Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.",
-      "checked_at_utc": "2026-10-23T15:04:54.341641+00:00",
+      "checked_at_utc": "2026-10-23T19:13:58.787943+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
-      "availability_signal": "unreachable",
-      "error": "TimeoutError: The read operation timed out"
+      "availability_signal": "active_in_official_feed",
+      "error": null,
+      "http_status": 200,
+      "resolved_url": "https://jobs.lever.co/weloglobal/9727a0a4-dc3f-4a1a-abac-5ec2428f2308",
+      "page_title": "Welo Global - Hydrus - Session Director - Spanish (Colombia) - V2",
+      "source_sha256": "87db8236b824a0b8a8137f96a3192f5d480dbbb74b58a656fb53c8e99c40f273",
+      "evidence_excerpt": ""
     },
     {
       "id": "welo-77df6fe6-b397-4db5-a0d4-d19049dbec47",
@@ -136,7 +141,7 @@
       "name": "Hydrus - Voice Contributor - Spanish (Colombia)",
       "official_url": "https://jobs.lever.co/weloglobal/77df6fe6-b397-4db5-a0d4-d19049dbec47",
       "eligibility_note": "Official posting lists Colombia. Verify English, equipment, voice data rights, pay conditions and qualifications; do not auto-submit.",
-      "checked_at_utc": "2026-10-23T15:05:08.368528+00:00",
+      "checked_at_utc": "2026-10-23T19:13:58.988273+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "active_in_official_feed",
@@ -154,7 +159,7 @@
       "name": "Remote Work From Home: Record Colombian Spanish",
       "official_url": "https://jobs.lever.co/appen/836aa417-71e6-470f-bd79-880c776af223",
       "eligibility_note": "Official posting mentions Colombian Spanish. Validate residence, pay, country of birth and recording consent, possible voice-data reuse and rights. No application submitted.",
-      "checked_at_utc": "2026-10-23T15:05:08.552985+00:00",
+      "checked_at_utc": "2026-10-23T19:13:59.124507+00:00",
       "formal_submission_confirmed": false,
       "human_eligibility_verified": false,
       "availability_signal": "active_in_official_feed",
