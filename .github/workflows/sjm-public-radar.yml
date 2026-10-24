@@ -1,0 +1,26 @@
+name: SJM - Radar publico de empleos (solo lectura)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7 */3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  search-official-public-boards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Revisar fuentes oficiales publicas sin enviar candidaturas
+        run: python3 sjm-public-radar/scan.py
+      - name: Conservar informe publico de revision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sjm-public-radar
+          path: sjm-radar-public-results.json
+          retention-days: 7
+          if-no-files-found: warn
