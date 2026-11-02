@@ -13,12 +13,16 @@ ALLOWED={
  # Public, exact-case jobs only. No generic domain-wide browsing.
  "www.workana.com": re.compile(r"^/es/job/(?:asistente-virtual-y-soporte-al-cliente-remoto-en-espanol|asistente-virtual-full-time-para-configuracion-de-apps-y-gestion-de-clientes)/?$"),
  "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
- "myvirtualtrainer.co": re.compile(r"^/$")
+ "myvirtualtrainer.co": re.compile(r"^/$"),
+ # Two verified public Spanish-language sources. Exact paths only, inspection only.
+ "www.tusclases.co": re.compile(r"^/anunciarse/profesor-particular/?$"),
+ "agentify.teamtailor.com": re.compile(r"^/es/jobs/7708719-agente-de-ventas-call-centre-en-espanol-colombia-virtual/?$")
 }
 STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com","cdn.ashbyhq.com",
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
-              "www.workana.com","community.transperfect.com","myvirtualtrainer.co"}
+              "www.workana.com","community.transperfect.com","myvirtualtrainer.co",
+              "www.tusclases.co","agentify.teamtailor.com"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):
@@ -99,6 +103,8 @@ def checked_url(url):
     p=urlparse(url)
     if p.scheme!="https" or p.username or p.password or p.fragment or p.hostname not in ALLOWED:
         raise ValueError("Domain not on approved job application allowlist")
+    if p.hostname in ("www.tusclases.co", "agentify.teamtailor.com") and p.query:
+        raise ValueError("Query parameters are not approved for this inspection")
     if p.port not in (None,443) or not ALLOWED[p.hostname].fullmatch(p.path):
         raise ValueError("Path is not an approved job application path")
     return url
