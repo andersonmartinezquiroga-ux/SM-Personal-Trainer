@@ -40,6 +40,17 @@ class FormAdapterTests(unittest.TestCase):
         self.assertEqual(r['required_approval_scopes'],['phone','cv'])
         self.assertFalse(r['submitted'])
 
+    def test_lever_custom_upload_requires_cv_when_explicitly_marked(self):
+        r=classify('https://jobs.lever.co/weloglobal/uuid/apply',
+          [{'name':'name','type':'text','required':True},
+           {'name':'phone','type':'tel','required':True}],
+          form_visible=True, required_cv_hint=True)
+        self.assertTrue(r['required_cv'])
+        self.assertTrue(r['file_upload_present'])
+        self.assertEqual(r['required_approval_scopes'],['phone','cv'])
+        self.assertEqual(r['preflight_state'],'needs_specific_authorization')
+        self.assertFalse(r['automatic_submission_enabled'])
+
     def test_optional_cv_does_not_mislabel_required(self):
         r=classify('https://jobs.lever.co/weloglobal/uuid/apply',
           [{'name':'resume','type':'file','required':False}],form_visible=True)
