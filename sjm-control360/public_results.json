@@ -2,16 +2,15 @@
   "schema_version": 1,
   "jobs": {
     "render-executor-health": {
-      "outcome": "checked_ok",
-      "http_status": 200,
-      "evidence_sha256": "323456efcd65bc3b85903e2d7ff21fa3a625755a4416a8cd2e7e2aced5d9b2ec",
-      "detail": "Executor HTTP 200, ready; this is NOT a submission test",
-      "checks_attempted": 1,
-      "checked_utc": "2026-11-02T03:14:40Z",
-      "next_due": "2026-11-02T04:14:40Z",
+      "outcome": "needs_review",
+      "http_status": 503,
+      "detail": "Read-only check failed: HTTPError; unavailable after retry",
+      "checks_attempted": 4,
+      "checked_utc": "2026-11-02T11:27:44Z",
+      "next_due": "2026-11-02T12:27:44Z",
       "kind": "executor_health",
       "url": "https://sjm-playwright-executor.onrender.com/healthz",
-      "attempts": 2
+      "attempts": 3
     },
     "europe-eic-official": {
       "outcome": "checked_ok",
@@ -36,5 +35,5 @@
       "attempts": 1
     }
   },
-  "last_cycle": "2026-11-02T03:16:55Z"
+  "last_cycle": "2026-11-02T11:27:44Z"
 }
