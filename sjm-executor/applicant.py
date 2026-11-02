@@ -90,7 +90,7 @@ def lever_required_resume_visible(text):
     if not isinstance(text, str):
         return False
     return bool(re.search(
-        r'(?im)^[ \\t]*(?:resume\\s*/\\s*cv|r[eé]sum[eé]\\s*/\\s*cv|resume|r[eé]sum[eé]|curriculum vitae|hoja de vida|cv)[ \\t]*(?:\\*|✱|✳|\\(required\\)|\\(obligatorio\\))[ \\t]*$',
+        r'(?im)^[ \t]*(?:resume\s*/\s*cv|r[eé]sum[eé]\s*/\s*cv|resume|r[eé]sum[eé]|curriculum vitae|hoja de vida|cv)[ \t]*(?:\*|✱|✳|\(required\)|\(obligatorio\))[ \t]*$',
         text[:18000]
     ))
 
