@@ -85,6 +85,15 @@ def is_security_challenge_title(title):
     value=(title or "").strip().lower()
     return value in ("just a moment...","just a moment","attention required!","verify you are human") or "cloudflare challenge" in value
 
+def lever_required_resume_visible(text):
+    """Only an explicitly mandatory resume label counts; ignore generic privacy text."""
+    if not isinstance(text, str):
+        return False
+    return bool(re.search(
+        r'(?im)^[ \\t]*(?:resume\\s*/\\s*cv|r[eé]sum[eé]\\s*/\\s*cv|resume|r[eé]sum[eé]|curriculum vitae|hoja de vida|cv)[ \\t]*(?:\\*|✱|✳|\\(required\\)|\\(obligatorio\\))[ \\t]*$',
+        text[:18000]
+    ))
+
 def checked_url(url):
     if not isinstance(url,str) or len(url)>500: raise ValueError("Invalid URL")
     p=urlparse(url)
@@ -215,7 +224,16 @@ def inspect(url, fields=None):
               (x["type"]=="file" and bool(re.search(
                r"\b(resume|curriculum|cv)\b",x["label"].lower()))))
             for x in result["required_fields"])
-        result["required_file_upload"]=any(x["type"]=="file" for x in result["required_fields"])
+        if source=="jobs.lever.co" and not result["required_cv"]:
+            # Lever sometimes renders Resume/CV as a custom upload widget,
+            # not as an HTML input with the required attribute.
+            # A visible mandatory label is stronger than missing input metadata.
+            result["required_cv"]=lever_required_resume_visible(
+                page.locator("body").inner_text(timeout=7000))
+        result["required_file_upload"]=(
+            any(x["type"]=="file" for x in result["required_fields"]) or
+            (source=="jobs.lever.co" and result["required_cv"])
+        )
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
@@ -229,7 +247,8 @@ def inspect(url, fields=None):
         result["consent_or_captcha_present"]=page.locator('iframe[src*="captcha"], [class*="captcha"], input[type="checkbox"]').count()>0
         result["adapter_summary"]=classify_application_form(
             url, result["fields"], challenge=result["challenge_detected"],
-            form_visible=result["application_form_visible"]
+            form_visible=result["application_form_visible"],
+            required_cv_hint=result["required_cv"] if source=="jobs.lever.co" else False
         )
         if fields:
             filled=[]
