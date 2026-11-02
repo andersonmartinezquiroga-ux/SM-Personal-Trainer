@@ -18,7 +18,7 @@ PHONE = re.compile(r'\b(phone|telephone|tel[eé]fono|celular|mobile|whatsapp)\b'
 CV = re.compile(r'\b(cv|resume|r[eé]sum[eé]|curriculum|curr[ií]culo|hoja de vida)\b', re.I)
 LEGAL = re.compile(r'\b(consent|consentimiento|privacy|privacidad|terms|t[eé]rminos|policy|pol[ií]tica|data protection|protecci[oó]n de datos|authorization|autorizaci[oó]n)\b', re.I)
 
-def classify_application_form(url, fields, *, challenge=False, form_visible=False):
+def classify_application_form(url, fields, *, challenge=False, form_visible=False, required_cv_hint=False):
     """Summarize public labels/types only. Never infer approval or submit."""
     host = urlparse(url).hostname or ''
     adapter = ADAPTERS.get(host, 'unsupported')
@@ -44,7 +44,12 @@ def classify_application_form(url, fields, *, challenge=False, form_visible=Fals
          (typ == 'file' and CV.search(label)))
         for typ, name, label, req in inspected
     )
-    file_upload = any(typ == 'file' for typ, _, _, _ in inspected)
+    # Lever may hide a mandatory CV upload behind a custom widget.
+    # Only accept an explicit, public-page mandatory-label hint.
+    required_cv = bool(required_cv or (adapter == 'lever' and required_cv_hint is True))
+    file_upload = any(typ == 'file' for typ, _, _, _ in inspected) or (
+        adapter == 'lever' and required_cv_hint is True
+    )
     legal_consent = any((typ == 'checkbox' or req) and LEGAL.search(name + ' ' + label)
                         for typ, name, label, req in inspected)
     unknown_required_checkbox = any(typ == 'checkbox' and req for typ, _, _, req in inspected)
