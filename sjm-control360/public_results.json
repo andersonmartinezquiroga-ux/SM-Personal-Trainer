@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "jobs": {
+    "render-executor-health": {
+      "outcome": "needs_review",
+      "http_status": 503,
+      "detail": "Read-only check failed: HTTPError",
+      "checked_utc": "2026-11-02T03:12:53Z",
+      "next_due": "2026-11-02T05:12:53Z",
+      "kind": "executor_health",
+      "url": "https://sjm-playwright-executor.onrender.com/healthz",
+      "attempts": 1
+    },
+    "europe-eic-official": {
+      "outcome": "checked_ok",
+      "http_status": 200,
+      "evidence_sha256": "34950fc70b7978d25d405ea38c7efd64cfa011923fef7ae03f345efdfe631925",
+      "detail": "Official public page reached; individual eligibility NOT verified",
+      "checked_utc": "2026-11-02T03:12:53Z",
+      "next_due": "2026-11-02T15:12:53Z",
+      "kind": "official_page",
+      "url": "https://eic.ec.europa.eu/",
+      "attempts": 1
+    },
+    "awesome-foundation-official": {
+      "outcome": "checked_ok",
+      "http_status": 200,
+      "evidence_sha256": "38a01ff6b795f8679ff234dd0769840fd25d4ae00ff846cc688da2838e41facd",
+      "detail": "Official public page reached; individual eligibility NOT verified",
+      "checked_utc": "2026-11-02T03:12:53Z",
+      "next_due": "2026-11-02T15:12:53Z",
+      "kind": "official_page",
+      "url": "https://www.awesomefoundation.org/en",
+      "attempts": 1
+    }
+  },
+  "last_cycle": "2026-11-02T03:12:53Z"
+}
