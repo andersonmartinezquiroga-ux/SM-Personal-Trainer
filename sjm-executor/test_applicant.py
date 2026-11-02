@@ -36,6 +36,28 @@ class SecurityTests(unittest.TestCase):
         for url in official:
             with self.subTest(url=url):
                 self.assertEqual(checked_url(url),url)
+    def test_new_verified_spanish_sources_exact_path_only(self):
+        allowed=[
+            "https://www.tusclases.co/anunciarse/profesor-particular",
+            "https://agentify.teamtailor.com/es/jobs/7708719-agente-de-ventas-call-centre-en-espanol-colombia-virtual",
+        ]
+        for url in allowed:
+            with self.subTest(url=url):
+                self.assertEqual(checked_url(url),url)
+                self.assertTrue(is_safe_readonly_asset(url,"GET"))
+                self.assertFalse(is_safe_readonly_asset(url,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(url,{"name":"PRIVATE_VALUE_NEVER_SEND"})
+        forbidden=[
+            "https://www.tusclases.co/login",
+            "https://www.tusclases.co/anunciarse/profesor-particular?redirect=https://evil.example",
+            "https://agentify.teamtailor.com/es/jobs/other",
+            "https://agentify.teamtailor.com/es/jobs/7708719-agente-de-ventas-call-centre-en-espanol-colombia-virtual?apply=true",
+        ]
+        for url in forbidden:
+            with self.subTest(url=url),self.assertRaises(ValueError):
+                checked_url(url)
+
     def test_no_cross_scope_sites_or_profile_pages(self):
         forbidden=[
             "https://www.workana.com/login",
