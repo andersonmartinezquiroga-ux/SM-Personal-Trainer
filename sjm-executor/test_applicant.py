@@ -6,10 +6,10 @@ import json
 class SecurityTests(unittest.TestCase):
     def test_lever_custom_mandatory_resume_label(self):
         self.assertTrue(lever_required_resume_visible(
-            "Submit your application\\nResume/CV ✱\\nATTACH RESUME/CV\\nFull name✱"))
+            "Submit your application\nResume/CV ✱\nATTACH RESUME/CV\nFull name✱"))
         self.assertTrue(lever_required_resume_visible("Hoja de vida *"))
         self.assertFalse(lever_required_resume_visible(
-            "Resume/CV (optional)\\nWe may process your CV per our privacy policy"))
+            "Resume/CV (optional)\nWe may process your CV per our privacy policy"))
         self.assertFalse(lever_required_resume_visible(
             "By applying, your resume will be reviewed"))
         self.assertFalse(lever_required_resume_visible(None))
