@@ -53,7 +53,7 @@ class SafeRedirect(urllib.request.HTTPRedirectHandler):
             raise ValueError("Unsafe redirect blocked")
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
-def check(job):
+def check_once(job):
     request = urllib.request.Request(job["url"], headers={
         "User-Agent": "SJM-Control360-PublicQueue/1.0 (read-only)",
         "Accept": "application/json,text/html",
@@ -82,6 +82,25 @@ def check(job):
         return {"outcome": "needs_review", "http_status": getattr(exc, "code", None),
                 "detail": "Read-only check failed: " + type(exc).__name__}
 
+def check(job):
+    """Retry Render free-service cold starts; never hide a persistent failure."""
+    if job["kind"] != "executor_health":
+        return check_once(job)
+    import time
+    result = {}
+    for attempt in range(4):
+        result = check_once(job)
+        if result["outcome"] == "checked_ok":
+            result["checks_attempted"] = attempt + 1
+            return result
+        if result.get("http_status") not in (502, 503, 504):
+            break
+        if attempt < 3:
+            time.sleep(12)
+    result["checks_attempted"] = attempt + 1
+    result["detail"] += "; unavailable after retry" if attempt == 3 else ""
+    return result
+
 def run(now=None):
     now = now or dt.datetime.now(UTC)
     jobs = json.loads(QUEUE.read_text(encoding="utf-8"))["jobs"]
@@ -105,7 +124,7 @@ def run(now=None):
             continue
         result = check(job)
         result.update({"checked_utc": iso(now),
-                       "next_due": iso(now + dt.timedelta(hours=job["interval_hours"])),
+                       "next_due": iso(now + dt.timedelta(hours=1 if result["outcome"] != "checked_ok" else job["interval_hours"])),
                        "kind": job["kind"], "url": job["url"],
                        "attempts": old.get("attempts", 0) + 1})
         state["jobs"][job["id"]] = result
