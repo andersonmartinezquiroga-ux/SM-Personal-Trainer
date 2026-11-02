@@ -88,17 +88,20 @@ def check(job):
         return check_once(job)
     import time
     result = {}
-    for attempt in range(4):
+    max_attempts = 8
+    for attempt in range(max_attempts):
         result = check_once(job)
         if result["outcome"] == "checked_ok":
             result["checks_attempted"] = attempt + 1
             return result
         if result.get("http_status") not in (502, 503, 504):
             break
-        if attempt < 3:
-            time.sleep(12)
+        # Render free-tier cold starts can take longer than 36 seconds.
+        if attempt < max_attempts - 1:
+            time.sleep(15)
     result["checks_attempted"] = attempt + 1
-    result["detail"] += "; unavailable after retry" if attempt == 3 else ""
+    if attempt == max_attempts - 1:
+        result["detail"] += "; still unavailable after extended retries"
     return result
 
 def run(now=None):
