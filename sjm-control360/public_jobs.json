@@ -5,7 +5,7 @@
       "id": "render-executor-health",
       "kind": "executor_health",
       "url": "https://sjm-playwright-executor.onrender.com/healthz",
-      "interval_hours": 2
+      "interval_hours": 1
     },
     {
       "id": "europe-eic-official",
