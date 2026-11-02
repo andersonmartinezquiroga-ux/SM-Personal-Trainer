@@ -133,6 +133,38 @@ def run(now=None):
     state["schema_version"] = 1
     state["jobs"] = {job["id"]: state["jobs"][job["id"]] for job in jobs if job["id"] in state["jobs"]}
     RESULTS.write_text(json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # Simple status sheet for the founder, with verified evidence only.
+    safe_count = sum(state["jobs"].get(j["id"], {}).get("outcome") == "checked_ok" for j in jobs)
+    lines = [
+        "# SJM CONTROL 360 — ESTADO COMPROBADO",
+        "",
+        "**Última ejecución automática (UTC):** " + iso(now),
+        "",
+        "**Comprobaciones correctas: " + str(safe_count) + " de " + str(len(jobs)) + "**",
+        "",
+        "| Control | Resultado | Próxima revisión (UTC) |",
+        "|---|---|---|",
+    ]
+    for job in jobs:
+        item = state["jobs"].get(job["id"], {})
+        mark = "🟢" if item.get("outcome") == "checked_ok" else "🔴"
+        lines.append("| " + job["id"] + " | " + mark + " " + item.get("outcome", "pendiente") +
+                     " | " + item.get("next_due", "-") + " |")
+    lines.extend([
+        "",
+        "🟢 = comprobación automática realizada correctamente. 🔴 = fallo o revisión requerida.",
+        "",
+        "**Importante:** estas comprobaciones verifican páginas oficiales y salud del servidor. "
+        "NO son solicitudes de empleo enviadas, aprobaciones, contratos ni prueba de "
+        "autonomía integral. No se procesan datos personales ni se firman formularios.",
+        "",
+        "**Próximo objetivo:** conectar casos autorizados y sus acuses a un ejecutor protegido.",
+        "",
+        "[Evidencia JSON](public_results.json) · "
+        "[Ejecuciones de GitHub Actions](https://github.com/andersonmartinezquiroga-ux/SM-Personal-Trainer/actions)",
+        "",
+    ])
+    (HERE / "ESTADO.md").write_text("\n".join(lines), encoding="utf-8")
     summary = {"checked_now": len(executed), "ok": sum(x["outcome"] == "checked_ok" for x in executed),
                "needs_review": sum(x["outcome"] != "checked_ok" for x in executed),
                "queue_size": len(jobs), "result_file": str(RESULTS)}
