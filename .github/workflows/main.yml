@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'sjm-control360/**'
+      - '.github/workflows/sjm_control360_queue.yml'
 
 jobs:
   build:
