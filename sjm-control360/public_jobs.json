@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "jobs": [
+    {
+      "id": "render-executor-health",
+      "kind": "executor_health",
+      "url": "https://sjm-playwright-executor.onrender.com/healthz",
+      "interval_hours": 2
+    },
+    {
+      "id": "europe-eic-official",
+      "kind": "official_page",
+      "url": "https://eic.ec.europa.eu/",
+      "interval_hours": 12
+    },
+    {
+      "id": "awesome-foundation-official",
+      "kind": "official_page",
+      "url": "https://www.awesomefoundation.org/en",
+      "interval_hours": 12
+    }
+  ]
+}
