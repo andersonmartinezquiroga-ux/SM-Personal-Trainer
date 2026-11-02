@@ -6,7 +6,7 @@
       "http_status": 503,
       "detail": "Read-only check failed: HTTPError",
       "checked_utc": "2026-11-02T03:12:53Z",
-      "next_due": "2026-11-02T05:12:53Z",
+      "next_due": "2026-11-02T03:00:00Z",
       "kind": "executor_health",
       "url": "https://sjm-playwright-executor.onrender.com/healthz",
       "attempts": 1
