@@ -8,6 +8,7 @@ class SecurityTests(unittest.TestCase):
         self.assertTrue(lever_required_resume_visible(
             "Submit your application\nResume/CV ✱\nATTACH RESUME/CV\nFull name✱"))
         self.assertTrue(lever_required_resume_visible("Hoja de vida *"))
+        self.assertTrue(lever_required_resume_visible("Resume/CV\n✱\nATTACH RESUME/CV"))
         self.assertFalse(lever_required_resume_visible(
             "Resume/CV (optional)\nWe may process your CV per our privacy policy"))
         self.assertFalse(lever_required_resume_visible(
