@@ -1,9 +1,19 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset,is_safe_public_ashby_query
+from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset,is_safe_public_ashby_query,lever_required_resume_visible
 import json
 
 class SecurityTests(unittest.TestCase):
+    def test_lever_custom_mandatory_resume_label(self):
+        self.assertTrue(lever_required_resume_visible(
+            "Submit your application\\nResume/CV ✱\\nATTACH RESUME/CV\\nFull name✱"))
+        self.assertTrue(lever_required_resume_visible("Hoja de vida *"))
+        self.assertFalse(lever_required_resume_visible(
+            "Resume/CV (optional)\\nWe may process your CV per our privacy policy"))
+        self.assertFalse(lever_required_resume_visible(
+            "By applying, your resume will be reviewed"))
+        self.assertFalse(lever_required_resume_visible(None))
+
     def test_official(self):
         url="https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply"
         self.assertEqual(checked_url(url),url)
