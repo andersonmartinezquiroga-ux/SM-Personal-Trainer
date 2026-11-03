@@ -13,6 +13,8 @@ ADAPTERS = {
     'community.transperfect.com': 'transperfect_listing',
     'www.workana.com': 'workana_listing',
     'myvirtualtrainer.co': 'partner_listing',
+    # Exact public job path separately restricted in applicant.py; READ-ONLY.
+    'agentify.teamtailor.com': 'teamtailor_listing',
 }
 PHONE = re.compile(r'\b(phone|telephone|tel[eé]fono|celular|mobile|whatsapp)\b', re.I)
 CV = re.compile(r'\b(cv|resume|r[eé]sum[eé]|curriculum|curr[ií]culo|hoja de vida)\b', re.I)
