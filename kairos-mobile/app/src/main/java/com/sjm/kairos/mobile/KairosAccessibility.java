@@ -149,7 +149,7 @@ public class KairosAccessibility extends AccessibilityService {
         }
         if(type.equals("open_app")){
             String pkg=payload.optString("package","");
-            if(!pkg.equals("com.android.chrome")&&!pkg.equals("com.google.android.gm")&&!pkg.equals("com.arlosoft.macrodroid"))
+            if(!SjmNavigationPolicy.isAllowedApp(pkg))
                 throw new SecurityException("Aplicación no autorizada");
             Intent open=getPackageManager().getLaunchIntentForPackage(pkg);
             if(open==null)throw new IllegalStateException("Aplicación no instalada o no visible");
@@ -159,9 +159,8 @@ public class KairosAccessibility extends AccessibilityService {
         }
         if(type.equals("open_url")){
             Uri uri=Uri.parse(payload.optString("url",""));
-            if(!"https".equals(uri.getScheme())||!"sjm-control-360.floot.app".equals(uri.getHost())
-                ||uri.getUserInfo()!=null ||uri.getPort()!=-1)
-                throw new SecurityException("Sitio no autorizado");
+            if(!SjmNavigationPolicy.isAllowedUrl(uri.toString()))
+                throw new SecurityException("Página no autorizada");
             Intent open=new Intent(Intent.ACTION_VIEW,uri);
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(open);
