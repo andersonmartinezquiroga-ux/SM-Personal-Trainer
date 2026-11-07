@@ -110,7 +110,7 @@ public class MainActivity extends Activity {
         if (status == null || localProof == null) return;
         boolean linked = SecretStore.load(this) != null;
         status.setText(linked
-            ? "VINCULADO. El servicio de Accesibilidad debe permanecer activado."
+            ? "CREDENCIAL LOCAL GUARDADA. Compruebe el último resultado para verificar la conexión real. Mantenga activo el servicio de Accesibilidad."
             : "SIN VINCULAR. Genere un código temporal en CONTROL 360.");
         localProof.setText((CommandReceiptStore.isPaused(this) ? "PAUSADO por usted. No se reciben nuevas órdenes.\n" : "Órdenes remotas habilitadas.\n") + "Último resultado local: " + CommandReceiptStore.status(this) +
             (CommandReceiptStore.getPending(this) != null
