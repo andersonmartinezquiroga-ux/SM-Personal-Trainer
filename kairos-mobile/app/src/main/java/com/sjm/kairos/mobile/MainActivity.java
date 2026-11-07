@@ -3,6 +3,7 @@ package com.sjm.kairos.mobile;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -54,6 +55,8 @@ public class MainActivity extends Activity {
         localProof = text("Última actividad: aún no comprobada",15);
         layout.addView(localProof);
         layout.addView(text("1. Abra CONTROL 360 → Mentor → KAIRÓS 03 y pulse «Generar código».",17));
+        layout.addView(button("ABRIR CONTROL 360 PARA GENERAR CÓDIGO",v -> openTrustedPage("https://sjm-control-360.floot.app")));
+        layout.addView(button("🎙️ HABLAR CON EL CEREBRO KAIRÓS", v -> openTrustedPage("https://sjm-kairos-cerebro-web.vercel.app")));
         codeField = new EditText(this);
         codeField.setSingleLine(true);
         codeField.setTextColor(Color.WHITE);
@@ -84,6 +87,20 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},210);
         }
     }
+    /** Solo enlaces HTTPS fijos y controlados; no recibe URL del servidor. */
+    private void openTrustedPage(String url) {
+        if (!url.equals("https://sjm-control-360.floot.app")
+                && !url.equals("https://sjm-kairos-cerebro-web.vercel.app")) {
+            status.setText("Enlace no autorizado.");
+            return;
+        }
+        try {
+            Intent open=new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(open);
+        } catch (Exception e) {
+            status.setText("No se encontró navegador. Instale o habilite Chrome.");
+        }
+    }
     private void pair() {
         String code = codeField.getText().toString().replace("-", "").trim().toUpperCase();
         if (!code.matches("[0-9A-F]{10}")) {
@@ -102,6 +119,7 @@ public class MainActivity extends Activity {
                     status.setText("VINCULADO. Active KAIRÓS Móvil en Ajustes → Accesibilidad. El servicio validará automáticamente la conexión.");
                     linkButton.setEnabled(true);
                     refreshLocalState();
+                    verifyBridgeNow();
                 });
             } catch(Exception e) {
                 runOnUiThread(() -> {status.setText("Sin vincular: "+e.getMessage());linkButton.setEnabled(true);});
