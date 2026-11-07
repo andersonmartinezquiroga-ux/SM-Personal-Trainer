@@ -56,12 +56,15 @@ public class KairosAccessibility extends AccessibilityService {
             // El vínculo de Accesibilidad sigue activo aunque Android no autorice
             // iniciar el servicio en primer plano; no mentir sobre persistencia.
         }
+        CommandReceiptStore.mark(this, "Servicio KAIRÓS habilitado en Accesibilidad");
         handler.postDelayed(tick,1000L);
     }
     private void runBridge() {
         String key=SecretStore.load(this);
         if(key==null)return;
         try {
+            retryPendingAck(key);
+            if (CommandReceiptStore.getPending(this) != null) return;
             long now=System.currentTimeMillis();
             if(now-lastRegistered>8*60_000L){
                 JSONArray capabilities=new JSONArray();
@@ -79,26 +82,55 @@ public class KairosAccessibility extends AccessibilityService {
             if(!commandId.matches("[0-9a-fA-F-]{36}"))return;
             JSONObject ack=new JSONObject().put("commandId",commandId).put("result","received");
             BridgeHttp.call("/_api/kairos/phone_command_ack","POST",ack,key);
+            CommandReceiptStore.mark(this, "Orden " + command.optString("type") + " recibida; ejecutando");
             handler.post(()->{
                 String result;
                 boolean success=true;
                 try {result=executeCommand(command);}
                 catch(Exception e) {success=false;result="Acción no ejecutada: "+e.getClass().getSimpleName();}
-                final boolean good=success;
-                final String detail=result;
+                final String outcome = success ? "completed" : "failed";
+                final String detail = result.length()>280 ? result.substring(0,280) : result;
+                boolean stored = CommandReceiptStore.save(this, commandId, outcome, detail);
+                CommandReceiptStore.mark(this, stored
+                    ? "Resultado local guardado; confirmando con CONTROL 360"
+                    : "No se pudo guardar el resultado; reintentando confirmación");
                 io.execute(()->{
-                    try{
-                        JSONObject finished=new JSONObject().put("commandId",commandId)
-                            .put("result",good?"completed":"failed")
-                            .put("message",detail.length()>280?detail.substring(0,280):detail);
-                        BridgeHttp.call("/_api/kairos/phone_command_ack","POST",finished,key);
-                    }catch(Exception ignored){/* Sin confirmación: el servidor la marcará vencida. */}
+                    if (stored) {
+                        retryPendingAck(key);
+                    } else {
+                        try {
+                            JSONObject finished=new JSONObject().put("commandId", commandId)
+                                .put("result", outcome).put("message", detail);
+                            BridgeHttp.call("/_api/kairos/phone_command_ack","POST",finished,key);
+                            CommandReceiptStore.mark(this, "Resultado confirmado por CONTROL 360");
+                        } catch(Exception e) {
+                            CommandReceiptStore.mark(this, "Confirmación pendiente: " + e.getClass().getSimpleName());
+                        }
+                    }
                 });
             });
         }catch(Exception ignored) {
             // Fallos de red no implican que una orden se ejecutó.
         }
     }
+    private void retryPendingAck(String key) {
+        JSONObject receipt = CommandReceiptStore.getPending(this);
+        if (receipt == null) return;
+        try {
+            JSONObject request = new JSONObject()
+                .put("commandId", receipt.getString("commandId"))
+                .put("result", receipt.getString("result"))
+                .put("message", receipt.optString("message", ""));
+            JSONObject response = BridgeHttp.call("/_api/kairos/phone_command_ack", "POST", request, key);
+            if (response.optBoolean("ok", false)) {
+                CommandReceiptStore.clear(this);
+                CommandReceiptStore.mark(this, "Resultado confirmado por CONTROL 360");
+            }
+        } catch(Exception e) {
+            CommandReceiptStore.mark(this, "Esperando conexión para confirmar resultado");
+        }
+    }
+
     private String executeCommand(JSONObject command) throws Exception {
         String type=command.optString("type","");
         JSONObject payload=command.optJSONObject("payload");
