@@ -65,6 +65,11 @@ public class MainActivity extends Activity {
         linkButton = button("2. Vincular este Motorola",v -> pair());
         layout.addView(linkButton);
         layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
+        layout.addView(button("Pausar / reanudar órdenes remotas", v -> {
+            boolean paused = !CommandReceiptStore.isPaused(this);
+            CommandReceiptStore.setPaused(this, paused);
+            refreshLocalState();
+        }));
         layout.addView(button("3. Activar KAIRÓS en Accesibilidad",v -> {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }));
@@ -107,7 +112,7 @@ public class MainActivity extends Activity {
         status.setText(linked
             ? "VINCULADO. El servicio de Accesibilidad debe permanecer activado."
             : "SIN VINCULAR. Genere un código temporal en CONTROL 360.");
-        localProof.setText("Último resultado local: " + CommandReceiptStore.status(this) +
+        localProof.setText((CommandReceiptStore.isPaused(this) ? "PAUSADO por usted. No se reciben nuevas órdenes.\n" : "Órdenes remotas habilitadas.\n") + "Último resultado local: " + CommandReceiptStore.status(this) +
             (CommandReceiptStore.getPending(this) != null
                 ? "\nConfirmación de resultado pendiente de envío al servidor."
                 : ""));
