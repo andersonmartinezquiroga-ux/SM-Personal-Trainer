@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
     private TextView status;
     private EditText codeField;
     private Button linkButton;
+    private TextView localProof;
 
     private TextView text(String value, int size) {
         TextView t = new TextView(this);
@@ -48,7 +49,9 @@ public class MainActivity extends Activity {
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
-        status = text("Comprobando...",17); layout.addView(status);
+        status = text("Comprobando enlace local...",17); layout.addView(status);
+        localProof = text("Última actividad: aún no comprobada",15);
+        layout.addView(localProof);
         layout.addView(text("1. Abra CONTROL 360 → Mentor → KAIRÓS 03 y pulse «Generar código».",17));
         codeField = new EditText(this);
         codeField.setSingleLine(true);
@@ -61,12 +64,14 @@ public class MainActivity extends Activity {
         layout.addView(codeField);
         linkButton = button("2. Vincular este Motorola",v -> pair());
         layout.addView(linkButton);
+        layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
         layout.addView(button("3. Activar KAIRÓS en Accesibilidad",v -> {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }));
         layout.addView(text("Dentro de Accesibilidad, busque KAIRÓS Móvil y actívelo. Es el único permiso imprescindible para recibir órdenes y solicitar apertura de aplicaciones.",15));
         layout.addView(text("Las órdenes remotas están limitadas a avisos, Chrome, Gmail, MacroDroid y el sitio SJM. No se lee la pantalla ni se pulsan botones automáticamente en esta primera versión.",14));
         setContentView(scroll);
+        refreshLocalState();
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},210);
@@ -89,17 +94,27 @@ public class MainActivity extends Activity {
                     codeField.setText("");
                     status.setText("VINCULADO. Active KAIRÓS Móvil en Ajustes → Accesibilidad. El servicio validará automáticamente la conexión.");
                     linkButton.setEnabled(true);
+                    refreshLocalState();
                 });
             } catch(Exception e) {
                 runOnUiThread(() -> {status.setText("Sin vincular: "+e.getMessage());linkButton.setEnabled(true);});
             }
         });
     }
+    private void refreshLocalState() {
+        if (status == null || localProof == null) return;
+        boolean linked = SecretStore.load(this) != null;
+        status.setText(linked
+            ? "VINCULADO. El servicio de Accesibilidad debe permanecer activado."
+            : "SIN VINCULAR. Genere un código temporal en CONTROL 360.");
+        localProof.setText("Último resultado local: " + CommandReceiptStore.status(this) +
+            (CommandReceiptStore.getPending(this) != null
+                ? "\nConfirmación de resultado pendiente de envío al servidor."
+                : ""));
+    }
     @Override protected void onResume() {
         super.onResume();
-        if(status!=null && SecretStore.load(this)!=null) {
-            status.setText("Clave de vinculación guardada en este teléfono. Si ya activó KAIRÓS Móvil en Accesibilidad, el servicio comprobará el enlace.");
-        }
+        refreshLocalState();
     }
     @Override protected void onDestroy() {io.shutdownNow();super.onDestroy();}
 }
