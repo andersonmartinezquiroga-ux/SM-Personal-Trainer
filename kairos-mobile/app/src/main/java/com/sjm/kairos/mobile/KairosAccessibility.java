@@ -61,7 +61,7 @@ public class KairosAccessibility extends AccessibilityService {
     }
     private void runBridge() {
         String key=SecretStore.load(this);
-        if(key==null)return;
+        if(key==null || CommandReceiptStore.isPaused(this))return;
         try {
             retryPendingAck(key);
             if (CommandReceiptStore.getPending(this) != null) return;
