@@ -18,17 +18,17 @@ ROLE_CONFIG = {
     "text-annotator-co": {
         "case_key": "radar:commercial:ingresos-ypai-text-annotator-co-20261016",
         "opening": "Text and NLP Annotator",
-        "already_submitted": False,
+        "already_submitted": True,
     },
     "model-evaluator-co": {
         "case_key": "radar:commercial:ingresos-ypai-model-evaluator-co-20261016",
         "opening": "Model Evaluator",
-        "already_submitted": False,
+        "already_submitted": True,
     },
     "pose-keypoint-annotator-co": {
         "case_key": "radar:commercial:ingresos-ypai-pose-keypoint-co-20261016",
         "opening": "Pose and Keypoint Annotator",
-        "already_submitted": False,
+        "already_submitted": True,
     },
 }
 BASE = "https://freelancer.ypai.ai/jobs/openings/"
