@@ -31,7 +31,12 @@ export async function isAuthorizedGithubBuild(rawToken){
   if(header.alg!=="RS256"||typeof header.kid!=="string")return false;
   if(payload.iss!==ISSUER||payload.aud!==AUDIENCE||payload.repository!==REPOSITORY)return false;
   const allowedRef=process.env.KAIROS_SIGNING_ALLOWED_REF||DEFAULT_REF;
-  if(payload.ref!==allowedRef || payload.sub!==`repo:${REPOSITORY}:ref:${allowedRef}`)return false;
+  const expectedSubjects = new Set([
+    `repo:${REPOSITORY}:ref:${allowedRef}`,
+    `repo:andersonmartinezquiroga-ux@317761897/SM-Personal-Trainer@1340977588:ref:${allowedRef}`
+  ]);
+  if(payload.ref!==allowedRef || !expectedSubjects.has(payload.sub))return false;
+  if(payload.repository_id!=="1340977588" || payload.repository_owner_id!=="317761897")return false;
   if(payload.workflow_ref!==`${REPOSITORY}/${WORKFLOW}@${allowedRef}`)return false;
   const now=Math.floor(Date.now()/1000);
   if(typeof payload.iat!=="number"||typeof payload.exp!=="number" ||
