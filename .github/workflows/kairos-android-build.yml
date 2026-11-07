@@ -53,6 +53,9 @@ jobs:
           import base64,json,os,pathlib
           data=json.loads(pathlib.Path('build/signing-response.json').read_text())
           if not data.get('ok'): raise RuntimeError('Servidor alterno no entregó firma')
+          # Ocultar la contraseña antes de exportarla a pasos posteriores de Actions.
+          secret=data['signing'].get('storePassword')
+          if secret: print('::add-mask::'+secret, flush=True)
           raw=base64.b64decode(data['signing']['keystoreBase64'],validate=True)
           if len(raw)<1000: raise RuntimeError('Certificado vacío')
           target=pathlib.Path('release-signing.p12')
