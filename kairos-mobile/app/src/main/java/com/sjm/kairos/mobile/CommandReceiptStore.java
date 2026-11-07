@@ -44,6 +44,12 @@ final class CommandReceiptStore {
             return receipt;
         } catch (Exception e) { clear(context); return null; }
     }
+    static boolean isPaused(Context context) {
+        return prefs(context).getBoolean("paused", false);
+    }
+    static void setPaused(Context context, boolean paused) {
+        prefs(context).edit().putBoolean("paused", paused).commit();
+    }
     static synchronized void clear(Context context) {
         prefs(context).edit().remove(PENDING).commit();
     }
