@@ -2,6 +2,29 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.sjm.kairos.mobile'
     compileSdk 35
-    defaultConfig { applicationId 'com.sjm.kairos.mobile'; minSdk 26; targetSdk 35; versionCode 2; versionName '0.2.0' }
+    defaultConfig {
+        applicationId 'com.sjm.kairos.mobile'
+        minSdk 26
+        targetSdk 35
+        versionCode 3
+        versionName '0.3.0'
+    }
+    signingConfigs {
+        release {
+            def filePath = System.getenv('KAIROS_SIGNING_FILE')
+            if (filePath != null && !filePath.isEmpty()) {
+                storeFile file(filePath)
+                storePassword System.getenv('KAIROS_SIGNING_STORE_PASS')
+                keyAlias System.getenv('KAIROS_SIGNING_ALIAS')
+                keyPassword System.getenv('KAIROS_SIGNING_STORE_PASS')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
