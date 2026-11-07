@@ -1,0 +1,67 @@
+name: SJM · Tres APK Android instalables
+on:
+  push:
+    branches: [feature/kairos-mobile-v03]
+    paths:
+      - 'sjm-apps/**'
+      - '.github/workflows/sjm-three-apks.yml'
+  workflow_dispatch:
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sjm-apps
+    permissions:
+      contents: read
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: SDK Android 35
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compilar las tres aplicaciones firmadas para depuracion
+        run: |
+          gradle :app:assembleBibliaDebug :app:assembleInglesDebug :app:assembleTraductorDebug --no-daemon --stacktrace
+      - name: Verificar instalables, firmas y nombres de paquete
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -Vr | head -n 1)"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -Vr | head -n 1)"
+          test -n "$APKSIGNER" && test -n "$AAPT"
+          mkdir -p deliverables
+          for package in biblia ingles traductor; do
+            apk="app/build/outputs/apk/$package/debug/app-$package-debug.apk"
+            test -s "$apk"
+            "$APKSIGNER" verify --verbose "$apk"
+            "$AAPT" dump badging "$apk" | head -n 4
+            case "$package" in
+              biblia) cp "$apk" deliverables/Mi_Biblia_Viva.apk ;;
+              ingles) cp "$apk" deliverables/SJM_English_Academy.apk ;;
+              traductor) cp "$apk" deliverables/SJM_Universal_Translator.apk ;;
+            esac
+          done
+          (cd deliverables && sha256sum *.apk > SHA256SUMS.txt)
+          ls -lh deliverables/
+      - name: Publicar paquete descargable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SJM-3-APK-Android-Instalables
+          path: sjm-apps/deliverables/
+          if-no-files-found: error
+          retention-days: 14
