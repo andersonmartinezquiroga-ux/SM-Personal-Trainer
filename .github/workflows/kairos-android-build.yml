@@ -1,7 +1,7 @@
 name: KAIRÓS Móvil · APK de prueba
 on:
   push:
-    branches: [feature/kairos-mobile-v02]
+    branches: [feature/kairos-mobile-v03]
     paths: ['kairos-mobile/**', '.github/workflows/kairos-android-build.yml']
   workflow_dispatch:
 jobs:
@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     defaults:
       run:
         working-directory: kairos-mobile
@@ -33,11 +34,48 @@ jobs:
           mkdir -p build/policy-test
           javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java
           java -cp build/policy-test com.sjm.kairos.mobile.NavigationPolicySelfTest
-      - name: Compilar APK debug
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+      - name: Obtener firma privada mediante GitHub OIDC y Render
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          token=$(curl --fail --silent --show-error --max-time 12 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sjm-kairos-signing-v1" | python3 -c 'import sys,json;print(json.load(sys.stdin)["value"])')
+          test -n "$token"
+          curl --fail --silent --show-error --max-time 40 -X POST "https://sjm-kairos-lab-alterno.onrender.com/signing-material" -H "Authorization: Bearer $token" -o build/signing-response.json
+          python3 - <<'PY'
+          import base64,json,os,pathlib
+          data=json.loads(pathlib.Path('build/signing-response.json').read_text())
+          if not data.get('ok'): raise RuntimeError('Servidor alterno no entregó firma')
+          raw=base64.b64decode(data['signing']['keystoreBase64'],validate=True)
+          if len(raw)<1000: raise RuntimeError('Certificado vacío')
+          target=pathlib.Path('release-signing.p12')
+          target.write_bytes(raw)
+          target.chmod(0o600)
+          env=os.environ['GITHUB_ENV']
+          with open(env,'a') as o:
+              o.write('KAIROS_SIGNING_FILE='+str(target.resolve())+'\n')
+              o.write('KAIROS_SIGNING_STORE_PASS='+data['signing']['storePassword']+'\n')
+              o.write('KAIROS_SIGNING_ALIAS='+data['signing']['keyAlias']+'\n')
+          pathlib.Path('build/signing-response.json').unlink()
+          print('Firma permanente recibida mediante OIDC; datos secretos omitidos')
+          PY
+      - name: Compilar APK firmado
+        run: gradle :app:assembleRelease --no-daemon --stacktrace
+      - name: Verificar firma v2 y certificado
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -Vr | head -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | grep '^Signer #1 certificate SHA-256 digest:'
+      - name: Borrar clave del runner
+        if: always()
+        shell: bash
+        run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-debug-APK
-          path: kairos-mobile/app/build/outputs/apk/debug/app-debug.apk
+          name: KairosMobile-release-APK-V03
+          path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
