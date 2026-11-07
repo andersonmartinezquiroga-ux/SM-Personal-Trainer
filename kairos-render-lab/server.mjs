@@ -1,5 +1,6 @@
 import http from "node:http";
 import {normalizeCommand} from "./policy.mjs";
+import {isAuthorizedGithubBuild,haveSigningMaterial,signingMaterialForAuthorizedBuild} from "./signing.mjs";
 const PORT=Number(process.env.PORT||10000);
 const VERSION="0.1.0";
 const reply=(res,status,payload)=>{
@@ -13,9 +14,21 @@ function safeBasePath(url){
 }
 const server=http.createServer(async(req,res)=>{
  const path=safeBasePath(req.url||"/");
+ if(req.method==="POST"&&path==="/signing-material"){
+   if(!haveSigningMaterial())return reply(res,503,{ok:false,error:"Certificado persistente no configurado"});
+   const auth=req.headers.authorization||"";
+   if(!auth.startsWith("Bearer ")||!await isAuthorizedGithubBuild(auth.slice(7))){
+      return reply(res,403,{ok:false,error:"Acceso restringido a GitHub Actions SJM"});
+   }
+   return reply(res,200,{ok:true,signing:signingMaterialForAuthorizedBuild()});
+ }
+ if(req.method==="GET"&&path==="/signing-status"){
+   return reply(res,200,{ok:true,stableSigningConfigured:haveSigningMaterial(),
+      signingMaterialNeverPublic:true,migrationNeededFromV01:true});
+ }
  if(req.method==="GET"&&path==="/health"){
   return reply(res,200,{ok:true,server:"KAIRÓS Laboratorio Alterno",version:VERSION,
-     state:"standby",phoneCommandsActive:false,deviceKeysStored:false,
+     state:"standby",phoneCommandsActive:false,deviceKeysStored:false,stableSigningConfigured:haveSigningMaterial(),
      meaning:"Servidor de pruebas activo. NO está conectado al Motorola ni sustituye a CONTROL 360."});
  }
  if(req.method==="GET"&&(path==="/"||path==="/capabilities")){
