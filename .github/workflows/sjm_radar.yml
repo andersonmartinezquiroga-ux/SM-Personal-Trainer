@@ -53,12 +53,27 @@ jobs:
           name: sjm-radar-verificacion
           path: sjm-executor/radar_results.json
           retention-days: 30
-      - name: Publish latest source snapshot to SJM development branch
+      - name: Publish latest source snapshot to SJM development branch (best effort)
+        # The artifact above is the independent durable evidence. A transient GitHub
+        # push failure must not erase a successful read-only source audit.
+        timeout-minutes: 2
         run: |
           git config user.name 'SJM Radar Bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f sjm-executor/radar_results.json
           if ! git diff --cached --quiet; then
             git commit -m 'SJM Radar: last read-only official-source snapshot'
-            git push origin HEAD:sjm-executor-render
+            published=false
+            for attempt in 1 2 3; do
+              if git push origin HEAD:sjm-executor-render; then
+                published=true
+                break
+              fi
+              echo "GitHub push attempt $attempt failed; evidence artifact is retained"
+              sleep 4
+            done
+            if [ "$published" != "true" ]; then
+              echo "::warning::Source snapshot push failed; Actions artifact retained. No application was submitted."
+              echo "Publicación en rama: pendiente; comprobaciones y artefacto: conservados." >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
