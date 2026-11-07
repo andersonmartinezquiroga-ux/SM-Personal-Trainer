@@ -109,8 +109,11 @@ public class KairosAccessibility extends AccessibilityService {
                     }
                 });
             });
-        }catch(Exception ignored) {
-            // Fallos de red no implican que una orden se ejecutó.
+        }catch(Exception e) {
+            // No confundir servicio Android encendido con puente remoto conectado.
+            // Mensaje local sin URL, credenciales ni datos privados.
+            CommandReceiptStore.mark(this,
+                "CONTROL 360 sin conexión comprobada: " + e.getClass().getSimpleName());
         }
     }
     private void retryPendingAck(String key) {
