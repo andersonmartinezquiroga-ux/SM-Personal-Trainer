@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
         layout.addView(codeField);
         linkButton = button("2. Vincular este Motorola",v -> pair());
         layout.addView(linkButton);
+        layout.addView(button("COMPROBAR CONEXIÓN REAL con CONTROL 360", v -> verifyBridgeNow()));
         layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
         layout.addView(button("Pausar / reanudar órdenes remotas", v -> {
             boolean paused = !CommandReceiptStore.isPaused(this);
@@ -103,6 +105,42 @@ public class MainActivity extends Activity {
                 });
             } catch(Exception e) {
                 runOnUiThread(() -> {status.setText("Sin vincular: "+e.getMessage());linkButton.setEnabled(true);});
+            }
+        });
+    }
+    /** Prueba de red auténtica y sin órdenes: no simula respuesta del servidor. */
+    private void verifyBridgeNow() {
+        String key=SecretStore.load(this);
+        if(key==null){
+            status.setText("NO VINCULADO. Primero genere un código y vincule el Motorola.");
+            return;
+        }
+        linkButton.setEnabled(false);
+        status.setText("Conectando con CONTROL 360 por HTTPS...");
+        io.execute(() -> {
+            try {
+                JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
+                JSONObject request=new JSONObject().put("action","register")
+                    .put("version",1).put("capabilities",scopes);
+                JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
+                if(!reply.optBoolean("ok",false))
+                    throw new IllegalStateException("El servidor respondió sin confirmar la vinculación");
+                CommandReceiptStore.mark(this,
+                    "CONEXIÓN REAL: CONTROL 360 confirmó el registro remoto");
+                runOnUiThread(() -> {
+                    linkButton.setEnabled(true);
+                    refreshLocalState();
+                    status.setText("PUENTE CONECTADO: registro confirmado por el servidor.");
+                });
+            } catch(Exception e) {
+                String error=e.getClass().getSimpleName();
+                CommandReceiptStore.mark(this,
+                    "SIN CONEXIÓN REAL con CONTROL 360: "+error);
+                runOnUiThread(() -> {
+                    linkButton.setEnabled(true);
+                    refreshLocalState();
+                    status.setText("NO CONECTADO: revise internet, código y servicio. "+error);
+                });
             }
         });
     }
