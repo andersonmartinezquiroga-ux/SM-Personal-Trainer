@@ -1,7 +1,7 @@
 name: KAIRÓS Móvil · APK de prueba
 on:
   push:
-    branches: [feature/kairos-mobile-v1]
+    branches: [feature/kairos-mobile-v02]
     paths: ['kairos-mobile/**', '.github/workflows/kairos-android-build.yml']
   workflow_dispatch:
 jobs:
@@ -28,6 +28,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Pruebas de navegación segura
+        run: |
+          mkdir -p build/policy-test
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.NavigationPolicySelfTest
       - name: Compilar APK debug
         run: gradle :app:assembleDebug --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
