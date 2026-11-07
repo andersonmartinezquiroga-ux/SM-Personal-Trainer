@@ -18,12 +18,18 @@ class YpaiGateTests(unittest.TestCase):
             ("Test Person", "test@example.invalid"),
         )
 
-    def test_role_case_pair_required(self):
-        cfg = validate_role_request(
-            "text-annotator-co",
-            "radar:commercial:ingresos-ypai-text-annotator-co-20261016",
-        )
-        self.assertEqual(cfg["opening"], "Text and NLP Annotator")
+    def test_all_historically_submitted_roles_are_locked(self):
+        case_keys = {
+            "data-annotator-co": "radar:commercial:ingresos-ypai-data-annotator-co-20261016",
+            "text-annotator-co": "radar:commercial:ingresos-ypai-text-annotator-co-20261016",
+            "model-evaluator-co": "radar:commercial:ingresos-ypai-model-evaluator-co-20261016",
+            "pose-keypoint-annotator-co": "radar:commercial:ingresos-ypai-pose-keypoint-co-20261016",
+        }
+        for slug, key in case_keys.items():
+            with self.subTest(role=slug):
+                self.assertTrue(ROLE_CONFIG[slug]["already_submitted"])
+                with self.assertRaisesRegex(ValueError, "application_already_submitted"):
+                    validate_role_request(slug, key)
 
     def test_role_case_mismatch_rejected(self):
         with self.assertRaises(ValueError):
