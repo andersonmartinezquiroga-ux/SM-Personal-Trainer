@@ -55,15 +55,15 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.5 · RESPUESTA VISIBLE DE CONEXIÓN",17));
+        layout.addView(text("VERSIÓN 0.3.6 · RESPALDO SUPABASE SIN FLOOT",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
         status = text("Comprobando enlace local...",17); layout.addView(status);
         localProof = text("Última actividad: aún no comprobada",15);
         layout.addView(localProof);
-        layout.addView(text("1. Abra CONTROL 360 → Mentor → KAIRÓS 03 y pulse «Generar código».",17));
-        layout.addView(button("ABRIR CONTROL 360 PARA GENERAR CÓDIGO",v -> openTrustedPage("https://sjm-control-360.floot.app")));
+        layout.addView(text("1. Revise su correo SJM para obtener el código privado de vinculación 0.3.6. No lo comparta en el chat.",17));
+        layout.addView(button("ABRIR GMAIL PARA VER EL CÓDIGO",v -> openTrustedPage("https://mail.google.com")));
         layout.addView(button("🎙️ HABLAR CON EL CEREBRO KAIRÓS", v -> openTrustedPage("https://sjm-kairos-cerebro-web.vercel.app")));
         codeField = new EditText(this);
         codeField.setSingleLine(true);
@@ -152,7 +152,7 @@ public class MainActivity extends Activity {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }));
         layout.addView(text("Dentro de Accesibilidad, busque KAIRÓS Móvil y actívelo. Es el único permiso imprescindible para recibir órdenes y solicitar apertura de aplicaciones.",15));
-        layout.addView(text("Las órdenes remotas están limitadas a avisos y aperturas autorizadas. La única pulsación permitida en esta versión es una prueba voluntaria sobre un botón de KAIRÓS; no se leen pantallas de otras apps.",14));
+        layout.addView(text("Esta fase de respaldo remoto permite avisos de prueba; otras órdenes se habilitarán únicamente tras verificación. La única pulsación permitida en esta versión es una prueba voluntaria sobre un botón de KAIRÓS; no se leen pantallas de otras apps.",14));
         setContentView(scroll);
         refreshLocalState();
         if (Build.VERSION.SDK_INT >= 33 &&
@@ -162,7 +162,8 @@ public class MainActivity extends Activity {
     }
     /** Solo enlaces HTTPS fijos y controlados; no recibe URL del servidor. */
     private void openTrustedPage(String url) {
-        if (!url.equals("https://sjm-control-360.floot.app")
+        if (!url.equals("https://mail.google.com")
+                && !url.equals("https://sjm-control-360.floot.app")
                 && !url.equals("https://sjm-kairos-cerebro-web.vercel.app")) {
             status.setText("Enlace no autorizado.");
             return;
@@ -209,7 +210,7 @@ public class MainActivity extends Activity {
     private void verifyBridgeNow() {
         String key=SecretStore.load(this);
         if(key==null) {
-            showBridgeMessage("SIN VINCULAR: primero genere el código en CONTROL 360 y vincule este Motorola.");
+            showBridgeMessage("SIN VINCULAR: primero obtenga el código temporal por su correo SJM y vincule este Motorola.");
             return;
         }
         bridgeButton.setEnabled(false);
@@ -230,7 +231,7 @@ public class MainActivity extends Activity {
                     bridgeButton.setEnabled(true);
                     linkButton.setEnabled(true);
                     refreshLocalState();
-                    showBridgeMessage("PUENTE CONECTADO: el servidor confirmó el registro HTTPS. Falta probar una orden remota.");
+                    showBridgeMessage("PUENTE SUPABASE CONECTADO: el servidor confirmó registro HTTPS. Falta probar una orden remota.");
                 });
             } catch(Exception e) {
                 String error=e.getClass().getSimpleName();
@@ -250,7 +251,7 @@ public class MainActivity extends Activity {
         boolean linked = SecretStore.load(this) != null;
         status.setText(linked
             ? "CREDENCIAL LOCAL GUARDADA. Compruebe el último resultado para verificar la conexión real. Mantenga activo el servicio de Accesibilidad."
-            : "SIN VINCULAR. Genere un código temporal en CONTROL 360.");
+            : "SIN VINCULAR. Use el código temporal de respaldo que llegará a su correo SJM.");
         localProof.setText((CommandReceiptStore.isPaused(this) ? "PAUSADO por usted. No se reciben nuevas órdenes.\n" : "Órdenes remotas habilitadas.\n") + "Último resultado local: " + CommandReceiptStore.status(this) +
             (CommandReceiptStore.getPending(this) != null
                 ? "\nConfirmación de resultado pendiente de envío al servidor."
