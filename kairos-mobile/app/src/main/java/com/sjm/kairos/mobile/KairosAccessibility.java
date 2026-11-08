@@ -71,7 +71,8 @@ public class KairosAccessibility extends AccessibilityService {
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
                     .put("action","register").put("version",1).put("capabilities",capabilities);
-                BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
+                JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
+                if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
                 lastRegistered=now;
             }
             JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key);
@@ -81,7 +82,8 @@ public class KairosAccessibility extends AccessibilityService {
             String commandId=command.optString("id","");
             if(!commandId.matches("[0-9a-fA-F-]{36}"))return;
             JSONObject ack=new JSONObject().put("commandId",commandId).put("result","received");
-            BridgeHttp.call("/_api/kairos/phone_command_ack","POST",ack,key);
+            JSONObject received=BridgeHttp.call("/_api/kairos/phone_command_ack","POST",ack,key);
+            if (!received.optBoolean("ok",false)) throw new IllegalStateException("Recepción no confirmada");
             CommandReceiptStore.mark(this, "Orden " + command.optString("type") + " recibida; ejecutando");
             handler.post(()->{
                 String result;
@@ -101,7 +103,8 @@ public class KairosAccessibility extends AccessibilityService {
                         try {
                             JSONObject finished=new JSONObject().put("commandId", commandId)
                                 .put("result", outcome).put("message", detail);
-                            BridgeHttp.call("/_api/kairos/phone_command_ack","POST",finished,key);
+                            JSONObject confirmation=BridgeHttp.call("/_api/kairos/phone_command_ack","POST",finished,key);
+                            if (!confirmation.optBoolean("ok",false)) throw new IllegalStateException("Resultado no confirmado");
                             CommandReceiptStore.mark(this, "Resultado confirmado por CONTROL 360");
                         } catch(Exception e) {
                             CommandReceiptStore.mark(this, "Confirmación pendiente: " + e.getClass().getSimpleName());
