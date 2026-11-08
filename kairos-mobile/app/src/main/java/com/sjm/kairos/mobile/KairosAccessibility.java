@@ -11,19 +11,53 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import java.lang.ref.WeakReference;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Servicio autorizado por el dueño. No lee texto ni ejecuta gestos.
+ * Servicio autorizado por el dueño. No lee texto privado ni ejecuta gestos.
+ * Excepción controlada: permite verificar un clic exclusivamente en un botón
+ * de prueba de esta misma app, por solicitud explícita del dueño.
  * Recibe órdenes limitadas del servidor. La apertura de apps es una solicitud
  * a Android; no garantiza que se haya mostrado una pantalla concreta.
  */
 public class KairosAccessibility extends AccessibilityService {
     private static final String SERVICE_CHANNEL="kairos_service_1";
     private static final String ALERT_CHANNEL="kairos_alert_1";
+    private static volatile WeakReference<KairosAccessibility> connectedService =
+        new WeakReference<>(null);
+    private static final String LOCAL_TEST_PACKAGE = "com.sjm.kairos.mobile";
+    private static final String LOCAL_TEST_VIEW_ID =
+        "com.sjm.kairos.mobile:id/kairos_test_target";
+
+    /**
+     * Prueba opt-in. Nunca ejecuta órdenes remotas ni toca otras apps.
+     * Devuelve true SOLO si Android aceptó ACTION_CLICK sobre el control propio.
+     * El botón registra por separado la evidencia de que su listener se ejecutó.
+     */
+    static boolean clickOwnTestTarget() {
+        KairosAccessibility service = connectedService.get();
+        if (service == null || !service.active ||
+            CommandReceiptStore.isPaused(service)) return false;
+        AccessibilityNodeInfo root = service.getRootInActiveWindow();
+        if (root == null || !LOCAL_TEST_PACKAGE.equals(String.valueOf(root.getPackageName())))
+            return false;
+        List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByViewId(
+            LOCAL_TEST_VIEW_ID);
+        if (matches == null || matches.size() != 1) return false;
+        AccessibilityNodeInfo target = matches.get(0);
+        if (target == null || !target.isVisibleToUser() ||
+            !target.isClickable() || !target.isEnabled() ||
+            !LOCAL_TEST_PACKAGE.equals(String.valueOf(target.getPackageName())))
+            return false;
+        return target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+    }
+
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private final Handler handler=new Handler(Looper.getMainLooper());
     private long lastRegistered=0L;
@@ -38,6 +72,7 @@ public class KairosAccessibility extends AccessibilityService {
     @Override protected void onServiceConnected() {
         super.onServiceConnected();
         active=true;
+        connectedService = new WeakReference<>(this);
         NotificationManager manager=getSystemService(NotificationManager.class);
         manager.createNotificationChannel(new NotificationChannel(SERVICE_CHANNEL,
             "Estado de KAIRÓS",NotificationManager.IMPORTANCE_LOW));
@@ -177,11 +212,11 @@ public class KairosAccessibility extends AccessibilityService {
     @Override public void onAccessibilityEvent(AccessibilityEvent event) { /* No lee la pantalla. */ }
     @Override public void onInterrupt() {}
     @Override public boolean onUnbind(Intent intent) {
-        active=false;handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         return super.onUnbind(intent);
     }
     @Override public void onDestroy() {
-        active=false;handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         super.onDestroy();
     }
 }
