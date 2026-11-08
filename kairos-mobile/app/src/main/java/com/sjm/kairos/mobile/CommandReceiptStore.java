@@ -10,7 +10,6 @@ import org.json.JSONObject;
  * La confirmación solo se elimina cuando el servidor responde OK.
  */
 final class CommandReceiptStore {
-    static final long TTL_MS = 11 * 60_000L;
     private static final String PREFS = "kairos_command_receipts_v2";
     private static final String PENDING = "pending";
     private CommandReceiptStore() {}
@@ -35,12 +34,10 @@ final class CommandReceiptStore {
         if (raw == null || raw.isEmpty()) return null;
         try {
             JSONObject receipt = new JSONObject(raw);
-            long created = receipt.getLong("storedAt");
-            long age = System.currentTimeMillis() - created;
-            if (age < 0 || age > TTL_MS) {
-                clear(context);
-                return null;
-            }
+            // No eliminar la confirmación cuando se pierde internet: mantenerla hasta ACK real.
+            // Si expira por tiempo, el servidor podría volver a entregar la orden ya ejecutada.
+            if (!receipt.has("storedAt") || !receipt.has("commandId")
+                    || !receipt.has("result")) return null;
             return receipt;
         } catch (Exception e) { clear(context); return null; }
     }
