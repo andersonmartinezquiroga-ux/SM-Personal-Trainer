@@ -96,12 +96,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.3-prueba'
+          tag='kairos-mobile-v0.3.4-prueba'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.3-PRUEBA.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.4-PRUEBA.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.3-PRUEBA.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.3 · prueba de pulsación local'               --notes 'Versión de prueba voluntaria. Permite pulsar únicamente un botón de la propia app para comprobar Accesibilidad. No autoriza pulsaciones en otras aplicaciones ni pagos. Control externo del Motorola aún no validado en esta versión.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.4-PRUEBA.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.4 · diagnóstico visible de pulsación'               --notes 'Versión corregida de diagnóstico visible: al tocar PROBAR muestra respuesta inmediata en pantalla y aviso Toast aun si la accesibilidad no funciona. Prueba únicamente el botón interno. No autoriza otros clics, mensajes ni pagos. No declara control real del Motorola sin confirmación del usuario.'               --prerelease
           fi
