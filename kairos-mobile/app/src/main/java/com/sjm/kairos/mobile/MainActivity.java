@@ -31,6 +31,8 @@ public class MainActivity extends Activity {
     private EditText codeField;
     private Button linkButton;
     private TextView localProof;
+    private TextView bridgeFeedback;
+    private Button bridgeButton;
 
     private TextView text(String value, int size) {
         TextView t = new TextView(this);
@@ -53,7 +55,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.4 · PRUEBA DE BOTÓN CON RESPUESTA VISIBLE",17));
+        layout.addView(text("VERSIÓN 0.3.5 · RESPUESTA VISIBLE DE CONEXIÓN",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -74,7 +76,10 @@ public class MainActivity extends Activity {
         layout.addView(codeField);
         linkButton = button("2. Vincular este Motorola",v -> pair());
         layout.addView(linkButton);
-        layout.addView(button("COMPROBAR CONEXIÓN REAL con CONTROL 360", v -> verifyBridgeNow()));
+        bridgeButton = button("COMPROBAR CONEXIÓN REAL con CONTROL 360", v -> verifyBridgeNow());
+        layout.addView(bridgeButton);
+        bridgeFeedback = text("ESTADO DEL PUENTE: toque COMPROBAR para ver el resultado AQUÍ.",17);
+        layout.addView(bridgeFeedback);
         layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
         layout.addView(text("PRUEBA REAL · Pulsación de un botón propio",19));
         layout.addView(text("La prueba verifica Accesibilidad sin entrar en Gmail, bancos ni otras aplicaciones. Primero active KAIRÓS en Accesibilidad.",14));
@@ -194,15 +199,22 @@ public class MainActivity extends Activity {
             }
         });
     }
-    /** Prueba de red auténtica y sin órdenes: no simula respuesta del servidor. */
+    /** Todo estado se muestra al lado del botón y en un Toast de Android. */
+    private void showBridgeMessage(String message) {
+        status.setText(message);
+        if (bridgeFeedback != null) bridgeFeedback.setText(message);
+        Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+    }
+    /** Prueba de red auténtica: un registro confirmado NO significa control de apps. */
     private void verifyBridgeNow() {
         String key=SecretStore.load(this);
-        if(key==null){
-            status.setText("NO VINCULADO. Primero genere un código y vincule el Motorola.");
+        if(key==null) {
+            showBridgeMessage("SIN VINCULAR: primero genere el código en CONTROL 360 y vincule este Motorola.");
             return;
         }
+        bridgeButton.setEnabled(false);
         linkButton.setEnabled(false);
-        status.setText("Conectando con CONTROL 360 por HTTPS...");
+        showBridgeMessage("BOTÓN DETECTADO: verificando conexión HTTPS con CONTROL 360...");
         io.execute(() -> {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
@@ -210,22 +222,25 @@ public class MainActivity extends Activity {
                     .put("version",1).put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
-                    throw new IllegalStateException("El servidor respondió sin confirmar la vinculación");
+                    throw new IllegalStateException("El servidor no confirmó la vinculación");
                 CommandReceiptStore.mark(this,
-                    "CONEXIÓN REAL: CONTROL 360 confirmó el registro remoto");
+                    "REGISTRO REMOTO: CONTROL 360 confirmó conexión HTTPS; ejecución móvil no probada");
                 runOnUiThread(() -> {
+                    if(isFinishing() || isDestroyed()) return;
+                    bridgeButton.setEnabled(true);
                     linkButton.setEnabled(true);
                     refreshLocalState();
-                    status.setText("PUENTE CONECTADO: registro confirmado por el servidor.");
+                    showBridgeMessage("PUENTE CONECTADO: el servidor confirmó el registro HTTPS. Falta probar una orden remota.");
                 });
             } catch(Exception e) {
                 String error=e.getClass().getSimpleName();
-                CommandReceiptStore.mark(this,
-                    "SIN CONEXIÓN REAL con CONTROL 360: "+error);
+                CommandReceiptStore.mark(this,"SIN CONEXIÓN REAL con CONTROL 360: "+error);
                 runOnUiThread(() -> {
+                    if(isFinishing() || isDestroyed()) return;
+                    bridgeButton.setEnabled(true);
                     linkButton.setEnabled(true);
                     refreshLocalState();
-                    status.setText("NO CONECTADO: revise internet, código y servicio. "+error);
+                    showBridgeMessage("NO CONECTADO: "+error+". Verifique código, internet y servidor.");
                 });
             }
         });
