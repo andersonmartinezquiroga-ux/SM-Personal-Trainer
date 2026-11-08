@@ -8,7 +8,7 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     defaults:
       run:
@@ -89,3 +89,19 @@ jobs:
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
+      - name: Publicar APK de prueba como pre-release sin pago ni otro servidor
+        if: github.ref == 'refs/heads/feature/kairos-mobile-v03'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag='kairos-mobile-v0.3.3-prueba'
+          apk='app/build/outputs/apk/release/app-release.apk'
+          test -s "$apk"
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.3-PRUEBA.apk'
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Publicación de esta versión ya existente; no duplicar."
+          else
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.3-PRUEBA.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.3 · prueba de pulsación local'               --notes 'Versión de prueba voluntaria. Permite pulsar únicamente un botón de la propia app para comprobar Accesibilidad. No autoriza pulsaciones en otras aplicaciones ni pagos. Control externo del Motorola aún no validado en esta versión.'               --prerelease
+          fi
