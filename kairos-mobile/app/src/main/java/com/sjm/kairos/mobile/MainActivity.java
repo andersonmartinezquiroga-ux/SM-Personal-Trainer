@@ -16,6 +16,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.os.Handler;
+import android.os.Looper;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +53,9 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
+        layout.addView(text("VERSIÓN 0.3.4 · PRUEBA DE BOTÓN CON RESPUESTA VISIBLE",17));
+        TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
+        layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
         status = text("Comprobando enlace local...",17); layout.addView(status);
         localProof = text("Última actividad: aún no comprobada",15);
@@ -72,22 +78,66 @@ public class MainActivity extends Activity {
         layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
         layout.addView(text("PRUEBA REAL · Pulsación de un botón propio",19));
         layout.addView(text("La prueba verifica Accesibilidad sin entrar en Gmail, bancos ni otras aplicaciones. Primero active KAIRÓS en Accesibilidad.",14));
-        TextView tapFeedback = text("Prueba de pulsación pendiente",16);
-        Button tapTarget = button("● BOTÓN DE DESTINO (NO LO PULSE)",v -> {
-            tapFeedback.setText("✅ PULSACIÓN REAL RECIBIDA por el botón de prueba.");
-            CommandReceiptStore.mark(this,
-                "PRUEBA LOCAL DE ACCESIBILIDAD: pulsación recibida en botón KAIRÓS");
+        TextView tapFeedback = text("Prueba de pulsación pendiente",17);
+        final boolean[] testArmed = {false};
+        Button tapTarget = button("● DESTINO DE PRUEBA (NO PULSAR MANUALMENTE)",v -> {
+            if (testArmed[0]) {
+                testArmed[0]=false;
+                String success="PULSACIÓN REAL RECIBIDA: el servicio de KAIRÓS pulsó el destino.";
+                immediateTapStatus.setText(success);
+                tapFeedback.setText(success);
+                Toast.makeText(this,"KAIRÓS PULSÓ EL BOTÓN DE PRUEBA",Toast.LENGTH_LONG).show();
+                CommandReceiptStore.mark(this,
+                    "PRUEBA LOCAL DE ACCESIBILIDAD: pulsación recibida en botón KAIRÓS");
+            } else {
+                String manual="Pulsación manual detectada. No cuenta como prueba autónoma.";
+                immediateTapStatus.setText(manual);
+                tapFeedback.setText(manual);
+                Toast.makeText(this,manual,Toast.LENGTH_LONG).show();
+            }
         });
         tapTarget.setId(R.id.kairos_test_target);
         layout.addView(tapTarget);
-        layout.addView(button("4. PEDIR A KAIRÓS QUE PULSE EL BOTÓN",v -> {
-            tapFeedback.setText("Esperando confirmación de Android...");
-            if(!KairosAccessibility.clickOwnTestTarget()) {
-                tapFeedback.setText("SIN PULSACIÓN: abra y active KAIRÓS en Ajustes > Accesibilidad; mantenga visible el botón de destino y repita una vez.");
+        layout.addView(tapFeedback); // Mensaje justo al lado de los controles.
+        Button requestTap = button("4. PEDIR A KAIRÓS QUE PULSE EL BOTÓN",v -> {
+            String started="BOTÓN DETECTADO: comprobando Accesibilidad...";
+            immediateTapStatus.setText(started);
+            tapFeedback.setText(started);
+            ((Button)v).setText("COMPROBANDO PULSACIÓN...");
+            Toast.makeText(this,started,Toast.LENGTH_LONG).show();
+            testArmed[0]=true;
+            try {
+                boolean requested=KairosAccessibility.clickOwnTestTarget();
+                if(!requested) {
+                    testArmed[0]=false;
+                    String problem="SIN PULSACIÓN: KAIRÓS no pudo acceder al botón. Verifique que el servicio esté activo en Accesibilidad.";
+                    immediateTapStatus.setText(problem);
+                    tapFeedback.setText(problem);
+                    Toast.makeText(this,problem,Toast.LENGTH_LONG).show();
+                    ((Button)v).setText("VOLVER A PROBAR PULSACIÓN");
+                } else {
+                    ((Button)v).setText("PULSACIÓN SOLICITADA A ANDROID");
+                    new Handler(Looper.getMainLooper()).postDelayed(()->{
+                        if(testArmed[0]) {
+                            testArmed[0]=false;
+                            String pending="PULSACIÓN SIN CONFIRMACIÓN DEL BOTÓN. No se declara éxito.";
+                            immediateTapStatus.setText(pending);
+                            tapFeedback.setText(pending);
+                            ((Button)v).setText("VOLVER A PROBAR PULSACIÓN");
+                        }
+                    },2000L);
+                }
+            } catch(Exception ex) {
+                testArmed[0]=false;
+                String error="ERROR LOCAL DE PULSACIÓN: "+ex.getClass().getSimpleName();
+                immediateTapStatus.setText(error);
+                tapFeedback.setText(error);
+                Toast.makeText(this,error,Toast.LENGTH_LONG).show();
+                ((Button)v).setText("VOLVER A PROBAR PULSACIÓN");
             }
-            // Solo el listener del botón de destino puede declarar éxito.
-        }));
-        layout.addView(tapFeedback);
+        });
+        layout.addView(requestTap);
+
         layout.addView(button("Pausar / reanudar órdenes remotas", v -> {
             boolean paused = !CommandReceiptStore.isPaused(this);
             CommandReceiptStore.setPaused(this, paused);
