@@ -70,6 +70,24 @@ public class MainActivity extends Activity {
         layout.addView(linkButton);
         layout.addView(button("COMPROBAR CONEXIÓN REAL con CONTROL 360", v -> verifyBridgeNow()));
         layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
+        layout.addView(text("PRUEBA REAL · Pulsación de un botón propio",19));
+        layout.addView(text("La prueba verifica Accesibilidad sin entrar en Gmail, bancos ni otras aplicaciones. Primero active KAIRÓS en Accesibilidad.",14));
+        TextView tapFeedback = text("Prueba de pulsación pendiente",16);
+        Button tapTarget = button("● BOTÓN DE DESTINO (NO LO PULSE)",v -> {
+            tapFeedback.setText("✅ PULSACIÓN REAL RECIBIDA por el botón de prueba.");
+            CommandReceiptStore.mark(this,
+                "PRUEBA LOCAL DE ACCESIBILIDAD: pulsación recibida en botón KAIRÓS");
+        });
+        tapTarget.setId(R.id.kairos_test_target);
+        layout.addView(tapTarget);
+        layout.addView(button("4. PEDIR A KAIRÓS QUE PULSE EL BOTÓN",v -> {
+            tapFeedback.setText("Esperando confirmación de Android...");
+            if(!KairosAccessibility.clickOwnTestTarget()) {
+                tapFeedback.setText("SIN PULSACIÓN: abra y active KAIRÓS en Ajustes > Accesibilidad; mantenga visible el botón de destino y repita una vez.");
+            }
+            // Solo el listener del botón de destino puede declarar éxito.
+        }));
+        layout.addView(tapFeedback);
         layout.addView(button("Pausar / reanudar órdenes remotas", v -> {
             boolean paused = !CommandReceiptStore.isPaused(this);
             CommandReceiptStore.setPaused(this, paused);
@@ -79,7 +97,7 @@ public class MainActivity extends Activity {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }));
         layout.addView(text("Dentro de Accesibilidad, busque KAIRÓS Móvil y actívelo. Es el único permiso imprescindible para recibir órdenes y solicitar apertura de aplicaciones.",15));
-        layout.addView(text("Las órdenes remotas están limitadas a avisos, Chrome, Gmail, MacroDroid y el sitio SJM. No se lee la pantalla ni se pulsan botones automáticamente en esta primera versión.",14));
+        layout.addView(text("Las órdenes remotas están limitadas a avisos y aperturas autorizadas. La única pulsación permitida en esta versión es una prueba voluntaria sobre un botón de KAIRÓS; no se leen pantallas de otras apps.",14));
         setContentView(scroll);
         refreshLocalState();
         if (Build.VERSION.SDK_INT >= 33 &&
