@@ -11,11 +11,11 @@ import java.nio.charset.StandardCharsets;
 
 /** Enlaces exclusivamente HTTPS al servidor propio de SJM. */
 final class BridgeHttp {
-    private static final String BASE = "https://sjm-control-360.floot.app";
+    private static final String BASE = "https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_kairos_phone_v1";
     static JSONObject call(String endpoint, String method, JSONObject body, String executorKey) throws Exception {
         if (!endpoint.startsWith("/_api/kairos/") || endpoint.contains(".."))
             throw new IOException("Endpoint no permitido");
-        HttpURLConnection connection = (HttpURLConnection) new URL(BASE + endpoint).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(BASE + "?path=" + java.net.URLEncoder.encode(endpoint, "UTF-8")).openConnection();
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(9000);
         connection.setReadTimeout(9000);
