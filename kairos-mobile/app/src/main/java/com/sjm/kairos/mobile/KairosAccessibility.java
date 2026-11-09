@@ -199,7 +199,7 @@ public class KairosAccessibility extends AccessibilityService {
         if(matches!=null&&matches.size()==1) {
             AccessibilityNodeInfo target=matches.get(0);
             if(target!=null&&!target.isVisibleToUser())
-                target.performAction(AccessibilityNodeInfo.ACTION_SHOW_ON_SCREEN);
+                target.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.getId());
         }
     }
     private String ownTestFailureReason(String action){
