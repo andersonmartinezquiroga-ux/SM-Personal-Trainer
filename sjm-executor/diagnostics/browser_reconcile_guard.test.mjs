@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { reconcileBrowserJob, isExternalSubmissionProven } from './browser_reconcile_guard.mjs';
+const base={id:'j1',operation:'inspect',state:'failed',request_id:'r1'};
+assert.equal(reconcileBrowserJob(base).action,'manual_review');
+assert.equal(reconcileBrowserJob({...base,state:'done'}).action,'never_retry');
+assert.equal(reconcileBrowserJob({...base,error_message:'CAPTCHA required'}).action,'never_retry');
+assert.equal(reconcileBrowserJob({...base,request_id:null}).reason,'missing_request_id');
+assert.equal(reconcileBrowserJob({...base,operation:'self_test'}).action,'never_retry');
+assert.equal(reconcileBrowserJob({...base,state:'running'}).action,'manual_review');
+assert.equal(reconcileBrowserJob({...base,operation:'submit'}).action,'manual_review');
+assert.equal(isExternalSubmissionProven({...base,submitted:true}),false);
+console.log('8 reconciliation guard assertions passed');
