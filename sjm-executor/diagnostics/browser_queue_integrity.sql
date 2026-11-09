@@ -1,0 +1,4 @@
+-- KAIRÓS 360: comprobación no destructiva de cola, recuperación y trazabilidad.
+-- Los trabajos inspect y self_test jamás son evidencia de postulación externa.
+-- No reintentar automáticamente trabajos fallidos con acciones sensibles.
+SELECT COUNT(*) FILTER (WHERE state IN ('queued','pending','running','dispatched') AND created_at < now()-interval '20 minutes') AS stale_nonterminal, COUNT(*) FILTER (WHERE state='failed' AND operation='inspect') AS failed_inspections, COUNT(*) FILTER (WHERE state='failed' AND operation='self_test') AS failed_local_tests, COUNT(*) FILTER (WHERE state='done' AND operation='inspect' AND completed_at IS NULL) AS done_without_completion_time, COUNT(*) FILTER (WHERE state='done' AND operation='inspect' AND COALESCE(response_summary->>'submitted','false')='true') AS suspicious_inspection_submission_flags FROM sjm_ops.browser_jobs;
