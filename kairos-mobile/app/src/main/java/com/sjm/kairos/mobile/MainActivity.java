@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.8 · RECONEXIÓN Y PAUSA EN LLAMADAS",17));
+        layout.addView(text("VERSIÓN 0.3.9 · CONTROL Y VERIFICACIÓN DE CHROME",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));

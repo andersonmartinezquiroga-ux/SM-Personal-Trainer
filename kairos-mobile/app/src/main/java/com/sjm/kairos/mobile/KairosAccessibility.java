@@ -68,6 +68,7 @@ public class KairosAccessibility extends AccessibilityService {
     private volatile long lastRegistered=0L;
     private volatile boolean active=false;
     private final AtomicBoolean bridgeInFlight=new AtomicBoolean(false);
+    private volatile boolean verifyingForeground=false;
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
 
@@ -156,13 +157,14 @@ public class KairosAccessibility extends AccessibilityService {
         if(key==null || CommandReceiptStore.isPaused(this))return;
         try {
             retryPendingAck(key);
-            if (CommandReceiptStore.getPending(this) != null) return;
+            if (CommandReceiptStore.getPending(this) != null || verifyingForeground) return;
             long now=System.currentTimeMillis();
             if(now-lastRegistered>8*60_000L){
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("capabilities",capabilities);
+                    .put("action","register").put("version",1).put("appVersion","0.3.9")
+                    .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
                 lastRegistered=now;
@@ -184,42 +186,31 @@ public class KairosAccessibility extends AccessibilityService {
             if (!received.optBoolean("ok",false)) throw new IllegalStateException("Recepción no confirmada");
             CommandReceiptStore.mark(this, "Orden " + command.optString("type") + " recibida; ejecutando");
             handler.post(()->{
-                String result;
-                boolean success=true;
-                try {result=executeCommand(command);}
-                catch(Exception e) {
-                    success=false;
-                    // Códigos no sensibles para diagnóstico remoto, sin transmitir
-                    // textos arbitrarios de excepciones, pantalla ni datos privados.
+                try {
+                    String result=executeCommand(command);
+                    if("open_app".equals(command.optString("type",""))) {
+                        JSONObject body=command.optJSONObject("payload");
+                        String expected=body==null?"":body.optString("package","");
+                        if(!ForegroundProofPolicy.isAllowedExpected(expected)) {
+                            storeAndConfirm(key,commandId,"failed","APP_FOREGROUND_POLICY_DENIED");
+                            return;
+                        }
+                        verifyingForeground=true;
+                        verifyChromeForeground(key,commandId,expected,0);
+                        return;
+                    }
+                    storeAndConfirm(key,commandId,"completed",result);
+                } catch(Exception e) {
+                    String reason;
                     if(e instanceof IllegalStateException &&
                        "Notificaciones deshabilitadas en Android".equals(e.getMessage()))
-                        result="NOTIFICATIONS_DISABLED: habilitar permiso de avisos en Android";
+                        reason="NOTIFICATIONS_DISABLED: habilitar permiso de avisos en Android";
                     else if(e instanceof IllegalStateException &&
-                       "Aviso suspendido durante comunicación activa".equals(e.getMessage()))
-                        result="CALL_ACTIVE: aviso no presentado durante comunicación";
-                    else result="Acción no ejecutada: "+e.getClass().getSimpleName();
+                        "Aviso suspendido durante comunicación activa".equals(e.getMessage()))
+                        reason="CALL_ACTIVE: aviso no presentado durante comunicación";
+                    else reason="Acción no ejecutada: "+e.getClass().getSimpleName();
+                    storeAndConfirm(key,commandId,"failed",reason);
                 }
-                final String outcome = success ? "completed" : "failed";
-                final String detail = result.length()>280 ? result.substring(0,280) : result;
-                boolean stored = CommandReceiptStore.save(this, commandId, outcome, detail);
-                CommandReceiptStore.mark(this, stored
-                    ? "Resultado local guardado; confirmando con CONTROL 360"
-                    : "No se pudo guardar el resultado; reintentando confirmación");
-                io.execute(()->{
-                    if (stored) {
-                        retryPendingAck(key);
-                    } else {
-                        try {
-                            JSONObject finished=new JSONObject().put("commandId", commandId)
-                                .put("result", outcome).put("message", detail);
-                            JSONObject confirmation=BridgeHttp.call("/_api/kairos/phone_command_ack","POST",finished,key);
-                            if (!confirmation.optBoolean("ok",false)) throw new IllegalStateException("Resultado no confirmado");
-                            CommandReceiptStore.mark(this, "Resultado confirmado por CONTROL 360");
-                        } catch(Exception e) {
-                            CommandReceiptStore.mark(this, "Confirmación pendiente: " + e.getClass().getSimpleName());
-                        }
-                    }
-                });
             });
         }catch(Exception e) {
             // No confundir servicio Android encendido con puente remoto conectado.
@@ -228,6 +219,64 @@ public class KairosAccessibility extends AccessibilityService {
                 "CONTROL 360 sin conexión comprobada: " + e.getClass().getSimpleName());
         }
     }
+    /** Confirma únicamente que el paquete de Chrome está visible.
+     * Jamás lee texto, contraseñas, formularios ni contenido de otras apps. */
+    private void verifyChromeForeground(String key,String commandId,String expected,int attempt) {
+        handler.postDelayed(()->{
+            if(!active || !verifyingForeground) return;
+            String visible="";
+            try {
+                AccessibilityNodeInfo root=getRootInActiveWindow();
+                if(root!=null && root.getPackageName()!=null)
+                    visible=String.valueOf(root.getPackageName());
+            }catch(RuntimeException ignored) {
+                // No reclamar éxito si Android niega acceso a la ventana.
+            }
+            if(ForegroundProofPolicy.matches(expected,visible)) {
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"completed",
+                    "CHROME_FOREGROUND_CONFIRMED: paquete Chrome visible por Accesibilidad");
+                return;
+            }
+            if(attempt<8) {
+                verifyChromeForeground(key,commandId,expected,attempt+1);
+            } else {
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"failed",
+                    "CHROME_FOREGROUND_NOT_CONFIRMED: ventana no verificada");
+            }
+        },attempt==0?950L:650L);
+    }
+    /** Guarda un recibo duradero ANTES de intentar enviarlo por la red. */
+    private void storeAndConfirm(String key,String commandId,String result,String detail) {
+        String limited=detail==null?"":detail.substring(0,Math.min(detail.length(),280));
+        boolean stored=CommandReceiptStore.save(this,commandId,result,limited);
+        CommandReceiptStore.mark(this,stored
+           ? "Resultado local guardado; confirmando con CONTROL 360"
+           : "No se pudo guardar el resultado; confirmando con CONTROL 360");
+        try {
+            io.execute(()->{
+                if(stored) {
+                    retryPendingAck(key);
+                    return;
+                }
+                try {
+                    JSONObject finished=new JSONObject().put("commandId",commandId)
+                        .put("result",result).put("message",limited);
+                    JSONObject response=BridgeHttp.call(
+                        "/_api/kairos/phone_command_ack","POST",finished,key);
+                    if(!response.optBoolean("ok",false))
+                        throw new IllegalStateException("Acuse no confirmado");
+                    CommandReceiptStore.mark(this,"Resultado confirmado por CONTROL 360");
+                }catch(Exception ignored) {
+                    CommandReceiptStore.mark(this,"Confirmación remota pendiente");
+                }
+            });
+        }catch(RejectedExecutionException ignored) {
+            CommandReceiptStore.mark(this,"Conexión interrumpida; resultado pendiente");
+        }
+    }
+
     private void retryPendingAck(String key) {
         JSONObject receipt = CommandReceiptStore.getPending(this);
         if (receipt == null) return;
