@@ -5,6 +5,7 @@ on:
     paths:
       - 'sjm-executor/diagnostics/browser_reconcile_guard.mjs'
       - 'sjm-executor/diagnostics/browser_reconcile_guard.test.mjs'
+      - 'sjm-executor/diagnostics/browser_reconcile_guard.matrix.test.mjs'
       - '.github/workflows/kairos-reconcile-guard.yml'
   workflow_dispatch:
 jobs:
@@ -18,4 +19,6 @@ jobs:
         with:
           node-version: '22'
       - name: Run fail-closed reconciliation assertions
-        run: node sjm-executor/diagnostics/browser_reconcile_guard.test.mjs
+        run: |
+          node sjm-executor/diagnostics/browser_reconcile_guard.test.mjs
+          node sjm-executor/diagnostics/browser_reconcile_guard.matrix.test.mjs
