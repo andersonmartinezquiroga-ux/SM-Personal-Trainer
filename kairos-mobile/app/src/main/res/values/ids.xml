@@ -2,4 +2,6 @@
 <resources>
   <!-- Solo existe para verificar una pulsacion voluntaria dentro de KAIRÓS. -->
   <item name="kairos_test_target" type="id"/>
+  <item name="kairos_text_test_target" type="id"/>
+  <item name="kairos_back_test_marker" type="id"/>
 </resources>

@@ -39,6 +39,8 @@ public class KairosAccessibility extends AccessibilityService {
     private static final String LOCAL_TEST_PACKAGE = "com.sjm.kairos.mobile";
     private static final String LOCAL_TEST_VIEW_ID =
         "com.sjm.kairos.mobile:id/kairos_test_target";
+    private static final String LOCAL_TEXT_ID="com.sjm.kairos.mobile:id/kairos_text_test_target";
+    private static final String LOCAL_BACK_ID="com.sjm.kairos.mobile:id/kairos_back_test_marker";
 
     /**
      * Prueba opt-in. Nunca ejecuta órdenes remotas ni toca otras apps.
@@ -61,6 +63,36 @@ public class KairosAccessibility extends AccessibilityService {
             !LOCAL_TEST_PACKAGE.equals(String.valueOf(target.getPackageName())))
             return false;
         return target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+    }
+
+    /** Solo escribe frase fija en el campo de ensayo de esta misma APK. */
+    static boolean fillOwnTestField() {
+        KairosAccessibility service=connectedService.get();
+        if(service==null||!service.active||CommandReceiptStore.isPaused(service))return false;
+        AccessibilityNodeInfo root=service.getRootInActiveWindow();
+        if(root==null||!LocalInteractionPolicy.isOwnPackage(String.valueOf(root.getPackageName())))return false;
+        List<AccessibilityNodeInfo> found=root.findAccessibilityNodeInfosByViewId(LOCAL_TEXT_ID);
+        if(found==null||found.size()!=1)return false;
+        AccessibilityNodeInfo target=found.get(0);
+        if(target==null||!target.isEnabled()||!target.isVisibleToUser()||
+           !target.isEditable()||
+           !LocalInteractionPolicy.isOwnPackage(String.valueOf(target.getPackageName())))
+           return false;
+        android.os.Bundle args=new android.os.Bundle();
+        args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+            LocalInteractionPolicy.PROOF_TEXT);
+        return target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,args);
+    }
+
+    /** Solo regresa desde pantalla interna identificada de KAIRÓS. */
+    static boolean backFromOwnTestScreen() {
+        KairosAccessibility service=connectedService.get();
+        if(service==null||!service.active||CommandReceiptStore.isPaused(service))return false;
+        AccessibilityNodeInfo root=service.getRootInActiveWindow();
+        if(root==null||!LocalInteractionPolicy.isOwnPackage(String.valueOf(root.getPackageName())))return false;
+        List<AccessibilityNodeInfo> found=root.findAccessibilityNodeInfosByViewId(LOCAL_BACK_ID);
+        if(found==null||found.size()!=1||!found.get(0).isVisibleToUser())return false;
+        return service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
     private final ExecutorService io=Executors.newSingleThreadExecutor();
@@ -163,7 +195,7 @@ public class KairosAccessibility extends AccessibilityService {
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("appVersion","0.3.9")
+                    .put("action","register").put("version",1).put("appVersion","0.3.10")
                     .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");

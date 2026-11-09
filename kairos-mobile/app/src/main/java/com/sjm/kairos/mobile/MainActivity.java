@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.9 · CONTROL Y VERIFICACIÓN DE CHROME",17));
+        layout.addView(text("VERSIÓN 0.3.10 · PRUEBAS LOCALES SEGURAS",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -142,6 +142,37 @@ public class MainActivity extends Activity {
             }
         });
         layout.addView(requestTap);
+        layout.addView(text("PRUEBA REAL · Escritura solo en KAIRÓS",19));
+        layout.addView(text("Se escribe una frase fija de ensayo solo en este campo. No lee ni modifica Gmail, claves o formularios de otras apps.",14));
+        EditText ownTest = new EditText(this);
+        ownTest.setId(R.id.kairos_text_test_target);
+        ownTest.setSingleLine(true);
+        ownTest.setTextColor(Color.WHITE);
+        ownTest.setHintTextColor(Color.rgb(160,177,191));
+        ownTest.setHint("Campo de prueba propio");
+        ownTest.setInputType(InputType.TYPE_CLASS_TEXT);
+        ownTest.setFilters(new InputFilter[]{new InputFilter.LengthFilter(40)});
+        layout.addView(ownTest);
+        TextView typingProof = text("Escritura no probada",17);
+        layout.addView(typingProof);
+        layout.addView(button("5. PEDIR ESCRITURA A KAIRÓS EN ESTE CAMPO", v -> {
+            ownTest.setText("");
+            typingProof.setText("Solicitando escritura a Accesibilidad...");
+            boolean requested=KairosAccessibility.fillOwnTestField();
+            new Handler(Looper.getMainLooper()).postDelayed(()->{
+                boolean confirmed=requested && LocalInteractionPolicy.PROOF_TEXT.equals(
+                    ownTest.getText().toString());
+                String result=confirmed
+                    ? "ESCRITURA LOCAL CONFIRMADA EN EL CAMPO PROPIO."
+                    : "ESCRITURA NO CONFIRMADA: no se declara éxito.";
+                typingProof.setText(result);
+                CommandReceiptStore.mark(this,result);
+            },450L);
+        }));
+        layout.addView(text("PRUEBA REAL · Regreso desde pantalla propia",19));
+        layout.addView(text("Se abre otra pantalla dentro de KAIRÓS y allí se pide a Accesibilidad regresar. No controla aplicaciones externas.",14));
+        layout.addView(button("6. ABRIR PANTALLA INTERNA DE REGRESO",
+            v -> startActivity(new Intent(this,SafeBackTestActivity.class))));
 
         layout.addView(button("Pausar / reanudar órdenes remotas", v -> {
             boolean paused = !CommandReceiptStore.isPaused(this);
@@ -220,7 +251,7 @@ public class MainActivity extends Activity {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
                 JSONObject request=new JSONObject().put("action","register")
-                    .put("version",1).put("capabilities",scopes);
+                    .put("version",1).put("appVersion","0.3.10").put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
                     throw new IllegalStateException("El servidor no confirmó la vinculación");

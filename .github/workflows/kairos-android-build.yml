@@ -32,7 +32,8 @@ jobs:
       - name: Pruebas de navegación segura
         run: |
           mkdir -p build/policy-test
-          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.LocalInteractionPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.NavigationPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.ForegroundProofPolicySelfTest
       - name: Obtener firma privada mediante GitHub OIDC y Render
@@ -86,7 +87,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V039
+          name: KairosMobile-release-APK-V0310
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -97,12 +98,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.9-supabase'
+          tag='kairos-mobile-v0.3.10-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.9-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.10-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.9-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.9 · prueba de apertura Chrome verificada'               --notes 'KAIRÓS Móvil 0.3.9: reporta versión de APK al servidor y confirma apertura de Chrome solo tras verificar por Accesibilidad que el paquete Chrome está visible, sin leer pantalla. Registra fallo si no puede comprobarlo. Mantiene reconexión, modo llamada protegido y firma original. Requiere instalar esta versión para prueba de extremo a extremo.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.10-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.10 · ensayo local de escritura y regreso'               --notes 'KAIRÓS Móvil 0.3.10: mantiene verificación real de Chrome y agrega pruebas voluntarias de texto fijo y regreso en pantallas internas de KAIRÓS. No permite escritura remota ni tocar otras apps. Mantiene firma del instalador anterior para conservar credencial y enlace.'               --prerelease
           fi
