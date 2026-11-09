@@ -1,0 +1,42 @@
+name: Build KAIRÓS ACK Bridge APK (isolated)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/kairos-ack-bridge-20261109
+    paths:
+      - 'kairos-ack-android/**'
+      - '.github/workflows/kairos-ack-android.yml'
+  pull_request:
+    paths:
+      - 'kairos-ack-android/**'
+      - '.github/workflows/kairos-ack-android.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install SDK 35
+        run: sdkmanager "platforms;android-35"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build standalone KAIRÓS test APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew -p kairos-ack-android :app:assembleDebug --no-daemon
+      - name: Publish test APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KAIROS-ACK-Bridge-debug
+          path: kairos-ack-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
