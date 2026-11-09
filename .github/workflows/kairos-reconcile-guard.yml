@@ -1,0 +1,21 @@
+name: KAIRÓS browser reconciliation safety tests
+on:
+  push:
+    branches: [sjm-executor-render]
+    paths:
+      - 'sjm-executor/diagnostics/browser_reconcile_guard.mjs'
+      - 'sjm-executor/diagnostics/browser_reconcile_guard.test.mjs'
+      - '.github/workflows/kairos-reconcile-guard.yml'
+  workflow_dispatch:
+jobs:
+  reconcile-safety:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run fail-closed reconciliation assertions
+        run: node sjm-executor/diagnostics/browser_reconcile_guard.test.mjs
