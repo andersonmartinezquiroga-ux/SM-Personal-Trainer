@@ -7,6 +7,8 @@ import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,6 +20,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Servicio autorizado por el dueño. No lee texto privado ni ejecuta gestos.
@@ -60,12 +64,53 @@ public class KairosAccessibility extends AccessibilityService {
 
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private final Handler handler=new Handler(Looper.getMainLooper());
-    private long lastRegistered=0L;
-    private boolean active=false;
+    private volatile long lastRegistered=0L;
+    private volatile boolean active=false;
+    private final AtomicBoolean bridgeInFlight=new AtomicBoolean(false);
+    private ConnectivityManager connectivityManager;
+    private ConnectivityManager.NetworkCallback networkCallback;
+
+    /** Evita acumular consultas a la red si Android retrasa un ciclo. */
+    private void requestBridge() {
+        if(!active || !bridgeInFlight.compareAndSet(false,true)) return;
+        try {
+            io.execute(() -> {
+                try { if(active)runBridge(); }
+                finally { bridgeInFlight.set(false); }
+            });
+        } catch(RejectedExecutionException ignored) {
+            bridgeInFlight.set(false);
+        }
+    }
+    /** Consulta inmediatamente cuando Android vuelve a tener red por defecto. */
+    private void watchConnectivity() {
+        connectivityManager=getSystemService(ConnectivityManager.class);
+        if(connectivityManager==null)return;
+        ConnectivityManager.NetworkCallback callback=new ConnectivityManager.NetworkCallback() {
+            @Override public void onAvailable(Network network) {
+                lastRegistered=0L;
+                requestBridge();
+            }
+        };
+        try {
+            connectivityManager.registerDefaultNetworkCallback(callback);
+            networkCallback=callback;
+        } catch(RuntimeException ex) {
+            // Si Android limita los callbacks, queda el temporizador como respaldo.
+            CommandReceiptStore.mark(this,"Monitor de red no disponible; consulta periódica activa");
+        }
+    }
+    private void stopWatchingConnectivity() {
+        if(connectivityManager!=null && networkCallback!=null) {
+            try {connectivityManager.unregisterNetworkCallback(networkCallback);}
+            catch(RuntimeException ignored) {}
+            networkCallback=null;
+        }
+    }
     private final Runnable tick=new Runnable() {
         @Override public void run() {
             if(!active)return;
-            io.execute(()->runBridge());
+            requestBridge();
             handler.postDelayed(this,45_000L);
         }
     };
@@ -92,6 +137,7 @@ public class KairosAccessibility extends AccessibilityService {
             // iniciar el servicio en primer plano; no mentir sobre persistencia.
         }
         CommandReceiptStore.mark(this, "Servicio KAIRÓS habilitado en Accesibilidad");
+        watchConnectivity();
         handler.postDelayed(tick,1000L);
     }
     private void runBridge() {
@@ -221,11 +267,11 @@ public class KairosAccessibility extends AccessibilityService {
     @Override public void onAccessibilityEvent(AccessibilityEvent event) { /* No lee la pantalla. */ }
     @Override public void onInterrupt() {}
     @Override public boolean onUnbind(Intent intent) {
-        active=false;connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;stopWatchingConnectivity();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         return super.onUnbind(intent);
     }
     @Override public void onDestroy() {
-        active=false;connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;stopWatchingConnectivity();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         super.onDestroy();
     }
 }
