@@ -12,6 +12,14 @@ public final class LocalInteractionPolicySelfTest {
         check(!LocalInteractionPolicy.isProofText("secreto"),"secrets blocked");
         check(!LocalInteractionPolicy.isProofText(""),"empty blocked");
         check(!LocalInteractionPolicy.isProofText(null),"null text blocked");
-        System.out.println("KAIRÓS política de interacción local: 10 verificaciones OK");
+        LocalInteractionPolicy.cancelRemoteClick();
+        check(!LocalInteractionPolicy.consumeRemoteClick(),"not armed");
+        LocalInteractionPolicy.armRemoteClick();
+        check(LocalInteractionPolicy.consumeRemoteClick(),"armed event");
+        check(!LocalInteractionPolicy.consumeRemoteClick(),"single use");
+        check(LocalInteractionPolicy.remoteClickWasConfirmed(),"listener receipt");
+        LocalInteractionPolicy.cancelRemoteClick();
+        check(!LocalInteractionPolicy.remoteClickWasConfirmed(),"cancel clears receipt");
+        System.out.println("KAIRÓS política de interacción local: 15 verificaciones OK");
     }
 }

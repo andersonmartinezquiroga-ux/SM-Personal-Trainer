@@ -95,6 +95,57 @@ public class KairosAccessibility extends AccessibilityService {
         return service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
+    /** An owner-approved remote click is still confined to the internal KAIRÓS test button. */
+    private boolean clickOwnRemoteTarget(){
+        LocalInteractionPolicy.armRemoteClick();
+        boolean started=clickOwnTestTarget();
+        if(!started) LocalInteractionPolicy.cancelRemoteClick();
+        return started;
+    }
+    /** Returns true only when the fixed proof phrase appears in OUR editable test field. */
+    private boolean fixedOwnTextIsVisible(){
+        AccessibilityNodeInfo root=getRootInActiveWindow();
+        if(root==null||!LocalInteractionPolicy.isOwnPackage(
+                String.valueOf(root.getPackageName()))) return false;
+        List<AccessibilityNodeInfo> matches=root.findAccessibilityNodeInfosByViewId(LOCAL_TEXT_ID);
+        if(matches==null||matches.size()!=1)return false;
+        AccessibilityNodeInfo field=matches.get(0);
+        return field!=null&&field.isEnabled()&&field.isEditable()&&field.isVisibleToUser()&&
+            LocalInteractionPolicy.isOwnPackage(String.valueOf(field.getPackageName()))&&
+            LocalInteractionPolicy.isProofText(String.valueOf(field.getText()));
+    }
+    private boolean returnedToOwnMain(){
+        AccessibilityNodeInfo root=getRootInActiveWindow();
+        if(root==null||!LocalInteractionPolicy.isOwnPackage(
+                String.valueOf(root.getPackageName())))return false;
+        List<AccessibilityNodeInfo> markers=root.findAccessibilityNodeInfosByViewId(LOCAL_BACK_ID);
+        List<AccessibilityNodeInfo> home=root.findAccessibilityNodeInfosByViewId(LOCAL_TEXT_ID);
+        return (markers==null||markers.isEmpty())&&home!=null&&!home.isEmpty();
+    }
+    private void verifyOwnLocalAction(String key,String id,String action,int attempt){
+        handler.postDelayed(()->{
+            if(!active||!verifyingForeground)return;
+            boolean success=false;
+            try{
+                if("click".equals(action))success=LocalInteractionPolicy.remoteClickWasConfirmed();
+                else if("write".equals(action))success=fixedOwnTextIsVisible();
+                else if("back".equals(action))success=returnedToOwnMain();
+            }catch(RuntimeException ignored){}
+            if(success){
+                verifyingForeground=false;
+                storeAndConfirm(key,id,"completed",
+                    "OWN_APP_"+action.toUpperCase(java.util.Locale.ROOT)+
+                    "_VERIFIED: control restringido dentro de KAIRÓS");
+            } else if(attempt<6) {
+                verifyOwnLocalAction(key,id,action,attempt+1);
+            }else{
+                verifyingForeground=false;
+                storeAndConfirm(key,id,"failed",
+                    "OWN_APP_TEST_NOT_VERIFIED: control propio no visible o no confirmado");
+            }
+        },attempt==0?350L:350L);
+    }
+
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private final Handler handler=new Handler(Looper.getMainLooper());
     private volatile long lastRegistered=0L;
@@ -195,7 +246,7 @@ public class KairosAccessibility extends AccessibilityService {
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("appVersion","0.3.10")
+                    .put("action","register").put("version",1).put("appVersion","0.3.11")
                     .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
@@ -220,6 +271,13 @@ public class KairosAccessibility extends AccessibilityService {
             handler.post(()->{
                 try {
                     String result=executeCommand(command);
+                    if("local_test".equals(command.optString("type",""))) {
+                        JSONObject body=command.optJSONObject("payload");
+                        String action=body==null?"":body.optString("action","");
+                        verifyingForeground=true;
+                        verifyOwnLocalAction(key,commandId,action,0);
+                        return;
+                    }
                     if("open_app".equals(command.optString("type",""))) {
                         JSONObject body=command.optJSONObject("payload");
                         String expected=body==null?"":body.optString("package","");
@@ -370,6 +428,22 @@ public class KairosAccessibility extends AccessibilityService {
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(open);
             return "Enlace SJM enviado a Android; pantalla no comprobada";
+        }
+        if(type.equals("local_test")){
+            String action=payload.optString("action","");
+            if("click".equals(action)){
+                if(!clickOwnRemoteTarget())throw new IllegalStateException("Botón KAIRÓS no visible");
+                return "LOCAL_CLICK_REQUESTED_NOT_YET_PROVED";
+            }
+            if("write".equals(action)){
+                if(!fillOwnTestField())throw new IllegalStateException("Campo KAIRÓS no visible");
+                return "LOCAL_WRITE_REQUESTED_NOT_YET_PROVED";
+            }
+            if("back".equals(action)){
+                if(!backFromOwnTestScreen())throw new IllegalStateException("Pantalla de prueba KAIRÓS no visible");
+                return "LOCAL_BACK_REQUESTED_NOT_YET_PROVED";
+            }
+            throw new SecurityException("Prueba local no autorizada");
         }
         throw new SecurityException("Comando no autorizado");
     }

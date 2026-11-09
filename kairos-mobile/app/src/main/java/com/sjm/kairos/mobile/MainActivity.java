@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.10 · PRUEBAS LOCALES SEGURAS",17));
+        layout.addView(text("VERSIÓN 0.3.11 · CONTROL REMOTO LOCAL LIMITADO",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -86,14 +86,17 @@ public class MainActivity extends Activity {
         TextView tapFeedback = text("Prueba de pulsación pendiente",17);
         final boolean[] testArmed = {false};
         Button tapTarget = button("● DESTINO DE PRUEBA (NO PULSAR MANUALMENTE)",v -> {
-            if (testArmed[0]) {
+            boolean remoteProof=LocalInteractionPolicy.consumeRemoteClick();
+            if (testArmed[0]||remoteProof) {
                 testArmed[0]=false;
                 String success="PULSACIÓN REAL RECIBIDA: el servicio de KAIRÓS pulsó el destino.";
                 immediateTapStatus.setText(success);
                 tapFeedback.setText(success);
                 Toast.makeText(this,"KAIRÓS PULSÓ EL BOTÓN DE PRUEBA",Toast.LENGTH_LONG).show();
                 CommandReceiptStore.mark(this,
-                    "PRUEBA LOCAL DE ACCESIBILIDAD: pulsación recibida en botón KAIRÓS");
+                    remoteProof
+                     ? "PRUEBA REMOTA KAIRÓS: clic propio entregado al botón"
+                     : "PRUEBA LOCAL DE ACCESIBILIDAD: pulsación recibida en botón KAIRÓS");
             } else {
                 String manual="Pulsación manual detectada. No cuenta como prueba autónoma.";
                 immediateTapStatus.setText(manual);
@@ -251,7 +254,7 @@ public class MainActivity extends Activity {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
                 JSONObject request=new JSONObject().put("action","register")
-                    .put("version",1).put("appVersion","0.3.10").put("capabilities",scopes);
+                    .put("version",1).put("appVersion","0.3.11").put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
                     throw new IllegalStateException("El servidor no confirmó la vinculación");

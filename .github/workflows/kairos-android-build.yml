@@ -87,7 +87,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0310
+          name: KairosMobile-release-APK-V0311
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -98,12 +98,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.10-supabase'
+          tag='kairos-mobile-v0.3.11-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.10-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.11-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.10-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.10 · ensayo local de escritura y regreso'               --notes 'KAIRÓS Móvil 0.3.10: mantiene verificación real de Chrome y agrega pruebas voluntarias de texto fijo y regreso en pantallas internas de KAIRÓS. No permite escritura remota ni tocar otras apps. Mantiene firma del instalador anterior para conservar credencial y enlace.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.11-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.11 · tres acciones remotas locales restringidas'               --notes 'KAIRÓS 0.3.11 conserva Chrome y las pruebas internas previas. Ahora permite recibir, mediante el servidor autorizado y con aprobación individual, únicamente clic sobre botón propio, texto fijo en campo propio y Atrás desde pantalla interna; verifica el resultado antes del ACK. No admite texto arbitrario, toques en otras apps ni formularios. Instalar encima de 0.3.10, sin desinstalar; esperar comprobación de APK física antes de enviar acciones.'               --prerelease
           fi
