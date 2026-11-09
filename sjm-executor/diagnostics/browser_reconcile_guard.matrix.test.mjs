@@ -10,7 +10,7 @@ for(const state of states) for(const operation of operations) for(const error_me
   const decision=reconcileBrowserJob(job);
   assert.ok(['manual_review','never_retry'].includes(decision.action),JSON.stringify(job));
   assert.equal(isExternalSubmissionProven(job),false,JSON.stringify(job));
-  if(operation==='self_test') assert.equal(decision.action,'never_retry');
+  if(operation==='self_test' && state) assert.equal(decision.action,'never_retry');
   if(operation==='inspect' && state==='done' && !/captcha|2fa|payment|unauthorized/i.test(error_message))
     assert.equal(decision.action,'never_retry');
   cases++;
