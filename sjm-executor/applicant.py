@@ -137,6 +137,12 @@ def inspect(url, fields=None):
         def route_only_known(route):
             try:
                 u=urlparse(route.request.url)
+                # Reject unsafe frame redirects BEFORE issuing the network request.
+                if route.request.is_navigation_request():
+                    if route.request.method != "GET":
+                        return route.abort()
+                    checked_url(route.request.url)
+                    return route.continue_()
                 if is_safe_readonly_asset(route.request.url,route.request.method):
                     return route.continue_()
                 # Ashby renders public form fields through two strictly READ-ONLY GraphQL
