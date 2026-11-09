@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.Network;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -140,6 +141,16 @@ public class KairosAccessibility extends AccessibilityService {
         watchConnectivity();
         handler.postDelayed(tick,1000L);
     }
+    /** Evita interrumpir llamadas o clases por voz. La orden queda en
+     * queued en Supabase para ser recogida al terminar la comunicación.
+     * No se envía un ACK received hasta que el teléfono esté disponible. */
+    private boolean hasActiveCommunication() {
+        AudioManager audioManager=getSystemService(AudioManager.class);
+        if(audioManager==null) return true; // conservador: sin estado confiable, no intervenir
+        int mode=audioManager.getMode();
+        return mode==AudioManager.MODE_IN_CALL ||
+               mode==AudioManager.MODE_IN_COMMUNICATION;
+    }
     private void runBridge() {
         String key=SecretStore.load(this);
         if(key==null || CommandReceiptStore.isPaused(this))return;
@@ -162,6 +173,12 @@ public class KairosAccessibility extends AccessibilityService {
             if(command==null)return;
             String commandId=command.optString("id","");
             if(!commandId.matches("[0-9a-fA-F-]{36}"))return;
+            // Antes del ACK, posponer CUALQUIER acción externa durante
+            // comunicación activa; Android la procesará en un próximo sondeo.
+            if(hasActiveCommunication()){
+                CommandReceiptStore.mark(this,"Orden pospuesta hasta terminar la comunicación");
+                return;
+            }
             JSONObject ack=new JSONObject().put("commandId",commandId).put("result","received");
             JSONObject received=BridgeHttp.call("/_api/kairos/phone_command_ack","POST",ack,key);
             if (!received.optBoolean("ok",false)) throw new IllegalStateException("Recepción no confirmada");
@@ -170,7 +187,18 @@ public class KairosAccessibility extends AccessibilityService {
                 String result;
                 boolean success=true;
                 try {result=executeCommand(command);}
-                catch(Exception e) {success=false;result="Acción no ejecutada: "+e.getClass().getSimpleName();}
+                catch(Exception e) {
+                    success=false;
+                    // Códigos no sensibles para diagnóstico remoto, sin transmitir
+                    // textos arbitrarios de excepciones, pantalla ni datos privados.
+                    if(e instanceof IllegalStateException &&
+                       "Notificaciones deshabilitadas en Android".equals(e.getMessage()))
+                        result="NOTIFICATIONS_DISABLED: habilitar permiso de avisos en Android";
+                    else if(e instanceof IllegalStateException &&
+                       "Aviso suspendido durante comunicación activa".equals(e.getMessage()))
+                        result="CALL_ACTIVE: aviso no presentado durante comunicación";
+                    else result="Acción no ejecutada: "+e.getClass().getSimpleName();
+                }
                 final String outcome = success ? "completed" : "failed";
                 final String detail = result.length()>280 ? result.substring(0,280) : result;
                 boolean stored = CommandReceiptStore.save(this, commandId, outcome, detail);
