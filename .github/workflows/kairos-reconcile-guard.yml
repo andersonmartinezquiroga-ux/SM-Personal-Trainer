@@ -6,6 +6,8 @@ on:
       - 'sjm-executor/diagnostics/browser_reconcile_guard.mjs'
       - 'sjm-executor/diagnostics/browser_reconcile_guard.test.mjs'
       - 'sjm-executor/diagnostics/browser_reconcile_guard.matrix.test.mjs'
+      - 'sjm-executor/applicant.py'
+      - 'sjm-executor/diagnostics/test_navigation_allowlist.py'
       - '.github/workflows/kairos-reconcile-guard.yml'
   workflow_dispatch:
 jobs:
@@ -22,3 +24,9 @@ jobs:
         run: |
           node sjm-executor/diagnostics/browser_reconcile_guard.test.mjs
           node sjm-executor/diagnostics/browser_reconcile_guard.matrix.test.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify Playwright navigation allowlist without network
+        working-directory: sjm-executor
+        run: python -m unittest discover -s diagnostics -p 'test_navigation_allowlist.py'
