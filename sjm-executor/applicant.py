@@ -169,7 +169,7 @@ def inspect(url, fields=None):
         ctx.route("**/*",route_only_known)
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
         page.wait_for_timeout(1200)
-        if urlparse(page.url).hostname!=source: raise ValueError("Unexpected cross-site redirect")
+        checked_url(page.url)  # Enforce exact allowlisted final path, not only host
         # Job boards often put the full application on a separate official URL.
         # FOLLOW PUBLIC GET ONLY: never click Submit and never transmit applicant data.
         result["followed_application_page"]=False
@@ -180,8 +180,7 @@ def inspect(url, fields=None):
                 checked_url(application_url)
                 page.goto(application_url,wait_until="domcontentloaded",timeout=25000)
                 page.wait_for_timeout(1400)
-                if urlparse(page.url).hostname!=source:
-                    raise ValueError("Unexpected cross-site redirect from application")
+                checked_url(page.url)  # Revalidate application redirect path
                 result["followed_application_page"]=True
         # On a CPU-limited free Render instance, public Ashby GraphQL hydration
         # may take much longer than on GitHub Actions. Wait for the actual fields,
