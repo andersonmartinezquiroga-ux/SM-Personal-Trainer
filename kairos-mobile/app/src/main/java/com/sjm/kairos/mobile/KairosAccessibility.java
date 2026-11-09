@@ -146,6 +146,89 @@ public class KairosAccessibility extends AccessibilityService {
         },attempt==0?350L:350L);
     }
 
+    /** Own-package-only activation before server-origin local proof.
+     * Other apps, screens, user data and forms remain inaccessible.
+     * BACK never force-opens MainActivity; it requires the private marker. */
+    private void startRemoteOwnAppTest(String key,String commandId,JSONObject command) {
+        JSONObject body=command.optJSONObject("payload");
+        String action=body==null?"":body.optString("action","");
+        if(!("click".equals(action)||"write".equals(action)||"back".equals(action))) {
+            storeAndConfirm(key,commandId,"failed","OWN_APP_ACTION_NOT_ALLOWED");
+            return;
+        }
+        verifyingForeground=true;
+        if(!"back".equals(action)) {
+            try {
+                Intent own=getPackageManager().getLaunchIntentForPackage(LOCAL_TEST_PACKAGE);
+                if(own==null)throw new IllegalStateException("OWN_APP_LAUNCH_UNAVAILABLE");
+                own.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    |Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(own);
+            }catch(RuntimeException e){
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"failed",
+                    "OWN_APP_FOREGROUND_LAUNCH_DENIED: "+e.getClass().getSimpleName());
+                return;
+            }
+        }
+        // Android may need time to display the activity after reopening it.
+        handler.postDelayed(()->{
+            if(!active || !verifyingForeground)return;
+            try {
+                if(!"back".equals(action)) {
+                    prepareOwnTargetVisibility(action);
+                    handler.postDelayed(()->runRemoteOwnTestStep(key,commandId,command,action),450L);
+                }else {
+                    runRemoteOwnTestStep(key,commandId,command,action);
+                }
+            }catch(RuntimeException e) {
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"failed",
+                    "OWN_APP_PREPARATION_FAILED: "+e.getClass().getSimpleName());
+            }
+        },1200L);
+    }
+    /** Scroll a matched KAIRÓS-only test widget into view, if necessary. */
+    private void prepareOwnTargetVisibility(String action) {
+        AccessibilityNodeInfo root=getRootInActiveWindow();
+        if(root==null || !LocalInteractionPolicy.isOwnPackage(
+            String.valueOf(root.getPackageName())))return;
+        final String id="click".equals(action)?LOCAL_TEST_VIEW_ID:LOCAL_TEXT_ID;
+        List<AccessibilityNodeInfo> matches=root.findAccessibilityNodeInfosByViewId(id);
+        if(matches!=null&&matches.size()==1) {
+            AccessibilityNodeInfo target=matches.get(0);
+            if(target!=null&&!target.isVisibleToUser())
+                target.performAction(AccessibilityNodeInfo.ACTION_SHOW_ON_SCREEN);
+        }
+    }
+    private String ownTestFailureReason(String action){
+        AccessibilityNodeInfo root=getRootInActiveWindow();
+        if(root==null)return "OWN_APP_NO_ACTIVE_WINDOW";
+        if(!LocalInteractionPolicy.isOwnPackage(String.valueOf(root.getPackageName())))
+            return "OWN_APP_NOT_FOREGROUND";
+        String id="click".equals(action)?LOCAL_TEST_VIEW_ID:
+                  "write".equals(action)?LOCAL_TEXT_ID:LOCAL_BACK_ID;
+        List<AccessibilityNodeInfo> matches=root.findAccessibilityNodeInfosByViewId(id);
+        if(matches==null||matches.size()!=1)return "OWN_APP_TARGET_NOT_FOUND";
+        AccessibilityNodeInfo target=matches.get(0);
+        if(target==null||!target.isEnabled())return "OWN_APP_TARGET_DISABLED";
+        if(!target.isVisibleToUser())return "OWN_APP_TARGET_NOT_VISIBLE";
+        return "OWN_APP_ACCESSIBILITY_ACTION_DENIED";
+    }
+    private void runRemoteOwnTestStep(
+        String key,String commandId,JSONObject command,String action) {
+        if(!active||!verifyingForeground)return;
+        try {
+            executeCommand(command);
+            verifyOwnLocalAction(key,commandId,action,0);
+        }catch(Exception ex){
+            verifyingForeground=false;
+            String reason=ownTestFailureReason(action);
+            storeAndConfirm(key,commandId,"failed",reason);
+        }
+    }
+
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private final Handler handler=new Handler(Looper.getMainLooper());
     private volatile long lastRegistered=0L;
@@ -246,7 +329,7 @@ public class KairosAccessibility extends AccessibilityService {
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("appVersion","0.3.11")
+                    .put("action","register").put("version",1).put("appVersion","0.3.12")
                     .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
@@ -270,14 +353,11 @@ public class KairosAccessibility extends AccessibilityService {
             CommandReceiptStore.mark(this, "Orden " + command.optString("type") + " recibida; ejecutando");
             handler.post(()->{
                 try {
-                    String result=executeCommand(command);
                     if("local_test".equals(command.optString("type",""))) {
-                        JSONObject body=command.optJSONObject("payload");
-                        String action=body==null?"":body.optString("action","");
-                        verifyingForeground=true;
-                        verifyOwnLocalAction(key,commandId,action,0);
+                        startRemoteOwnAppTest(key,commandId,command);
                         return;
                     }
+                    String result=executeCommand(command);
                     if("open_app".equals(command.optString("type",""))) {
                         JSONObject body=command.optJSONObject("payload");
                         String expected=body==null?"":body.optString("package","");
