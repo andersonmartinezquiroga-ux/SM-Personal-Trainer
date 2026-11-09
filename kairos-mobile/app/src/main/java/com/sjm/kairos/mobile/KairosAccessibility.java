@@ -177,6 +177,15 @@ public class KairosAccessibility extends AccessibilityService {
         JSONObject payload=command.optJSONObject("payload");
         if(payload==null)throw new SecurityException("Sin datos");
         if(type.equals("notify")){
+            // No afirmar entrega cuando Android tiene los avisos deshabilitados.
+            NotificationManager notificationManager=getSystemService(NotificationManager.class);
+            if (notificationManager == null || !notificationManager.areNotificationsEnabled())
+                throw new IllegalStateException("Notificaciones deshabilitadas en Android");
+            android.media.AudioManager audioManager=getSystemService(android.media.AudioManager.class);
+            if (audioManager != null &&
+                (audioManager.getMode() == android.media.AudioManager.MODE_IN_CALL ||
+                 audioManager.getMode() == android.media.AudioManager.MODE_IN_COMMUNICATION))
+                throw new IllegalStateException("Aviso suspendido durante comunicación activa");
             String message=payload.optString("message","");
             if(message.length()<3 || message.length()>280)throw new SecurityException("Texto no permitido");
             Notification n=new Notification.Builder(this,ALERT_CHANNEL)
@@ -185,7 +194,7 @@ public class KairosAccessibility extends AccessibilityService {
                 .setContentText(message)
                 .setStyle(new Notification.BigTextStyle().bigText(message))
                 .setAutoCancel(true).build();
-            getSystemService(NotificationManager.class).notify((int)(System.currentTimeMillis()%20000)+202,n);
+            notificationManager.notify((int)(System.currentTimeMillis()%20000)+202,n);
             return "Aviso solicitado al sistema de notificaciones Android";
         }
         if(type.equals("open_app")){
