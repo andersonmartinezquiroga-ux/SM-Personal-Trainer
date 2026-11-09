@@ -62,6 +62,15 @@ class NavigationAllowlistTest(unittest.TestCase):
     def test_asset_post_is_not_allowed(self):
         self.assertFalse(module.is_safe_readonly_asset(self.BASE, "POST"))
 
+    def test_asset_rejects_credentials_and_fragments(self):
+        for url in (
+            "https://user:secret@fonts.gstatic.com/font.woff2",
+            "https://user@fonts.gstatic.com/font.woff2",
+            "https://fonts.gstatic.com/font.woff2#private",
+        ):
+            with self.subTest(url=url):
+                self.assertFalse(module.is_safe_readonly_asset(url, "GET"))
+
     def test_asset_http_is_not_allowed(self):
         self.assertFalse(module.is_safe_readonly_asset(self.BASE.replace("https:", "http:"), "GET"))
 
