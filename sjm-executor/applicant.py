@@ -28,7 +28,8 @@ BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","cred
 def is_safe_readonly_asset(url,method):
     """Only GET/HEAD to fixed public job sites and vendor-owned static assets."""
     p=urlparse(url)
-    if p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD"):
+    if (p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD")
+            or p.username or p.password or p.fragment):
         return False
     if p.hostname=="app.ashbyhq.com":
         return p.path.startswith("/api/images/")
