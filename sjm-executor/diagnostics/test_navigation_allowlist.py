@@ -71,6 +71,22 @@ class NavigationAllowlistTest(unittest.TestCase):
             with self.subTest(url=url):
                 self.assertFalse(module.is_safe_readonly_asset(url, "GET"))
 
+    def test_ashby_public_graphql_rejects_url_parameters_and_fragments(self):
+        import json
+        payload = json.dumps({
+            "operationName": "ApiOrganizationFromHostedJobsPageName",
+            "query": "query ApiOrganizationFromHostedJobsPageName { __typename }",
+            "variables": {"organizationHostedJobsPageName": "anyone-ai"}
+        })
+        for suffix in ("?redirect=unsafe", "#fragment"):
+            with self.subTest(suffix=suffix):
+                request = types.SimpleNamespace(
+                    url="https://jobs.ashbyhq.com/api/non-user-graphql" + suffix,
+                    method="POST",
+                    post_data=payload
+                )
+                self.assertFalse(module.is_safe_public_ashby_query(request))
+
     def test_asset_http_is_not_allowed(self):
         self.assertFalse(module.is_safe_readonly_asset(self.BASE.replace("https:", "http:"), "GET"))
 
