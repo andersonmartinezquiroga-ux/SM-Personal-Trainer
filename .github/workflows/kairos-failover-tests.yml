@@ -1,0 +1,20 @@
+name: KAIRÓS failover unit tests
+on:
+  push:
+    branches: [audit/tool-evaluation-20261109]
+    paths:
+      - 'kairos-render-lab/failover*.mjs'
+      - '.github/workflows/kairos-failover-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test kairos-render-lab/failover.test.mjs
