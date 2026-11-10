@@ -45,7 +45,8 @@ def is_safe_public_ashby_query(request):
         u=urlparse(request.url)
         if not (request.method=="POST" and u.scheme=="https"
                 and u.hostname=="jobs.ashbyhq.com" and u.port in (None,443)
-                and u.path=="/api/non-user-graphql" and not u.username and not u.password):
+                and u.path=="/api/non-user-graphql" and not u.query and not u.fragment
+                and not u.username and not u.password):
             return False
         raw=request.post_data or ""
         if len(raw)>18000:
