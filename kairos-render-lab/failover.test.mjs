@@ -16,3 +16,7 @@ test('allows provider after cooldown',()=>{const now=Date.parse('2026-11-10T12:0
 test('fails closed on malformed active lease',()=>assert.equal(chooseProvider({...task,leaseUntil:'not-a-date'},providers).reason,'invalid_lease'));
 test('rejects blank idempotency key',()=>assert.equal(chooseProvider({...task,submission:true,idempotencyKey:'   '},providers).reason,'missing_idempotency_key'));
 test('ignores nonnumeric quota',()=>assert.equal(chooseProvider(task,[{...providers[0],quotaRemaining:'99'}]).state,'queued'));
+
+test('does not dispatch running task',()=>assert.equal(chooseProvider({...task,status:'running'},providers).reason,'task_not_runnable'));
+test('does not dispatch unknown state',()=>assert.equal(chooseProvider({...task,status:'unexpected'},providers).reason,'task_not_runnable'));
+test('allows explicitly retryable task',()=>assert.equal(chooseProvider({...task,status:'retry_ready'},providers).state,'ready'));
