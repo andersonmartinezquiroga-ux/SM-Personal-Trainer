@@ -1,7 +1,7 @@
 // Pure failover selection: no network calls, credentials or application submissions.
 export function chooseProvider(task, providers, now = Date.now()) {
   if (!task || !task.id || !task.kind || !Array.isArray(providers)) throw new TypeError('invalid input');
-  if (task.status === 'completed' || task.status === 'awaiting_authorization') return {state:'hold',reason:'task_not_runnable'};
+  if (!['pending','queued','retry_ready'].includes(task.status)) return {state:'hold',reason:'task_not_runnable'};
   if (task.leaseUntil) {
     const leaseExpiry = Date.parse(task.leaseUntil);
     if (!Number.isFinite(leaseExpiry)) return {state:'hold',reason:'invalid_lease'};
