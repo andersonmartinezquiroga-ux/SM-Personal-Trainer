@@ -7,11 +7,11 @@
       "evidence_sha256": "323456efcd65bc3b85903e2d7ff21fa3a625755a4416a8cd2e7e2aced5d9b2ec",
       "detail": "Executor HTTP 200, ready; this is NOT a submission test",
       "checks_attempted": 4,
-      "checked_utc": "2026-11-10T17:58:43Z",
-      "next_due": "2026-11-10T18:58:43Z",
+      "checked_utc": "2026-11-10T23:34:25Z",
+      "next_due": "2026-11-11T00:34:25Z",
       "kind": "executor_health",
       "url": "https://sjm-playwright-executor.onrender.com/healthz",
-      "attempts": 33
+      "attempts": 34
     },
     "europe-eic-official": {
       "outcome": "checked_ok",
@@ -36,5 +36,5 @@
       "attempts": 14
     }
   },
-  "last_cycle": "2026-11-10T17:58:43Z"
+  "last_cycle": "2026-11-10T23:34:25Z"
 }
