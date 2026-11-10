@@ -55,6 +55,11 @@ class NavigationAllowlistTest(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 module.checked_url(url)
 
+    def test_reject_query_parameters_on_approved_path(self):
+        for suffix in ("?next=https://example.org", "?token=secret", "?preview=true"):
+            with self.subTest(suffix=suffix), self.assertRaises(ValueError):
+                module.checked_url(self.BASE + suffix)
+
     def test_reject_unknown_site(self):
         with self.assertRaises(ValueError):
             module.checked_url("https://example.org/")
