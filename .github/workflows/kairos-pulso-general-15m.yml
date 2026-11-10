@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  id-token: write
 concurrency:
   group: kairos-pulso-general
   cancel-in-progress: false
@@ -13,25 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Exigir coordinador seguro antes de ejecutar
-        env:
-          KAIROS_PULSE_URL: ${{ secrets.KAIROS_PULSE_URL }}
-          KAIROS_PULSE_TOKEN: ${{ secrets.KAIROS_PULSE_TOKEN }}
+      - name: Autenticar GitHub Actions y enviar pulso al coordinador
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${KAIROS_PULSE_URL:-}" || -z "${KAIROS_PULSE_TOKEN:-}" ]]; then
-            echo "::error::Faltan KAIROS_PULSE_URL o KAIROS_PULSE_TOKEN: pulso NO conectado."
-            exit 1
-          fi
-          if [[ "$KAIROS_PULSE_URL" != https://* ]]; then
-            echo "::error::Coordinador debe usar HTTPS."
-            exit 1
-          fi
-          echo "Enviando pulso a coordinador seguro."
-          curl --fail-with-body --silent --show-error --max-time 90 --retry 2 --retry-delay 10 \
-            --request POST "$KAIROS_PULSE_URL" \
-            --header "Authorization: Bearer $KAIROS_PULSE_TOKEN" \
+          token_json=$(curl --fail --silent --show-error --max-time 20 \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sjm-kairos-pulse-v1")
+          token=$(echo "$token_json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])')
+          curl --fail-with-body --silent --show-error --max-time 100 --retry 2 --retry-delay 10 \
+            --request POST 'https://sjm-kairos-lab-alterno.onrender.com/coordinate' \
+            --header "Authorization: Bearer $token" \
             --header "Content-Type: application/json" \
-            --data '{"operation":"coordinate","source":"github-actions","interval_minutes":15,"scope":["radar_1","radar_2","radar_3","radar_4","radar_5","radar_6","laboratorio_7","candidaturas","computadores","financiacion","alianzas","proyectos_sjm"],"allow_unverified_submission":false}'
-          echo "Pulso entregado. Consultar auditoría de Supabase para confirmar trabajo realizado."
+            --data '{"operation":"coordinate","interval_minutes":15}'
