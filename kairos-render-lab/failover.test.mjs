@@ -12,3 +12,7 @@ test('queues instead of charging',()=>assert.equal(chooseProvider(task,providers
 test('skips expired free provider and uses healthy backup',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=[{...providers[0],id:'expired',quotaRemaining:99,expiresAt:'2026-11-10T11:00:00Z'}, {...providers[1],id:'backup'}];assert.equal(chooseProvider(task,list,now).providerId,'backup')});
 test('skips provider during cooldown and queues when all unavailable',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=providers.map(p=>({...p,cooldownUntil:'2026-11-10T13:00:00Z'}));assert.equal(chooseProvider(task,list,now).state,'queued')});
 test('allows provider after cooldown',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=[{...providers[0],cooldownUntil:'2026-11-10T11:00:00Z'}];assert.equal(chooseProvider(task,list,now).providerId,'render')});
+
+test('fails closed on malformed active lease',()=>assert.equal(chooseProvider({...task,leaseUntil:'not-a-date'},providers).reason,'invalid_lease'));
+test('rejects blank idempotency key',()=>assert.equal(chooseProvider({...task,submission:true,idempotencyKey:'   '},providers).reason,'missing_idempotency_key'));
+test('ignores nonnumeric quota',()=>assert.equal(chooseProvider(task,[{...providers[0],quotaRemaining:'99'}]).state,'queued'));
