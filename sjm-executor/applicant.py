@@ -105,7 +105,7 @@ def checked_url(url):
     p=urlparse(url)
     if p.scheme!="https" or p.username or p.password or p.fragment or p.hostname not in ALLOWED:
         raise ValueError("Domain not on approved job application allowlist")
-    if p.hostname in ("www.tusclases.co", "agentify.teamtailor.com") and p.query:
+    if p.query:
         raise ValueError("Query parameters are not approved for this inspection")
     if p.port not in (None,443) or not ALLOWED[p.hostname].fullmatch(p.path):
         raise ValueError("Path is not an approved job application path")
