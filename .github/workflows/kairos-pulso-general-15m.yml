@@ -1,0 +1,37 @@
+name: KAIRÓS 360 — Pulso general cada 15 minutos
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kairos-pulso-general
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Exigir coordinador seguro antes de ejecutar
+        env:
+          KAIROS_PULSE_URL: ${{ secrets.KAIROS_PULSE_URL }}
+          KAIROS_PULSE_TOKEN: ${{ secrets.KAIROS_PULSE_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${KAIROS_PULSE_URL:-}" || -z "${KAIROS_PULSE_TOKEN:-}" ]]; then
+            echo "::error::Faltan KAIROS_PULSE_URL o KAIROS_PULSE_TOKEN: pulso NO conectado."
+            exit 1
+          fi
+          if [[ "$KAIROS_PULSE_URL" != https://* ]]; then
+            echo "::error::Coordinador debe usar HTTPS."
+            exit 1
+          fi
+          echo "Enviando pulso a coordinador seguro."
+          curl --fail-with-body --silent --show-error --max-time 90 --retry 2 --retry-delay 10 \
+            --request POST "$KAIROS_PULSE_URL" \
+            --header "Authorization: Bearer $KAIROS_PULSE_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"operation":"coordinate","source":"github-actions","interval_minutes":15,"scope":["radar_1","radar_2","radar_3","radar_4","radar_5","radar_6","laboratorio_7","candidaturas","computadores","financiacion","alianzas","proyectos_sjm"],"allow_unverified_submission":false}'
+          echo "Pulso entregado. Consultar auditoría de Supabase para confirmar trabajo realizado."
