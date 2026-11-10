@@ -1,0 +1,31 @@
+name: KAIRÓS 360 — Pulso monitor 15 minutos
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kairos-pulse-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verificar estado de nodos sin enviar postulaciones
+        shell: bash
+        run: |
+          set -euo pipefail
+          for endpoint in \
+            https://sjm-kairos-lab-alterno.onrender.com/health \
+            https://sjm-playwright-executor.onrender.com/health
+          do
+            echo "Verificando nodo: $endpoint"
+            status=$(curl --location --silent --show-error --output /tmp/kairos-response --write-out '%{http_code}' --max-time 100 --retry 2 --retry-delay 5 "$endpoint") || status=000
+            echo "HTTP $status"
+            if [[ "$status" != 200 ]]; then
+              echo "::warning::Nodo no confirmó HTTP 200; revisar endpoint y logs."
+            fi
+          done
+          echo "Pulso de monitoreo finalizado. No se ejecutaron candidaturas ni comandos al Motorola."
