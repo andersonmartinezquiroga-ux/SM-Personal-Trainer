@@ -1,4 +1,5 @@
 import http from "node:http";
+import {authorizePulse,coordinatePulse} from "./pulse.mjs";
 import {normalizeCommand} from "./policy.mjs";
 import {isAuthorizedGithubBuild,haveSigningMaterial,signingMaterialForAuthorizedBuild} from "./signing.mjs";
 const PORT=Number(process.env.PORT||10000);
@@ -14,6 +15,12 @@ function safeBasePath(url){
 }
 const server=http.createServer(async(req,res)=>{
  const path=safeBasePath(req.url||"/");
+ if(req.method==="POST"&&path==="/coordinate"){
+   const auth=req.headers.authorization||"";
+   if(!auth.startsWith("Bearer ")||!await authorizePulse(auth.slice(7)))return reply(res,403,{ok:false,error:"Pulso no autorizado"});
+   const result=await coordinatePulse();
+   return reply(res,result.status,result.body);
+ }
  if(req.method==="POST"&&path==="/signing-material"){
    if(!haveSigningMaterial())return reply(res,503,{ok:false,error:"Certificado persistente no configurado"});
    const auth=req.headers.authorization||"";
