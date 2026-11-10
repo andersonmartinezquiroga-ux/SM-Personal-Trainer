@@ -335,6 +335,9 @@ public class KairosAccessibility extends AccessibilityService {
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
                 lastRegistered=now;
             }
+            // El sondeo puede reservar una orden en el servidor. Nunca reservarla
+            // durante una llamada/clase por voz: podria expirar antes del ACK.
+            if(hasActiveCommunication()) return;
             JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key);
             if(!pending.optBoolean("shouldExecute",false))return;
             JSONObject command=pending.optJSONObject("command");
