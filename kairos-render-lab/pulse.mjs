@@ -11,7 +11,7 @@ export async function authorizePulse(raw){
   const p=raw.split(".");if(p.length!==3)return false;
   const h=JSON.parse(Buffer.from(p[0],"base64url")),v=JSON.parse(Buffer.from(p[1],"base64url"));
   const now=Math.floor(Date.now()/1000);
-  if(h.alg!=="RS256"||!h.kid||v.iss!=="https://token.actions.githubusercontent.com"||v.aud!==AUD||v.repository!==REPO||v.ref!=="refs/heads/main"||v.repository_id!=="1340977588"||v.repository_owner_id!=="317761897"||v.workflow_ref!==REPO+"/"+WORKFLOW+"@refs/heads/main"||v.sub!=="repo:"+REPO+":ref:refs/heads/main"||!Number.isFinite(v.iat)||!Number.isFinite(v.exp)||v.exp<now||v.iat>now+30||now-v.iat>600||v.exp-v.iat>900)return false;
+  if(h.alg!=="RS256"||!h.kid||v.iss!=="https://token.actions.githubusercontent.com"||v.aud!==AUD||v.repository!==REPO||v.ref!=="refs/heads/main"||v.repository_id!=="1340977588"||v.repository_owner_id!=="317761897"||v.workflow_ref!==REPO+"/"+WORKFLOW+"@refs/heads/main"||!["repo:"+REPO+":ref:refs/heads/main","repo:andersonmartinezquiroga-ux@317761897/SM-Personal-Trainer@1340977588:ref:refs/heads/main"].includes(v.sub)||!Number.isFinite(v.iat)||!Number.isFinite(v.exp)||v.exp<now||v.iat>now+30||now-v.iat>600||v.exp-v.iat>900)return false;
   if(Date.now()-at>300000||!keys.length){const r=await fetch(JWKS,{signal:AbortSignal.timeout(8000)});if(!r.ok)return false;keys=(await r.json()).keys;at=Date.now();}
   const k=keys.find(x=>x.kid===h.kid&&x.kty==="RSA");if(!k)return false;
   return verify("RSA-SHA256",Buffer.from(p[0]+"."+p[1]),createPublicKey({key:k,format:"jwk"}),Buffer.from(p[2],"base64url"));
