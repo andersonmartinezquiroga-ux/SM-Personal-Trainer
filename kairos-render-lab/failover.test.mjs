@@ -8,3 +8,7 @@ test('falls back after failure',()=>assert.equal(chooseProvider({...task,lastFai
 test('holds active lease and missing consent',()=>{assert.equal(chooseProvider({...task,leaseUntil:'2999-01-01T00:00:00Z'},providers).state,'hold');assert.equal(chooseProvider({...task,requiresConsent:true},providers).reason,'authorization_required')});
 test('blocks duplicate-prone submission without key',()=>assert.equal(chooseProvider({...task,submission:true},providers).reason,'missing_idempotency_key'));
 test('queues instead of charging',()=>assert.equal(chooseProvider(task,providers.map(p=>({...p,freeQuotaVerified:false}))).state,'queued'));
+
+test('skips expired free provider and uses healthy backup',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=[{...providers[0],id:'expired',quotaRemaining:99,expiresAt:'2026-11-10T11:00:00Z'}, {...providers[1],id:'backup'}];assert.equal(chooseProvider(task,list,now).providerId,'backup')});
+test('skips provider during cooldown and queues when all unavailable',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=providers.map(p=>({...p,cooldownUntil:'2026-11-10T13:00:00Z'}));assert.equal(chooseProvider(task,list,now).state,'queued')});
+test('allows provider after cooldown',()=>{const now=Date.parse('2026-11-10T12:00:00Z');const list=[{...providers[0],cooldownUntil:'2026-11-10T11:00:00Z'}];assert.equal(chooseProvider(task,list,now).providerId,'render')});
