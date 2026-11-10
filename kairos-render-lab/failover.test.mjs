@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {chooseProvider} from './failover.mjs';
+const task={id:'case-1',kind:'inspect',status:'pending'};
+const providers=[{id:'render',enabled:true,healthy:true,freeQuotaVerified:true,estimatedCostUsd:0,quotaRemaining:2,capabilities:['inspect']},{id:'github',enabled:true,healthy:true,freeQuotaVerified:true,estimatedCostUsd:0,quotaRemaining:5,capabilities:['inspect']}];
+test('chooses eligible provider by remaining quota',()=>assert.equal(chooseProvider(task,providers).providerId,'github'));
+test('falls back after failure',()=>assert.equal(chooseProvider({...task,lastFailedProvider:'github'},providers).providerId,'render'));
+test('holds active lease and missing consent',()=>{assert.equal(chooseProvider({...task,leaseUntil:'2999-01-01T00:00:00Z'},providers).state,'hold');assert.equal(chooseProvider({...task,requiresConsent:true},providers).reason,'authorization_required')});
+test('blocks duplicate-prone submission without key',()=>assert.equal(chooseProvider({...task,submission:true},providers).reason,'missing_idempotency_key'));
+test('queues instead of charging',()=>assert.equal(chooseProvider(task,providers.map(p=>({...p,freeQuotaVerified:false}))).state,'queued'));
