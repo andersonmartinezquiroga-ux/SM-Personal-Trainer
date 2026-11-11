@@ -6,6 +6,8 @@ on:
       - "tools/sjm_factory_canary.py"
       - "tools/sjm_factory_stress.py"
       - "tools/sjm_station_relay_regression.py"
+      - "tools/sjm_failure_decisions.py"
+      - "tools/test_sjm_failure_decisions.py"
       - "tools/sjm_live_boundary_test.py"
       - ".github/workflows/sjm_factory_canary.yml"
   workflow_dispatch:
@@ -184,3 +186,14 @@ jobs:
         with:
           name: sjm-station-relay-regression
           path: station_relay_report.json
+
+  agent-failure-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify real-error classifier, escalation and bounded read-only retries
+        run: python -m unittest discover -s tools -p test_sjm_failure_decisions.py -v
