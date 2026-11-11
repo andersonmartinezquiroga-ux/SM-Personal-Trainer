@@ -1,0 +1,42 @@
+name: SJM CONTROL 360 - Auditoria relampago aislada
+
+on:
+  pull_request:
+    paths:
+      - "tools/sjm_factory_canary.py"
+      - ".github/workflows/sjm_factory_canary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulated-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Execute 14-stage isolated canary and fault injections
+        run: python tools/sjm_factory_canary.py > sjm_factory_canary_report.json
+      - name: Validate truth labels and expected results
+        run: |
+          python - <<'PY'
+          import json
+          with open("sjm_factory_canary_report.json", encoding="utf-8") as f:
+              d = json.load(f)
+          assert d["label"] == "SIMULATION_ONLY"
+          assert d["stations"] == 14
+          assert d["cases"] == 8
+          assert d["full_path_passes"] == 1
+          assert d["blocked_as_expected"] == 7
+          assert d["real_end_to_end_verified"] is False
+          print("PASS: laboratorio aislado. Integraciones reales NO validadas.")
+          PY
+      - name: Keep simulated test report as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sjm-factory-canary-simulated
+          path: sjm_factory_canary_report.json
