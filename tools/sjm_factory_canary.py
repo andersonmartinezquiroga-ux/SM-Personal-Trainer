@@ -17,7 +17,7 @@ STATIONS = (
 
 class Factory:
     def __init__(self):
-        self.seen = set()
+        self.seen = {}
         self.simulated_outbox = []
         self.simulated_audit = []
 
@@ -47,8 +47,9 @@ class Factory:
                     assert state["source"].startswith("mock://"), "SOURCE_NOT_ISOLATED"
                     evidence = "Mock source checked"
                 elif number == 5:
-                    assert state["fingerprint"] not in self.seen, "DUPLICATE"
-                    self.seen.add(state["fingerprint"])
+                    owner = self.seen.get(state["fingerprint"])
+                    assert owner is None or owner == case["id"], "DUPLICATE"
+                    self.seen[state["fingerprint"]] = case["id"]
                     evidence = "New synthetic item"
                 elif number == 6:
                     assert case.get("eligible", True) and case.get("no_fee", True), "INELIGIBLE"
@@ -64,16 +65,18 @@ class Factory:
                     assert "DO NOT SEND" in state["draft"], "DRAFT_UNSAFE"
                     evidence = "Synthetic approval, no personal data"
                 elif number == 10:
-                    self.simulated_outbox.append({"id": case["id"],
-                                                  "destination": "mock://outbox",
-                                                  "real": False})
+                    if not any(x["id"] == case["id"] for x in self.simulated_outbox):
+                        self.simulated_outbox.append({"id": case["id"],
+                                                      "destination": "mock://outbox",
+                                                      "real": False})
                     evidence = "Intercepted, no real network call"
                 elif number == 11:
                     state["ack"] = "SIM-ACK-" + state["fingerprint"]
                     assert state["ack"].startswith("SIM-ACK"), "INVALID_MOCK_ACK"
                     evidence = state["ack"]
                 elif number == 12:
-                    self.simulated_audit.append({"id": case["id"], "ack": state["ack"]})
+                    if not any(x["id"] == case["id"] for x in self.simulated_audit):
+                        self.simulated_audit.append({"id": case["id"], "ack": state["ack"]})
                     evidence = "Synthetic audit event"
                 elif number == 13:
                     state["virtual_day"] = case.get("days", 19)
