@@ -18,7 +18,7 @@ const server=http.createServer(async(req,res)=>{
  if(req.method==="POST"&&path==="/coordinate"){
    const auth=req.headers.authorization||"";
    if(!auth.startsWith("Bearer ")||!await authorizePulse(auth.slice(7)))return reply(res,403,{ok:false,error:"Pulso no autorizado"});
-   const result=await coordinatePulse();
+   const result=await coordinatePulse(auth.slice(7));
    return reply(res,result.status,result.body);
  }
  if(req.method==="POST"&&path==="/signing-material"){
