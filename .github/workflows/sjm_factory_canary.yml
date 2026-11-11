@@ -5,6 +5,7 @@ on:
     paths:
       - "tools/sjm_factory_canary.py"
       - "tools/sjm_factory_stress.py"
+      - "tools/sjm_live_boundary_test.py"
       - ".github/workflows/sjm_factory_canary.yml"
   workflow_dispatch:
 
@@ -71,3 +72,20 @@ jobs:
         with:
           name: sjm-factory-stress-simulated
           path: sjm_factory_stress_report.json
+
+  live-auth-boundaries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Exercise real published Floot authentication boundaries with anonymous calls
+        run: python tools/sjm_live_boundary_test.py > sjm_live_boundary_report.json
+      - name: Store factual network audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sjm-live-boundary-results
+          path: sjm_live_boundary_report.json
