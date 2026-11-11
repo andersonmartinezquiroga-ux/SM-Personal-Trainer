@@ -10,6 +10,7 @@ class Belt:
     def __init__(self):
         self.db=sqlite3.connect(":memory:")
         self.db.execute("create table delivery(case_id text, stage int, ack int, primary key(case_id,stage))")
+        self.db.execute("create table sources(source text primary key,case_id text)")
         self.db.execute("create table outbox(case_id text primary key)")
         self.db.execute("create table alerts(case_id text primary key)")
         self.broken_links=set()
@@ -22,11 +23,11 @@ class Belt:
                 return {"status":"STOPPED","station":station-1,"reason":"MISSING_TRANSFER_ACK"}
             if station==3:
                 fingerprint=source
-            if station==5 and self.db.execute(
-                "select 1 from delivery where stage=3 and case_id<>? and case_id in "
-                "(select case_id from delivery where stage=1) and case_id like ? limit 1",
-                (key,source)).fetchone():
-                return {"status":"STOPPED","station":5,"reason":"DUPLICATE"}
+            if station==5:
+                owner=self.db.execute("select case_id from sources where source=?",(source,)).fetchone()
+                if owner and owner[0]!=key:
+                    return {"status":"STOPPED","station":5,"reason":"DUPLICATE"}
+                self.db.execute("insert or ignore into sources values (?,?)",(source,key))
             if station==6 and not eligible:
                 return {"status":"STOPPED","station":6,"reason":"INELIGIBLE"}
             if station==8 and language not in self.languages:
@@ -78,9 +79,14 @@ def suite():
                 result=batch.run(key,"mock://"+key)
                 assert result["station"]==14,result
     assert batch.count("outbox")==180 and batch.count("alerts")==180
+    duplicates=Belt()
+    assert duplicates.run("DUP-ONE","mock://shared")["station"]==14
+    duplicate=duplicates.run("DUP-TWO","mock://shared")
+    assert duplicate["station"]==5 and duplicate["reason"]=="DUPLICATE",duplicate
+    assert duplicates.count("outbox")==1
     return {"label":"SIMULATION_WITH_REAL_SQLITE_ACK_MECHANICS","stations":14,
             "transition_breaks_detected_and_recovered":13,"english_break_detected_and_recovered":True,
-            "authorization_remains_blocked":True,"test_cases":195,
+            "authorization_remains_blocked":True,"duplicate_source_blocked":True,"test_cases":196,
             "consecutive_completed":180,"replay_no_duplicate":True,
             "real_deployed_chain_verified":False,"submissions_sent":0,"android_ack":0,
             "elapsed_ms":round(1000*(time.monotonic()-clock),2),"link_results":results}
