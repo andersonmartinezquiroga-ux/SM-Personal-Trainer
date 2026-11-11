@@ -5,6 +5,9 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.net.ConnectivityManager;
@@ -237,6 +240,29 @@ public class KairosAccessibility extends AccessibilityService {
     private volatile boolean verifyingForeground=false;
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
+    private BroadcastReceiver unlockReceiver;
+
+    /** Recupera el sondeo al desbloquear, sin leer pantalla ni generar avisos. */
+    private void watchUnlock() {
+        if (unlockReceiver != null) return;
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) {
+                if (active && intent != null && Intent.ACTION_USER_PRESENT.equals(intent.getAction()))
+                    requestBridge();
+            }
+        };
+        try {
+            registerReceiver(receiver, new IntentFilter(Intent.ACTION_USER_PRESENT));
+            unlockReceiver = receiver;
+        } catch (RuntimeException ignored) {
+            // El sondeo periódico sigue siendo el respaldo.
+        }
+    }
+    private void stopWatchingUnlock() {
+        if (unlockReceiver == null) return;
+        try { unregisterReceiver(unlockReceiver); } catch (RuntimeException ignored) {}
+        unlockReceiver = null;
+    }
 
     /** Evita acumular consultas a la red si Android retrasa un ciclo. */
     private void requestBridge() {
@@ -306,6 +332,7 @@ public class KairosAccessibility extends AccessibilityService {
         }
         CommandReceiptStore.mark(this, "Servicio KAIRÓS habilitado en Accesibilidad");
         watchConnectivity();
+        watchUnlock();
         handler.postDelayed(tick,1000L);
     }
     /** Evita interrumpir llamadas o clases por voz. La orden queda en
@@ -533,11 +560,11 @@ public class KairosAccessibility extends AccessibilityService {
     @Override public void onAccessibilityEvent(AccessibilityEvent event) { /* No lee la pantalla. */ }
     @Override public void onInterrupt() {}
     @Override public boolean onUnbind(Intent intent) {
-        active=false;stopWatchingConnectivity();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;stopWatchingConnectivity();stopWatchingUnlock();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         return super.onUnbind(intent);
     }
     @Override public void onDestroy() {
-        active=false;stopWatchingConnectivity();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
+        active=false;stopWatchingConnectivity();stopWatchingUnlock();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         super.onDestroy();
     }
 }
