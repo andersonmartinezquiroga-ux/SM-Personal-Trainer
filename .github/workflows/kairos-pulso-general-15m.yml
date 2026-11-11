@@ -3,6 +3,10 @@ on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kairos-pulso-general-15m.yml'
+      - 'sjm-public-radar/**'
 permissions:
   contents: read
   id-token: write
@@ -11,6 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   dispatch:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
