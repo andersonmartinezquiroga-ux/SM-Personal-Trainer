@@ -27,3 +27,23 @@ jobs:
             --header "Authorization: Bearer $token" \
             --header "Content-Type: application/json" \
             --data '{"operation":"coordinate","interval_minutes":15}'
+
+  public-discovery:
+    name: Revisar vacantes públicas en cada pulso
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Obtener el código vigente del radar
+        uses: actions/checkout@v4
+      - name: Buscar vacantes en fuentes oficiales (solo lectura)
+        run: python3 sjm-public-radar/scan.py
+      - name: Conservar evidencia de cada pulso
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kairos-radar-publico-15m
+          path: sjm-radar-public-results.json
+          retention-days: 7
+          if-no-files-found: warn
