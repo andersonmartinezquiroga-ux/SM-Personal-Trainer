@@ -89,3 +89,67 @@ jobs:
         with:
           name: sjm-live-boundary-results
           path: sjm_live_boundary_report.json
+
+  deployed-executor-chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout existing real SJM executor (separate implementation)
+        uses: actions/checkout@v4
+        with:
+          ref: sjm-executor-render
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install executor dependencies and real Chromium
+        run: |
+          python -m pip install -r sjm-executor/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Exercise actual executor code and security gates
+        working-directory: sjm-executor
+        run: python -m unittest -v test_form_adapter test_submit_ypai test_applicant
+      - name: Exercise actual executor's local form through browser with authenticated client
+        working-directory: sjm-executor
+        env:
+          EXECUTOR_TOKEN: audit-local-only
+          YPAI_APPROVED_CASES: ""
+          RUN_BOOT_DIAGNOSTIC: "0"
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys, time, urllib.request, urllib.error
+          env=dict(os.environ)
+          env.pop('SUBMISSION_TOKEN',None)
+          env['PORT']='10000'
+          process=subprocess.Popen([sys.executable,'api_v2.py'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+          def request(path,body=None,authorized=True):
+            headers={'Content-Type':'application/json'}
+            if authorized:headers['Authorization']='Bearer '+os.environ['EXECUTOR_TOKEN']
+            data=None if body is None else json.dumps(body).encode()
+            req=urllib.request.Request('http://127.0.0.1:10000'+path,data=data,headers=headers)
+            with urllib.request.urlopen(req,timeout=70) as r:return r.status,json.load(r)
+          try:
+            for _ in range(40):
+              try:
+                status,health=request('/healthz')
+                break
+              except Exception:time.sleep(1)
+            else:raise AssertionError('ACTUAL EXECUTOR NOT READY')
+            assert status==200 and health['version']=='application-gated-submit-v4',health
+            assert health.get('approved_case_count')==0,health
+            for path in ('/self-test','/jobs/submit-ypai','/jobs/submit-ypai-role'):
+              try:
+                request(path,{},authorized=False)
+                raise AssertionError('ANON UNEXPECTEDLY ALLOWED '+path)
+              except urllib.error.HTTPError as err:assert err.code==401,(path,err.code)
+            status,result=request('/self-test',{})
+            assert status==200,result
+            assert result['form']['submitted'] is True,result
+            assert result['form']['confirmation']=='RECIBIDO',result
+            print('AUDITORIA: EJECUTOR REAL + CHROMIUM + FORMULARIO LOCAL = OK')
+            print('AUTORIZACION: RECHAZO 401 A TRES RUTAS PRIVADAS = OK')
+            print('0 EMPLEADORES CONTACTADOS; 0 POSTULACIONES REALES')
+          finally:
+            process.terminate()
+            try:process.wait(timeout=8)
+            except subprocess.TimeoutExpired:process.kill()
+          PY
