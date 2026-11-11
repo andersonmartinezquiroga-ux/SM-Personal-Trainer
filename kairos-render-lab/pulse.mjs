@@ -3,7 +3,7 @@ const REPO="andersonmartinezquiroga-ux/SM-Personal-Trainer";
 const WORKFLOW=".github/workflows/kairos-pulso-general-15m.yml";
 const AUD="sjm-kairos-pulse-v1";
 const JWKS="https://token.actions.githubusercontent.com/.well-known/jwks";
-const scope=["radar_1","radar_2","radar_3","radar_4","radar_5","radar_6","laboratorio_7","candidaturas","computadores","financiacion","alianzas","proyectos_sjm"];
+const scope=["registro","memoria_operativa","respaldo_cron_15m"];
 let keys=[],at=0;
 export async function authorizePulse(raw){
  try{
@@ -17,14 +17,32 @@ export async function authorizePulse(raw){
   return verify("RSA-SHA256",Buffer.from(p[0]+"."+p[1]),createPublicKey({key:k,format:"jwk"}),Buffer.from(p[2],"base64url"));
  }catch{return false;}
 }
-export async function coordinatePulse(){
- const url=process.env.KAIROS_COORDINATOR_URL||"";
- const token=process.env.KAIROS_COORDINATOR_TOKEN||"";
- if(!url||!token)return {status:503,body:{ok:false,connected:false,reason:"Coordinador de tareas no configurado",scope}};
- if(!url.startsWith("https://"))return {status:503,body:{ok:false,reason:"Se exige HTTPS"}};
+export async function coordinatePulse(rawToken){
+ // GitHub OIDC has already been verified by authorizePulse. Supabase validates
+ // the signature, audience and exact repository identity a second time.
+ if(typeof rawToken!=="string"||rawToken.length<100||rawToken.length>8500)
+  return {status:403,body:{ok:false,reason:"Pulso sin identidad verificada"}};
+ const url="https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_kairos_pulse_coordinator_v1";
  try{
-  const response=await fetch(url,{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({source:"kairos-15m",scope,allow_unverified_submission:false}),signal:AbortSignal.timeout(45000)});
-  if(!response.ok)return {status:502,body:{ok:false,reason:"Coordinador rechazó pulso",http_status:response.status}};
-  return {status:202,body:{ok:true,accepted:true,scope,meaning:"Coordinador externo aceptó el pulso; no confirma envíos individuales"}};
- }catch{return {status:502,body:{ok:false,reason:"Coordinador no disponible"}};}
+  const response=await fetch(url,{method:"POST",headers:{
+   "Authorization":"Bearer "+rawToken,
+   "Content-Type":"application/json"
+  },body:JSON.stringify({operation:"coordinate",interval_minutes:15}),
+   signal:AbortSignal.timeout(45000)});
+  let data={};
+  try{data=await response.json();}catch{}
+  if(!response.ok||data?.ok!==true)
+   return {status:502,body:{ok:false,reason:"El coordinador seguro no aceptó la verificación",upstream_status:response.status,
+    upstream_reason:String(data?.error||"no_reply").slice(0,80)}};
+  return {status:202,body:{ok:true,accepted:true,
+   scope:["registro","memoria_operativa","respaldo_cron_15m"],
+   registryStatus:data.registryStatus||"unknown",
+   cronRecent:data.cronRecent??null,
+   failoverTriggered:data.failoverTriggered===true,
+   registryMemoryChecked:data.registryMemoryChecked===true,
+   externalActions:0,
+   meaning:"Pulso autenticado y verificación de registro/memoria completada. No equivale a postulaciones enviadas."}};
+ }catch{
+  return {status:502,body:{ok:false,reason:"Coordinador seguro no disponible"}};
+ }
 }
