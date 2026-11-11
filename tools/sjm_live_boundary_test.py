@@ -14,7 +14,7 @@ TESTS = [
     ("panel_privado_anon", "/_api/sjm-panel-8/status", "GET", None),
     ("poll_android_anon", "/_api/kairos/phone_command_poll", "GET", None),
     ("brain_anon", "/_api/kairos/brain_command", "POST",
-     b'{"action":"execute","instruction":"KAIRÓS abre Gmail"}'),
+     '{"action":"execute","instruction":"KAIROS abre Gmail"}'.encode('utf-8')),
 ]
 def main():
     results = []
