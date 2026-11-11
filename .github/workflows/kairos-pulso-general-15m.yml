@@ -34,7 +34,9 @@ jobs:
             --data '{"operation":"coordinate","interval_minutes":15}'
 
   public-discovery:
-    name: Revisar vacantes públicas en cada pulso
+    name: Buscar vacantes solo después de coordinar cierres
+    needs: dispatch
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
