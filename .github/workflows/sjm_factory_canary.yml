@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tools/sjm_factory_canary.py"
+      - "tools/sjm_factory_stress.py"
       - ".github/workflows/sjm_factory_canary.yml"
   workflow_dispatch:
 
@@ -40,3 +41,33 @@ jobs:
         with:
           name: sjm-factory-canary-simulated
           path: sjm_factory_canary_report.json
+
+  stress-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run 347 diverse synthetic scenarios under two minutes
+        run: python tools/sjm_factory_stress.py > sjm_factory_stress_report.json
+      - name: Verify execution budget and disclose blocked real integration
+        run: |
+          python - <<'PY'
+          import json
+          with open("sjm_factory_stress_report.json",encoding="utf-8") as f: d=json.load(f)
+          assert d["scope"] == "SIMULACION_AISLADA"
+          assert d["total_scenarios"] == 347, d["total_scenarios"]
+          assert d["elapsed_ms"] < 120000
+          assert d["real_end_to_end_verified"] is False
+          assert d["counters"]["complete"] == 324
+          assert d["counters"]["fault_injection"] == 14
+          assert d["known_limitation"].startswith("RETRY_SAME_CASE_BLOCKED")
+          print("PASS: 347 casos en menos de 120 segundos; integración real NO validada")
+          PY
+      - name: Publish stress audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sjm-factory-stress-simulated
+          path: sjm_factory_stress_report.json
