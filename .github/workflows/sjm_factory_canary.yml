@@ -5,6 +5,7 @@ on:
     paths:
       - "tools/sjm_factory_canary.py"
       - "tools/sjm_factory_stress.py"
+      - "tools/sjm_station_relay_regression.py"
       - "tools/sjm_live_boundary_test.py"
       - ".github/workflows/sjm_factory_canary.yml"
   workflow_dispatch:
@@ -153,3 +154,33 @@ jobs:
             try:process.wait(timeout=8)
             except subprocess.TimeoutExpired:process.kill()
           PY
+
+  station-relay-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Force and repair every interstation communication link
+        run: python tools/sjm_station_relay_regression.py > station_relay_report.json
+      - name: Validate recovery, evidence labelling and safety
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('station_relay_report.json'))
+          assert d['stations']==14
+          assert d['transition_breaks_detected_and_recovered']==13
+          assert d['english_break_detected_and_recovered']
+          assert d['authorization_remains_blocked']
+          assert d['consecutive_completed']==180
+          assert d['replay_no_duplicate']
+          assert not d['real_deployed_chain_verified']
+          assert d['submissions_sent']==0 and d['android_ack']==0
+          print('PASS: station handoffs fail closed, replay recovers, no simulated external sends')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sjm-station-relay-regression
+          path: station_relay_report.json
