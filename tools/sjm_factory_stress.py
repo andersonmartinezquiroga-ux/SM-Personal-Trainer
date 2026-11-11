@@ -60,16 +60,23 @@ def suite():
     if first["status"]=="SIMULATION_PASS" and twice["blocking_station"]==5:
         counts["duplicate"]+=1
     else: anomalies.append(["duplicate",first["status"],twice["blocking_station"]])
-    # Evidencia de limitación: si falla en estación 10 el mismo expediente
-    # no puede reintentarse en el simulador actual (se bloquea en deduplicación).
+    # Un reintento de la MISMA gestión puede continuar; la fuente ya vista
+    # con otro ID sigue siendo duplicado. Un replay no repite salida ni auditoría.
     fac_retry=Factory()
     a=fixture("RETRY-1",variant=101)
     failed=fac_retry.run(a,fault=10)
     retry=fac_retry.run(a)
-    retry_issue=(failed["blocking_station"]==10 and retry["blocking_station"]==5)
-    if retry_issue:
-        counts["retry"]+=1 # problema correctamente detectado, NO reparación
-    else: anomalies.append(["retry",failed["blocking_station"],retry["blocking_station"]])
+    replay=fac_retry.run(a)
+    retry_ok=(failed["blocking_station"]==10
+              and retry["status"]=="SIMULATION_PASS"
+              and replay["status"]=="SIMULATION_PASS"
+              and len(fac_retry.simulated_outbox)==1
+              and len(fac_retry.simulated_audit)==1)
+    if retry_ok:
+        counts["retry"]+=1
+    else:
+        anomalies.append(["retry",failed["blocking_station"],retry["status"],replay["status"],
+                          len(fac_retry.simulated_outbox),len(fac_retry.simulated_audit)])
     elapsed=round((time.monotonic()-start)*1000,2)
     assert elapsed < 120_000
     assert not anomalies,anomalies
@@ -78,8 +85,8 @@ def suite():
             "budget_ms":120000,"elapsed_ms":elapsed,
             "total_scenarios":sum(counts.values()),
             "counters":counts,"categories":group_counts,"regions":list(REGIONS),
-            "known_limitation":"RETRY_SAME_CASE_BLOCKED_AT_STATION_5_AFTER_FAILURE_AT_10",
-            "outcome":"SIMULATOR_PASS_WITH_IDENTIFIED_RETRY_DEFECT"}
+            "replay_idempotency":"CORRECTED_IN_ISOLATED_HARNESS",
+            "outcome":"SIMULATOR_PASS_INCLUDING_RETRY_FIX; LIVE_INTEGRATIONS_UNVERIFIED"}
 
 if __name__=="__main__":
     print(json.dumps(suite(),ensure_ascii=False,indent=2))
