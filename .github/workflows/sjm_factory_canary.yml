@@ -63,7 +63,7 @@ jobs:
           assert d["real_end_to_end_verified"] is False
           assert d["counters"]["complete"] == 324
           assert d["counters"]["fault_injection"] == 14
-          assert d["known_limitation"].startswith("RETRY_SAME_CASE_BLOCKED")
+          assert d["replay_idempotency"] == "CORRECTED_IN_ISOLATED_HARNESS"
           print("PASS: 347 casos en menos de 120 segundos; integración real NO validada")
           PY
       - name: Publish stress audit report
