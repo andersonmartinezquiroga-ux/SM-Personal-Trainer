@@ -59,6 +59,11 @@ class API(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+        # Structured, secret-free response evidence for Render/Supabase correlation.
+        # Never log headers, payloads, query strings, or personal data.
+        route = self.path.split("?", 1)[0]
+        if route in {"/healthz", "/self-test", "/jobs/inspect", "/jobs/draft", "/jobs/submit-ypai", "/jobs/submit-ypai-role"}:
+            print(json.dumps({"event": "browser_http_response", "route": route, "status": status, "submitted": False if route in {"/jobs/inspect", "/jobs/draft", "/self-test"} else None}), flush=True)
 
     def log_message(self, format, *args):
         pass
