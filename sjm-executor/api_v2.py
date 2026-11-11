@@ -1,5 +1,5 @@
 """SJM browser executor: public inspection plus explicitly gated role submissions."""
-import json, os, secrets, threading, tempfile
+import json, os, secrets, threading, tempfile, re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
@@ -63,7 +63,13 @@ class API(BaseHTTPRequestHandler):
         # Never log headers, payloads, query strings, or personal data.
         route = self.path.split("?", 1)[0]
         if route in {"/healthz", "/self-test", "/jobs/inspect", "/jobs/draft", "/jobs/submit-ypai", "/jobs/submit-ypai-role"}:
-            print(json.dumps({"event": "browser_http_response", "route": route, "status": status, "submitted": False if route in {"/jobs/inspect", "/jobs/draft", "/self-test"} else None}), flush=True)
+            # Correlate only a bounded opaque identifier, never a token or request body.
+            # The caller must pass the same request_id used in its Supabase ACK.
+            raw_id = self.headers.get("X-Request-ID", "")
+            request_id = raw_id if re.fullmatch(r"[A-Za-z0-9_-]{1,64}", raw_id) else None
+            print(json.dumps({"event": "browser_http_response", "route": route,
+                              "status": status, "request_id": request_id,
+                              "submitted": False if route in {"/jobs/inspect", "/jobs/draft", "/self-test"} else None}), flush=True)
 
     def log_message(self, format, *args):
         pass
