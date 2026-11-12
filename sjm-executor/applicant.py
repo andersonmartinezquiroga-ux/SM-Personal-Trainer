@@ -24,6 +24,13 @@ ALLOWED={
  # Exact SJM tracked public listings. No account/session access or submissions.
  "co.linkedin.com": re.compile(r"^/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155/?$"),
  "public.ureed.com": re.compile(r"^/freelancing/?$"),
+ # Batch 2026-11-12: six tracked public signup/creator-marketplace entrypoints, GET-only.
+ "conectapp.com.co": re.compile(r"^/auth/register/?$"),
+ "ko-fi.com": re.compile(r"^/$"),
+ "mindrift.ai": re.compile(r"^/welcome/?$"),
+ "www.fiverr.com": re.compile(r"^/start_selling/?$"),
+ "mostaql.com": re.compile(r"^/$"),
+ "www.superprof.ae": re.compile(r"^/tutor/?$"),
  "personas.serviciodeempleo.gov.co": re.compile(r"^/detalle_oferta[.]aspx$"),
  "www.unisco.com": re.compile(r"^/es/careers/ai-coach-teacher-colombia/?$"),
  "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
@@ -81,7 +88,7 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
               "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
-              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com"}
+              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com","conectapp.com.co","ko-fi.com","mindrift.ai","www.fiverr.com","mostaql.com","www.superprof.ae"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):
