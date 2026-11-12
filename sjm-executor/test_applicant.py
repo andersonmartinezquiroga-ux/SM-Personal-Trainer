@@ -48,6 +48,24 @@ class SecurityTests(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 checked_url(url)
 
+
+    def test_getonbrd_exact_public_listing_readonly(self):
+        url="https://www.getonbrd.com/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote"
+        self.assertEqual(checked_url(url),url)
+        self.assertTrue(is_safe_readonly_asset(url,"GET"))
+        self.assertFalse(is_safe_readonly_asset(url,"POST"))
+        for bad in (
+          "https://www.getonbrd.com/login",
+          "https://www.getonbrd.com/jobs/operations-management/untracked-position",
+          url+"?apply=true",
+          url+"/apply",
+          "http://www.getonbrd.com/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote",
+        ):
+            with self.subTest(url=bad),self.assertRaises(ValueError):
+                checked_url(bad)
+        with self.assertRaises(ValueError):
+            inspect(url,{"name":"DO_NOT_SEND_PRIVATE_DATA"})
+
     def test_ypai_arbitrary_path_blocked(self):
         with self.assertRaises(ValueError):
             checked_url("https://freelancer.ypai.ai/account/delete")
