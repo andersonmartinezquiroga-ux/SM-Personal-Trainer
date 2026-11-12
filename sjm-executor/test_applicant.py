@@ -49,6 +49,38 @@ class SecurityTests(unittest.TestCase):
                 checked_url(url)
 
 
+    def test_marketplace_six_exact_readonly_batch(self):
+        """The six registered platform entrypoints may be READ but never join/apply."""
+        urls=(
+            "https://conectapp.com.co/auth/register",
+            "https://ko-fi.com/",
+            "https://mindrift.ai/welcome",
+            "https://www.fiverr.com/start_selling",
+            "https://mostaql.com/",
+            "https://www.superprof.ae/tutor/",
+        )
+        for u in urls:
+            with self.subTest(url=u):
+                self.assertEqual(checked_url(u),u)
+                self.assertTrue(is_safe_readonly_asset(u,"GET"))
+                self.assertFalse(is_safe_readonly_asset(u,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(u,{"full_name":"NEVER_SEND"})
+        blocked=(
+            "https://conectapp.com.co/auth/login",
+            "https://ko-fi.com/account",
+            "https://ko-fi.com/?checkout=1",
+            "https://mindrift.ai/welcome?signup=1",
+            "https://www.fiverr.com/login",
+            "https://www.fiverr.com/start_selling?auth=1",
+            "https://mostaql.com/projects",
+            "https://www.superprof.ae/tutor/?pay=1",
+            "https://www.superprof.ae/register",
+        )
+        for u in blocked:
+            with self.subTest(url=u),self.assertRaises(ValueError):
+                checked_url(u)
+
     def test_public_linkedin_co_and_ureed_exact_listing_readonly(self):
         public=(
             "https://co.linkedin.com/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155",
