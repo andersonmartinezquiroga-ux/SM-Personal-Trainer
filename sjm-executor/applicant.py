@@ -14,7 +14,9 @@ ALLOWED={
  # Generic public Workana listing adapter: GET only; Supabase still gates EXACT case URLs.
  # Never accepts /login, /account, /apply, querystrings or unsafe redirects.
  "www.workana.com": re.compile(r"^/(?:es/)?job/[a-z0-9][a-z0-9-]{7,168}[a-z0-9]/?$"),
- # Exact active SJM commercial case; public GET inspection only, no sign-in or submission.\n "www.getonbrd.com": re.compile(r"^/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote/?$"),\n "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
+ # Exact active SJM commercial case; public GET inspection only, no sign-in or submission.
+ "www.getonbrd.com": re.compile(r"^/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote/?$"),
+ "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
  "myvirtualtrainer.co": re.compile(r"^/$"),
  # Two verified public Spanish-language sources. Exact paths only, inspection only.
  "www.tusclases.co": re.compile(r"^/anunciarse/profesor-particular/?$"),
