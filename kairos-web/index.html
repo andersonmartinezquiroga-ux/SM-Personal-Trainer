@@ -29,14 +29,15 @@ header{height:73px;flex:none;display:flex;align-items:center;gap:13px;padding:0 
 </style>
 </head>
 <body>
-<div id="auth"><div class="auth-card"><div class="auth-mark">K</div><h1>KAIRÓS 360</h1><p class="summary">Tu interfaz de inteligencia y control SJM<br>Acceso seguro con la cuenta autorizada</p>
-<div class="auth-info" id="authInfo">Comprobando sesión…</div>
-<label for="email">Correo SJM</label><input id="email" type="email" autocomplete="email" placeholder="Correo autorizado">
-<button id="sendOtp">Solicitar acceso por correo</button>
-<label for="otp">Código de correo (si recibiste números)</label><input id="otp" autocomplete="one-time-code" inputmode="numeric" placeholder="Código recibido">
-<button id="verifyOtp" class="alt">Verificar código</button>
-<details><summary>Si el enlace del correo lleva a localhost</summary><p class="small">Copia el enlace de confirmación de Supabase sin abrirlo y pégalo únicamente aquí. No lo compartas.</p><label for="privateLink">Enlace de confirmación privado</label><input id="privateLink" type="password" autocomplete="off" autocapitalize="none" spellcheck="false"><button id="verifyLink" class="alt">Verificar enlace</button><button id="resend" class="alt">Reenviar confirmación</button></details>
-<p class="small">Esta interfaz no permite entrar a los expedientes sin autorización del backend.</p></div></div>
+<div id="auth"><div class="auth-card"><div class="auth-mark">K</div><h1>KAIRÓS 360</h1><p class="summary">SJM CONTROL 360<br>Tu inteligencia y centro de operaciones</p>
+<div class="auth-info" id="authInfo" role="status" aria-live="polite">Comprobando acceso…</div>
+<form id="loginForm" autocomplete="on">
+<label for="accessCode">Tu clave privada de acceso</label>
+<input id="accessCode" type="password" autocomplete="current-password" required minlength="12" spellcheck="false" autocapitalize="none" placeholder="Pega aquí tu clave" aria-label="Clave de acceso a KAIRÓS">
+<button id="loginButton" type="submit">Entrar a KAIRÓS</button>
+</form>
+<p class="small">Una sola clave. Sin enlaces, códigos enviados ni confirmaciones por correo. El acceso se comprueba de forma segura con Supabase.</p>
+</div></div>
 <div id="overlay"></div>
 <div id="layout" class="hidden">
 <aside><div class="brand"><div class="mark">K</div><div><strong>KAIRÓS 360</strong><small>SJM CONTROL 360</small></div></div>
@@ -117,19 +118,32 @@ async function readLive(instruction){
 }
 function speak(){if(!lastAnswer){info("Primero solicita una respuesta");return}if(!("speechSynthesis" in window)){info("El navegador no admite lectura de voz");return}speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(lastAnswer.slice(0,3000));utter.lang="es-CO";utter.rate=.95;utter.pitch=.9;const vv=speechSynthesis.getVoices().filter(v=>(v.lang||"").toLowerCase().startsWith("es"));utter.voice=vv.find(v=>/male|mascul|jorge|juan|pablo|diego/i.test(v.name))||vv[0]||null;speechSynthesis.speak(utter);info("Reproducción con la voz disponible en Android; aún no es el motor de voz premium")}
 function mic(){if(!authorized){info("Debes iniciar sesión");return}const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){info("Dictado no disponible en este navegador");return}if(recognizing)return;const rec=new R();rec.lang="es-CO";rec.interimResults=false;rec.onresult=e=>{$("prompt").value=String(e.results?.[0]?.[0]?.transcript||"").replace(/^kair[oó]s[,.:]?\s*/i,"");grow();info("Dictado recibido: revisa y pulsa enviar")};rec.onerror=e=>info("Micrófono: "+String(e.error||"no disponible"));rec.onend=()=>recognizing=false;recognizing=true;try{rec.start();info("Escuchando por el micrófono del navegador…")}catch{recognizing=false;info("No se pudo iniciar el micrófono")}}
-async function logout(){if(!sb)return;try{await sb.auth.signOut()}catch{}session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. El historial local se conserva hasta que se borre en Memoria.")}
-async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Inicia sesión con el correo autorizado para CONTROL 360.");return}
+async function logout(){if(!sb)return;try{await sb.auth.signOut()}catch{}session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
+async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Pega tu clave privada para entrar a CONTROL 360.");return}
 const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
 $("auth").classList.add("hidden");$("layout").classList.remove("hidden");restore();messagesRender();show("chat")}
-async function sendOtp(){const email=$("email").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){authInfo("Escribe un correo válido.");return}const b=$("sendOtp");b.disabled=true;try{const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/"}});if(error)throw error;authInfo("Solicitud enviada. Revisa Gmail. Si llega código, verifícalo; si el enlace lleva a localhost, usa la sección inferior.")}catch(e){authInfo("Solicitud fallida: "+e.message)}finally{b.disabled=false}}
-async function verifyOtp(){const email=$("email").value.trim(),token=$("otp").value.trim();if(!email||!token){authInfo("Indica correo y código.");return}try{const {error}=await sb.auth.verifyOtp({email,token,type:"email"});if(error)throw error;await signedIn()}catch(e){authInfo("Código rechazado: "+e.message)}}
-async function verifyLink(){const input=$("privateLink");const raw=input.value.trim();let token,type;try{const u=new URL(raw);if(u.protocol!=="https:"||u.hostname!=="dfqjwlsgqetyxdrsuviy.supabase.co"||u.pathname!=="/auth/v1/verify")throw Error();token=u.searchParams.get("token_hash")||u.searchParams.get("token");type=u.searchParams.get("type");if(!token||!["signup","email","magiclink"].includes(type))throw Error()}catch{input.value="";authInfo("No es un enlace oficial válido de confirmación de Supabase.");return}input.value="";try{const {error}=await sb.auth.verifyOtp({token_hash:token,type});token="";if(error)throw error;await signedIn()}catch(e){token="";authInfo("Enlace rechazado: "+e.message)}}
-async function resend(){const email=$("email").value.trim();if(!email){authInfo("Escribe primero el correo.");return}try{const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:location.origin+"/"}});if(error)throw error;authInfo("Solicitada confirmación nueva. Revisa el correo; no compartas el enlace.")}catch(e){authInfo("No se pudo solicitar confirmación: "+e.message)}}
+async function loginWithPassword(){
+  if(!sb){authInfo("No hay conexión con el servidor de acceso. Revisa internet y vuelve a abrir KAIRÓS.");return}
+  const input=$("accessCode"), password=input.value;
+  if(!password||password.length<12){authInfo("Pega tu clave privada completa.");return}
+  const b=$("loginButton");b.disabled=true;b.textContent="Comprobando clave…";authInfo("Validando acceso privado…");
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email:"andersonmartinezquiroga@gmail.com",password});
+    input.value="";
+    if(error)throw error;
+    if(!data?.session)throw new Error("El servidor no entregó sesión.");
+    await signedIn();
+  }catch(e){
+    input.value="";
+    const code=String(e?.status||"");
+    authInfo(code==="400"||code==="401"?"Clave incorrecta. Compruébala y vuelve a intentarlo.":"No fue posible iniciar sesión: "+String(e?.message||e).slice(0,140));
+  }finally{b.disabled=false;b.textContent="Entrar a KAIRÓS"}
+}
 function events(){$("menu").onclick=()=>{if(matchMedia("(max-width:800px)").matches)document.body.classList.toggle("drawer");else document.body.classList.toggle("collapsed")};$("overlay").onclick=closeDrawer;$("newChat").onclick=newChat;$("search").oninput=historyRender;$("refresh").onclick=checkStatus;
 $("form").onsubmit=e=>{e.preventDefault();sendMessage($("prompt").value)};$("prompt").oninput=grow;$("prompt").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage($("prompt").value)}};
 $("messages").onclick=e=>{const b=e.target.closest("[data-prompt]");if(b)sendMessage(b.dataset.prompt)};
 $("attach").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files?.[0];if(f){$("attachment").classList.remove("hidden");$("attachment").textContent=f.name+" — SELECCIONADO ÚNICAMENTE, NO ENVIADO NI ANALIZADO. Toca para quitar.";$("attachment").onclick=()=>{$("file").value="";$("attachment").classList.add("hidden")};info("El archivo permanece en el teléfono; el backend no acepta adjuntos")}};
-$("mic").onclick=mic;$("speak").onclick=speak;$("sendOtp").onclick=sendOtp;$("verifyOtp").onclick=verifyOtp;$("verifyLink").onclick=verifyLink;$("resend").onclick=resend;
+$("mic").onclick=mic;$("speak").onclick=speak;$("loginForm").onsubmit=e=>{e.preventDefault();loginWithPassword()};
 document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("search").focus()}})}
 async function start(){navBuild();events();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
