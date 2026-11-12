@@ -49,6 +49,24 @@ class SecurityTests(unittest.TestCase):
                 checked_url(url)
 
 
+    def test_spe_colombia_exact_offer_get_only(self):
+        u="https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?proceso_id=7&sede_id=1626514975"
+        self.assertEqual(checked_url(u),u)
+        self.assertTrue(is_safe_readonly_asset(u,"GET"))
+        self.assertFalse(is_safe_readonly_asset(u,"POST"))
+        with self.assertRaises(ValueError):
+            inspect(u,{"phone":"NO_PERSONAL_DATA"})
+        for bad in (
+            "https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx",
+            "https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?sede_id=1626514975&proceso_id=7",
+            u+"&redirect=https://evil.example",
+            "https://personas.serviciodeempleo.gov.co/login",
+            "https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?proceso_id=8&sede_id=1626514975",
+            "http://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?proceso_id=7&sede_id=1626514975"
+        ):
+            with self.subTest(url=bad),self.assertRaises(ValueError):
+                checked_url(bad)
+
     def test_unisco_colombia_exact_path_readonly(self):
         url="https://www.unisco.com/es/careers/ai-coach-teacher-colombia"
         self.assertEqual(checked_url(url),url)
