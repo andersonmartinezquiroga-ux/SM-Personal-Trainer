@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.12 · PRUEBAS REMOTAS CON APERTURA PROPIA",17));
+        layout.addView(text("VERSIÓN 0.3.13 · PRUEBAS REMOTAS CON APERTURA PROPIA",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -254,7 +254,7 @@ public class MainActivity extends Activity {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
                 JSONObject request=new JSONObject().put("action","register")
-                    .put("version",1).put("appVersion","0.3.12").put("capabilities",scopes);
+                    .put("version",1).put("appVersion","0.3.13").put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
                     throw new IllegalStateException("El servidor no confirmó la vinculación");
@@ -286,10 +286,13 @@ public class MainActivity extends Activity {
         status.setText(linked
             ? "CREDENCIAL LOCAL GUARDADA. Compruebe el último resultado para verificar la conexión real. Mantenga activo el servicio de Accesibilidad."
             : "SIN VINCULAR. Use el código temporal de respaldo que llegará a su correo SJM.");
-        localProof.setText((CommandReceiptStore.isPaused(this) ? "PAUSADO por usted. No se reciben nuevas órdenes.\n" : "Órdenes remotas habilitadas.\n") + "Último resultado local: " + CommandReceiptStore.status(this) +
+        localProof.setText((CommandReceiptStore.isPaused(this) ? "PAUSADO por usted. No se reciben nuevas órdenes.\n" : "Órdenes remotas habilitadas.\n") +
+            "SONDEO/ACUSE: " + CommandReceiptStore.bridgeStatus(this) +
+            "\nÚltimo resultado local: " + CommandReceiptStore.status(this) +
             (CommandReceiptStore.getPending(this) != null
                 ? "\nConfirmación de resultado pendiente de envío al servidor."
-                : ""));
+                : "") +
+            "\nPOLL_OFFERED no es ejecución; ACK_RECEIVED_ACCEPTED confirma recepción, pero no pantalla.");
     }
     @Override protected void onResume() {
         super.onResume();
