@@ -14,7 +14,7 @@ ALLOWED={
  # Generic public Workana listing adapter: GET only; Supabase still gates EXACT case URLs.
  # Never accepts /login, /account, /apply, querystrings or unsafe redirects.
  "www.workana.com": re.compile(r"^/(?:es/)?job/[a-z0-9][a-z0-9-]{7,168}[a-z0-9]/?$"),
- "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
+ # Exact active SJM commercial case; public GET inspection only, no sign-in or submission.\n "www.getonbrd.com": re.compile(r"^/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote/?$"),\n "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
  "myvirtualtrainer.co": re.compile(r"^/$"),
  # Two verified public Spanish-language sources. Exact paths only, inspection only.
  "www.tusclases.co": re.compile(r"^/anunciarse/profesor-particular/?$"),
@@ -68,7 +68,7 @@ WORKANA_KNOWN_CASE_PATHS=frozenset((
 STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com","cdn.ashbyhq.com",
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
-              "www.workana.com","community.transperfect.com","myvirtualtrainer.co",
+              "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
               "www.tusclases.co","agentify.teamtailor.com"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
