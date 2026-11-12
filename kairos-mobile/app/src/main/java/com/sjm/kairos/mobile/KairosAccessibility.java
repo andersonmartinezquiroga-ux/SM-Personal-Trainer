@@ -347,16 +347,31 @@ public class KairosAccessibility extends AccessibilityService {
     }
     private void runBridge() {
         String key=SecretStore.load(this);
-        if(key==null || CommandReceiptStore.isPaused(this))return;
+        if(key==null) {
+            CommandReceiptStore.markBridge(this,"NO_DEVICE_KEY");
+            return;
+        }
+        if(CommandReceiptStore.isPaused(this)) {
+            CommandReceiptStore.markBridge(this,"OWNER_PAUSED");
+            return;
+        }
+        String stage="REGISTRATION";
         try {
             retryPendingAck(key);
-            if (CommandReceiptStore.getPending(this) != null || verifyingForeground) return;
+            if (CommandReceiptStore.getPending(this) != null) {
+                CommandReceiptStore.markBridge(this,"FINAL_ACK_PENDING");
+                return;
+            }
+            if (verifyingForeground) {
+                CommandReceiptStore.markBridge(this,"FOREGROUND_PROOF_RUNNING");
+                return;
+            }
             long now=System.currentTimeMillis();
             if(now-lastRegistered>8*60_000L){
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("appVersion","0.3.12")
+                    .put("action","register").put("version",1).put("appVersion","0.3.13")
                     .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
@@ -364,22 +379,45 @@ public class KairosAccessibility extends AccessibilityService {
             }
             // El sondeo puede reservar una orden en el servidor. Nunca reservarla
             // durante una llamada/clase por voz: podria expirar antes del ACK.
-            if(hasActiveCommunication()) return;
+            if(hasActiveCommunication()) {
+                CommandReceiptStore.markBridge(this,"VOICE_BUSY_BEFORE_POLL");
+                return;
+            }
+            stage="POLL";
             JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key);
-            if(!pending.optBoolean("shouldExecute",false))return;
+            if(!pending.optBoolean("ok",false)) {
+                CommandReceiptStore.markBridge(this,"POLL_REJECTED");
+                return;
+            }
+            if(!pending.optBoolean("shouldExecute",false)) {
+                CommandReceiptStore.markBridge(this,"POLL_EMPTY");
+                return;
+            }
             JSONObject command=pending.optJSONObject("command");
-            if(command==null)return;
+            if(command==null) {
+                CommandReceiptStore.markBridge(this,"POLL_MISSING_COMMAND");
+                return;
+            }
             String commandId=command.optString("id","");
-            if(!commandId.matches("[0-9a-fA-F-]{36}"))return;
+            if(!commandId.matches("[0-9a-fA-F-]{36}")) {
+                CommandReceiptStore.markBridge(this,"POLL_BAD_COMMAND_ID");
+                return;
+            }
+            CommandReceiptStore.markBridge(this,
+                "POLL_OFFERED_"+command.optString("type","unknown")+"_"+commandId.substring(0,8));
             // Antes del ACK, posponer CUALQUIER acción externa durante
             // comunicación activa; Android la procesará en un próximo sondeo.
             if(hasActiveCommunication()){
+                CommandReceiptStore.markBridge(this,"VOICE_BUSY_AFTER_OFFER_"+commandId.substring(0,8));
                 CommandReceiptStore.mark(this,"Orden pospuesta hasta terminar la comunicación");
                 return;
             }
+            stage="ACK_RECEIVED_"+commandId.substring(0,8);
+            CommandReceiptStore.markBridge(this,stage+"_REQUEST");
             JSONObject ack=new JSONObject().put("commandId",commandId).put("result","received");
             JSONObject received=BridgeHttp.call("/_api/kairos/phone_command_ack","POST",ack,key);
             if (!received.optBoolean("ok",false)) throw new IllegalStateException("Recepción no confirmada");
+            CommandReceiptStore.markBridge(this,"ACK_RECEIVED_ACCEPTED_"+commandId.substring(0,8));
             CommandReceiptStore.mark(this, "Orden " + command.optString("type") + " recibida; ejecutando");
             handler.post(()->{
                 try {
@@ -413,10 +451,12 @@ public class KairosAccessibility extends AccessibilityService {
                 }
             });
         }catch(Exception e) {
-            // No confundir servicio Android encendido con puente remoto conectado.
-            // Mensaje local sin URL, credenciales ni datos privados.
+            // No confundir la conexión del latido con un ACK del dispositivo.
+            // No almacenar payloads, contraseñas o tokens en el diagnóstico.
+            CommandReceiptStore.markBridge(this,
+                stage+"_FAILED_"+e.getClass().getSimpleName());
             CommandReceiptStore.mark(this,
-                "CONTROL 360 sin conexión comprobada: " + e.getClass().getSimpleName());
+                "CONTROL 360: etapa "+stage+" falló ("+e.getClass().getSimpleName()+")");
         }
     }
     /** Confirma únicamente que el paquete de Chrome está visible.
