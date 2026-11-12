@@ -56,6 +56,22 @@ final class CommandReceiptStore {
             .putString("lastStatus", shortText)
             .putLong("lastStatusTime", System.currentTimeMillis()).apply();
     }
+    /** Diagnóstico local: solo etapas y prefijos de ID; nunca payload, credenciales ni mensajes privados. */
+    static void markBridge(Context context, String stage) {
+        String safe = stage == null ? "UNKNOWN" : stage.replaceAll("[^a-zA-Z0-9_:-]", "_");
+        if (safe.length() > 96) safe = safe.substring(0, 96);
+        prefs(context).edit()
+            .putString("lastBridgeStage", safe)
+            .putLong("lastBridgeAt", System.currentTimeMillis()).apply();
+    }
+    static String bridgeStatus(Context context) {
+        SharedPreferences p = prefs(context);
+        String stage = p.getString("lastBridgeStage", "SIN_PRUEBA_DEL_SONDEO");
+        long at = p.getLong("lastBridgeAt", 0);
+        if (at <= 0) return stage;
+        java.text.DateFormat time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT);
+        return stage + " · " + time.format(new java.util.Date(at));
+    }
     static String status(Context context) {
         SharedPreferences p = prefs(context);
         String value = p.getString("lastStatus", "Aún sin órdenes comprobadas");
