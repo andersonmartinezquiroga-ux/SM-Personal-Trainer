@@ -8,6 +8,8 @@ on:
       - 'sjm-executor/form_adapter.py'
       - 'sjm-executor/test_applicant.py'
       - 'sjm-executor/test_form_adapter.py'
+      - 'sjm-executor/api_v2.py'
+      - 'sjm-executor/test_pulse_ack.py'
       - '.github/workflows/sjm-executor-preflight-safety.yml'
 
 permissions:
@@ -27,7 +29,7 @@ jobs:
       - name: Run all security and form adapter tests (OFFLINE)
         working-directory: sjm-executor
         run: |
-          python -m unittest -v test_applicant test_form_adapter test_submit_ypai
+          python -m unittest -v test_applicant test_form_adapter test_submit_ypai test_pulse_ack
       - name: Record non-submission evidence
         if: success()
         run: |
