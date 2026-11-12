@@ -49,6 +49,32 @@ class SecurityTests(unittest.TestCase):
                 checked_url(url)
 
 
+    def test_two_fitness_source_urls_readonly_only(self):
+        sources=(
+            "https://gymstart.co/",
+            "https://mantra.fit/careers/fitness-expert-job-in-spain/",
+        )
+        for u in sources:
+            with self.subTest(u=u):
+                self.assertEqual(checked_url(u),u)
+                self.assertTrue(is_safe_readonly_asset(u,"GET"))
+                self.assertFalse(is_safe_readonly_asset(u,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(u,{"name":"NO_PERSONAL_DATA"})
+        blocked=(
+            "http://gymstart.co/",
+            "https://gymstart.co/login",
+            "https://gymstart.co/?register=1",
+            "https://gymstart.co/admin/",
+            "https://mantra.fit/careers/another-job",
+            "https://mantra.fit/login",
+            "https://mantra.fit/careers/fitness-expert-job-in-spain/?apply=true",
+            "https://mantra.fit@127.0.0.1/careers/fitness-expert-job-in-spain/",
+        )
+        for u in blocked:
+            with self.subTest(u=u),self.assertRaises(ValueError):
+                checked_url(u)
+
     def test_spe_colombia_exact_offer_get_only(self):
         u="https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?proceso_id=7&sede_id=1626514975"
         self.assertEqual(checked_url(u),u)
