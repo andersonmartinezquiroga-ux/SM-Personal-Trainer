@@ -49,6 +49,31 @@ class SecurityTests(unittest.TestCase):
                 checked_url(url)
 
 
+    def test_public_linkedin_co_and_ureed_exact_listing_readonly(self):
+        public=(
+            "https://co.linkedin.com/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155",
+            "https://public.ureed.com/freelancing/",
+        )
+        for u in public:
+            with self.subTest(url=u):
+                self.assertEqual(checked_url(u),u)
+                self.assertTrue(is_safe_readonly_asset(u,"GET"))
+                self.assertFalse(is_safe_readonly_asset(u,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(u,{"phone":"NO_PRIVATE_DATA"})
+        forbidden=(
+            "https://co.linkedin.com/login",
+            "https://co.linkedin.com/jobs/view/other",
+            public[0]+"?trk=123",
+            "https://www.linkedin.com/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155",
+            "https://public.ureed.com/login",
+            "https://public.ureed.com/freelancing/?apply=1",
+            "https://public.ureed.com/freelancing/jobs",
+        )
+        for u in forbidden:
+            with self.subTest(url=u),self.assertRaises(ValueError):
+                checked_url(u)
+
     def test_two_fitness_source_urls_readonly_only(self):
         sources=(
             "https://gymstart.co/",
