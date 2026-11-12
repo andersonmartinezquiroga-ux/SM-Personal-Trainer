@@ -11,7 +11,9 @@ ALLOWED={
  "jobs.ashbyhq.com": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/application)?/?$"),
  "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co)$"),
  # Public, exact-case jobs only. No generic domain-wide browsing.
- "www.workana.com": re.compile(r"^/es/job/(?:asistente-virtual-y-soporte-al-cliente-remoto-en-espanol|asistente-virtual-full-time-para-configuracion-de-apps-y-gestion-de-clientes)/?$"),
+ # Generic public Workana listing adapter: GET only; Supabase still gates EXACT case URLs.
+ # Never accepts /login, /account, /apply, querystrings or unsafe redirects.
+ "www.workana.com": re.compile(r"^/(?:es/)?job/[a-z0-9][a-z0-9-]{7,168}[a-z0-9]/?$"),
  "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
  "myvirtualtrainer.co": re.compile(r"^/$"),
  # Two verified public Spanish-language sources. Exact paths only, inspection only.
