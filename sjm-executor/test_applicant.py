@@ -49,6 +49,24 @@ class SecurityTests(unittest.TestCase):
                 checked_url(url)
 
 
+    def test_unisco_colombia_exact_path_readonly(self):
+        url="https://www.unisco.com/es/careers/ai-coach-teacher-colombia"
+        self.assertEqual(checked_url(url),url)
+        self.assertTrue(is_safe_readonly_asset(url,"GET"))
+        self.assertFalse(is_safe_readonly_asset(url,"POST"))
+        with self.assertRaises(ValueError):
+            inspect(url,{"email":"NEVER_SEND_PERSONAL_DATA"})
+        for bad in (
+            "https://www.unisco.com/login",
+            "https://www.unisco.com/es/careers/another-role",
+            url+"?apply=1",
+            url+"/apply",
+            "http://www.unisco.com/es/careers/ai-coach-teacher-colombia",
+            "https://www.unisco.com@127.0.0.1/es/careers/ai-coach-teacher-colombia",
+        ):
+            with self.subTest(url=bad),self.assertRaises(ValueError):
+                checked_url(bad)
+
     def test_getonbrd_exact_public_listing_readonly(self):
         url="https://www.getonbrd.com/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote"
         self.assertEqual(checked_url(url),url)
