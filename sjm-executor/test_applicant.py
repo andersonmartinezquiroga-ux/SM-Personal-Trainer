@@ -22,6 +22,32 @@ class SecurityTests(unittest.TestCase):
         for role in ("model-evaluator-co","data-annotator-co","text-annotator-co","pose-keypoint-annotator-co"):
             u="https://freelancer.ypai.ai/jobs/openings/"+role
             self.assertEqual(checked_url(u),u)
+
+    def test_workana_existing_case_slugs_are_get_only_and_no_privilege_bypass(self):
+        safe=[
+            "https://www.workana.com/es/job/especialista-en-creacion-y-estrategia-de-contenido-para-entrenador-personal-y-nutricionista-online",
+            "https://www.workana.com/job/especialista-en-reactivacion-de-clientes-para-gimnasio-via-whatsapp-e-instagram",
+            "https://www.workana.com/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol",
+        ]
+        for url in safe:
+            with self.subTest(url=url):
+                self.assertEqual(checked_url(url),url)
+                self.assertTrue(is_safe_readonly_asset(url,"GET"))
+                self.assertFalse(is_safe_readonly_asset(url,"POST"))
+        forbidden=[
+            "https://www.workana.com/login",
+            "https://www.workana.com/account/settings",
+            "https://www.workana.com/job/a",
+            "https://www.workana.com/es/job/../../login",
+            "https://www.workana.com/job/test-slug-accepted?redirect=https://evil.invalid",
+            "https://www.workana.com@127.0.0.1/es/job/safe-looking-name",
+            "https://www.workana.com/es/job/uppercase-NOT-ALLOWED",
+            "https://www.workana.com/es/job/valid-job-name/apply",
+        ]
+        for url in forbidden:
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                checked_url(url)
+
     def test_ypai_arbitrary_path_blocked(self):
         with self.assertRaises(ValueError):
             checked_url("https://freelancer.ypai.ai/account/delete")
