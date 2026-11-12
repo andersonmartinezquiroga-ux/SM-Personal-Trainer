@@ -21,6 +21,9 @@ ALLOWED={
  # Exact publicly listed SJM source URLs. GET only; no login, payment or submission.
  "gymstart.co": re.compile(r"^/$"),
  "mantra.fit": re.compile(r"^/careers/fitness-expert-job-in-spain/?$"),
+ # Exact SJM tracked public listings. No account/session access or submissions.
+ "co.linkedin.com": re.compile(r"^/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155/?$"),
+ "public.ureed.com": re.compile(r"^/freelancing/?$"),
  "personas.serviciodeempleo.gov.co": re.compile(r"^/detalle_oferta[.]aspx$"),
  "www.unisco.com": re.compile(r"^/es/careers/ai-coach-teacher-colombia/?$"),
  "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
@@ -78,7 +81,7 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
               "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
-              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit"}
+              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):
