@@ -17,6 +17,8 @@ ALLOWED={
  # Exact active SJM commercial case; public GET inspection only, no sign-in or submission.
  "www.getonbrd.com": re.compile(r"^/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote/?$"),
  # Exact registered Colombia remote role: public inspection only, no credentials or submission.
+ # Colombian government job URL, exact public query params, GET-only.
+ "personas.serviciodeempleo.gov.co": re.compile(r"^/detalle_oferta[.]aspx$"),
  "www.unisco.com": re.compile(r"^/es/careers/ai-coach-teacher-colombia/?$"),
  "community.transperfect.com": re.compile(r"^/jobs/720525-audio-quality-assurance-reviewer-spanish-colombia/?$"),
  "myvirtualtrainer.co": re.compile(r"^/$"),
@@ -73,7 +75,7 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
               "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
-              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com"}
+              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):
@@ -156,8 +158,14 @@ def checked_url(url):
     p=urlparse(url)
     if p.scheme!="https" or p.username or p.password or p.fragment or p.hostname not in ALLOWED:
         raise ValueError("Domain not on approved job application allowlist")
-    if p.query:
+    if p.query and not (
+        p.hostname=="personas.serviciodeempleo.gov.co"
+        and p.path=="/detalle_oferta.aspx"
+        and p.query=="proceso_id=7&sede_id=1626514975"
+    ):
         raise ValueError("Query parameters are not approved for this inspection")
+    if p.hostname=="personas.serviciodeempleo.gov.co" and p.query!="proceso_id=7&sede_id=1626514975":
+        raise ValueError("Government job source requires exact public case query")
     if p.port not in (None,443) or not ALLOWED[p.hostname].fullmatch(p.path):
         raise ValueError("Path is not an approved job application path")
     if p.hostname=="www.workana.com" and p.path.rstrip("/") not in WORKANA_KNOWN_CASE_PATHS:
