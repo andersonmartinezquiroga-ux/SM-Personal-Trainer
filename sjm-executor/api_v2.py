@@ -1,5 +1,5 @@
 """SJM browser executor: public inspection plus explicitly gated role submissions."""
-import json, os, secrets, threading, tempfile, re
+import json, os, secrets, threading, tempfile, re, hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
@@ -49,6 +49,29 @@ def boot_diagnostic():
         DIAGNOSTIC["ypai_public_form"] = "error:" + type(exc).__name__
     DIAGNOSTIC["checked_utc"] = datetime.now(timezone.utc).isoformat()
     print("SJM browser production boot diagnostic", json.dumps(DIAGNOSTIC), flush=True)
+
+PULSE_FOCI = frozenset((
+    "computador_donacion_definitiva", "empleo_y_postulaciones",
+    "patrocinios", "financiacion_no_reembolsable",
+    "clientes_e_ingresos", "alianzas",
+))
+
+def readonly_pulse_receipt(data):
+    """ACK authenticated transport of a radar pulse, NOT any external action."""
+    if not isinstance(data, dict) or set(data) != {"slot_start", "focus_key", "signal_count", "read_only"}:
+        raise ValueError("pulse_fields_invalid")
+    slot, focus, count = data["slot_start"], data["focus_key"], data["signal_count"]
+    if not isinstance(slot, str) or not re.fullmatch(r"20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:00Z", slot):
+        raise ValueError("pulse_slot_invalid")
+    if focus not in PULSE_FOCI or type(count) is not int or not 0 <= count <= 64 or data["read_only"] is not True:
+        raise ValueError("pulse_policy_invalid")
+    checksum = hashlib.sha256(json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    return {
+        "received": True, "ack_id": checksum, "slot_start": slot, "focus_key": focus,
+        "signal_count": count, "transport": "authenticated_http_post",
+        "external_action_executed": False, "employer_submission": False,
+        "ack_scope": "signal_transport_only"
+    }
 
 class API(BaseHTTPRequestHandler):
     def reply(self, status, body):
@@ -128,6 +151,14 @@ class API(BaseHTTPRequestHandler):
         return self.reply(404, {"error": "not_found"})
 
     def do_POST(self):
+        if self.path == "/signals/pulse":
+            if not self.authorized():
+                return self.reply(401, {"error": "unauthorized"})
+            try:
+                return self.reply(200, readonly_pulse_receipt(self.parse_json(max_bytes=512)))
+            except (ValueError, json.JSONDecodeError) as exc:
+                return self.reply(400, {"error": "invalid_readonly_pulse", "details": str(exc)[:100]})
+
         known = (
             "/self-test", "/jobs/inspect", "/jobs/draft",
             "/jobs/submit-ypai", "/jobs/submit-ypai-role",
