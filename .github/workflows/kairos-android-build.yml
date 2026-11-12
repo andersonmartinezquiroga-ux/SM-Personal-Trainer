@@ -87,7 +87,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0312
+          name: KairosMobile-release-APK-V0313
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -98,12 +98,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.12-supabase'
+          tag='kairos-mobile-v0.3.13-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.12-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.13-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.12-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.12 · recuperación de pantalla propia para prueba remota'               --notes 'KAIRÓS 0.3.12: ante prueba remota de click o escritura abre únicamente su propia pantalla de prueba y muestra el control antes de interactuar; distingue falla de foco, botón oculto y acción Android denegada mediante códigos sin datos privados. Mantiene acciones limitadas a la propia APK, misma firma, aprobación del dueño, sin tocar otras apps ni formularios. Instalar encima de 0.3.11 sin desinstalar.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.13-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.13 · diagnóstico de entrega y acuse de órdenes'               --notes 'KAIRÓS 0.3.13: diagnóstico local de sondeo, oferta y acuse para órdenes Android. Distingue respuesta vacía, oferta recibida, acuse fallido y recepción aceptada sin exponer contraseñas. Mantiene permisos y límites de 0.3.12; no declara autonomía. Misma firma y versiónCode superior: instalar encima sin desinstalar.'               --prerelease
           fi
