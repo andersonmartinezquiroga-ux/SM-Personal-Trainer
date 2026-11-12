@@ -20,6 +20,51 @@ ALLOWED={
  "www.tusclases.co": re.compile(r"^/anunciarse/profesor-particular/?$"),
  "agentify.teamtailor.com": re.compile(r"^/es/jobs/7708719-agente-de-ventas-call-centre-en-espanol-colombia-virtual/?$")
 }
+WORKANA_KNOWN_CASE_PATHS=frozenset((
+    "/es/job/asistente-de-marketing-proactivo-para-gestion-de-redes-sociales",
+    "/es/job/asistente-virtual-confiable-y-detallista-para-gestion-de-datos",
+    "/es/job/asistente-virtual-confiable-y-organizado-para-soporte-administrativo-remoto-12",
+    "/es/job/asistente-virtual-detallista-con-fluidez-en-espanol-para-tareas-administrativas",
+    "/es/job/asistente-virtual-full-time-para-configuracion-de-apps-y-gestion-de-clientes",
+    "/es/job/asistente-virtual-hispanohablante-confiable-y-detallista-para-soporte-administrativo-remoto-86",
+    "/es/job/asistente-virtual-para-digitacion-entrada-de-datos-y-transcripcion-de-textos",
+    "/es/job/asistente-virtual-para-entrada-de-datos-detallada-de-sitios-web-a-google-sheets",
+    "/es/job/asistente-virtual-proactiva-para-atencion-al-cliente-y-ventas-en-e-commerce",
+    "/es/job/asistente-virtual-y-entrada-de-datos-habla-hispana",
+    "/es/job/asistente-virtual-y-soporte-al-cliente-remoto-en-espanol",
+    "/es/job/asistentes-virtuales-para-soporte-administrativo-remoto-en-latam",
+    "/es/job/automatizacion-de-respuestas-para-captar-la-atencion-del-publico",
+    "/es/job/buscamos-talento-para-prime-by-chetezz-equipo-de-ventas-marketing-y-operaciones",
+    "/es/job/community-manager-y-creador-de-contenido-para-redes-sociales-de-negocio-deportivo",
+    "/es/job/community-manager-y-creador-de-contenido-para-redes-sociales-de-tienda-de-nutricion-deportiva",
+    "/es/job/contratar-asistente-virtual-especialista-en-entrada-de-datos-para-trabajo-continuo",
+    "/es/job/contratar-asistente-virtual-para-gestion-administrativa-atencion-al-cliente",
+    "/es/job/contratar-personal-trainer-especializado-en-educacion-y-salud-fisica-para-programas-personalizados",
+    "/es/job/creacion-y-gestion-de-presupuestos-y-tarifas-de-proveedores",
+    "/es/job/creador-de-contenido-especializado-para-equipos-de-gimnasio",
+    "/es/job/desarrollo-de-contenido-y-estrategia-para-proyecto-de-cuidado-fisico",
+    "/es/job/desarrollo-de-sistema-interno-para-seguimiento-de-kpis-y-metas-busco-precio-muy-competitivo",
+    "/es/job/editor-de-contenido-fitness-para-reels-y-stories-de-instagram",
+    "/es/job/especialista-en-contenido-visual-y-edicion-para-redes-sociales-de-gimnasio",
+    "/es/job/especialista-en-creacion-y-estrategia-de-contenido-para-entrenador-personal-y-nutricionista-online",
+    "/es/job/extraccion-de-valoraciones-web-y-compilacion-en-excel",
+    "/es/job/redaccion-y-correccion-de-documentos-cortos-en-espanol-5",
+    "/es/job/remote-spanish-speaking-virtual-assistant-for-beginner-friendly-support",
+    "/es/job/servicio-profesional-de-transcripcion-de-textos-y-audios-para-audiencia-latinoamericana",
+    "/es/job/spanish-speaking-virtual-assistant-for-data-entry-and-administrative-tasks",
+    "/job/asistencia-operativa-para-creacion-de-redes-sociales-y-programacion-de-contenido-de-libro",
+    "/job/asistente-virtual-confiable-y-organizado-para-tareas-administrativas-remotas-10",
+    "/job/asistente-virtual-para-entrada-de-datos-web-a-google-sheets-con-alta-precision",
+    "/job/asistente-virtual-para-soporte-administrativo-y-atencion-al-cliente-negocio-fitness-online",
+    "/job/asistente-virtual-remoto-en-espanol-para-principiantes",
+    "/job/creacion-de-rutinas-de-entrenamiento-personalizadas-para-todas-las-edades-y-desarrollo-personal",
+    "/job/diseno-de-rutinas-de-ejercicio-personalizadas-para-el-hogar",
+    "/job/escritura-sencilla-de-documentos-de-ms-word-408",
+    "/job/especialista-en-reactivacion-de-clientes-para-gimnasio-via-whatsapp-e-instagram",
+    "/job/sales-setter-experto-a-en-fitness-para-gestion-de-instagram-y-conversion-de-leads",
+    "/job/spanish-speaking-virtual-assistant-for-data-entry-and-administrative-support",
+))
+
 STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com","cdn.ashbyhq.com",
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
@@ -111,6 +156,8 @@ def checked_url(url):
         raise ValueError("Query parameters are not approved for this inspection")
     if p.port not in (None,443) or not ALLOWED[p.hostname].fullmatch(p.path):
         raise ValueError("Path is not an approved job application path")
+    if p.hostname=="www.workana.com" and p.path.rstrip("/") not in WORKANA_KNOWN_CASE_PATHS:
+        raise ValueError("Workana job is not an expressly registered case URL")
     return url
 
 def inspect(url, fields=None):
