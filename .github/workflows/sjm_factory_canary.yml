@@ -108,6 +108,7 @@ jobs:
         run: |
           python -m pip install -r sjm-executor/requirements.txt
           python -m playwright install --with-deps chromium
+      # Workana public-listing path regression: GET-only and no login/SSRF.
       - name: Exercise actual executor code and security gates
         working-directory: sjm-executor
         run: python -m unittest -v test_form_adapter test_submit_ypai test_applicant
