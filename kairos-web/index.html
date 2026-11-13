@@ -765,6 +765,7 @@ h1,h2,h3,p{overflow-wrap:break-word}
 /* SJM EMPRESA 360 IA · menú de trabajo claro y centros de soluciones */
 nav#nav{display:flex;flex-direction:column;gap:3px}
 nav#nav .nav-item{white-space:normal;text-align:left;line-height:1.4}
+.pop-menu{max-height:calc(100dvh - 90px);overflow-y:auto;overscroll-behavior:contain}
 .advanced-toggle{width:100%;margin:15px 0 8px;min-height:52px;padding:10px 13px;border-radius:12px;background:#233244;border:1px solid #526b82;color:#e4f2ff;font-size:18px;font-weight:750;text-align:left}
 .advanced-toggle:hover{background:#2d455b}
 .advanced-nav{border-left:2px solid #53718e;margin-left:10px;padding:1px 0 2px 8px;display:flex;flex-direction:column;gap:2px}
@@ -1226,7 +1227,7 @@ function renderCompaniesCenter(root,grid){
  businessNotice(root,"La administración de distintas empresas todavía no está conectada. No se deben cargar nóminas, facturas, registros laborales ni datos de clientes reales hasta implementar aislamiento por empresa, roles, auditoría y validación legal.");
 }
 
-function moduleRender(id){const root=$("moduleBody");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
+function moduleRender(id){const root=$("moduleBody");root.classList.remove("enterprise-center");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
 const grid=document.createElement("div");grid.className="tile-grid";root.append(grid);
 if(id==="enterprise"){renderEnterpriseCenter(root,grid)}
 else if(id==="builder"||id==="research"||id==="creative"){renderServiceCenter(root,grid,id)}
