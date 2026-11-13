@@ -560,6 +560,75 @@ main,#chat{background:
  button,.tile,.project-card,.suggestion{transition:none!important;transform:none!important}
 }
 
+
+/* COMTROL 360 — Conversación por voz en primer plano · beta v1.6 */
+.voice-launch{display:grid;place-items:center;color:#e0f4ff!important;background:#29465d!important;border:1px solid #6485a2!important;border-radius:14px!important}
+.voice-launch:hover{background:#326088!important;box-shadow:0 0 0 1px #89c8f571,0 0 22px #1d6a9b50}
+.voice-launch svg{width:25px;height:25px;flex:none}
+.voice-screen{position:fixed;z-index:110;inset:0;background:
+radial-gradient(ellipse 78% 43% at 50% 47%,#16416a38,transparent 80%),
+linear-gradient(160deg,#0b111b,#121b28 52%,#0b1119);
+color:#f4faff;display:flex;flex-direction:column;overflow:hidden;min-height:100dvh}
+.voice-head{padding:max(19px,env(safe-area-inset-top)) 22px 15px;display:flex;align-items:center;gap:15px;min-height:80px;position:relative;z-index:2}
+.voice-head-button{width:50px;height:50px;flex:none;background:#263545;border:1px solid #526e87;color:#f3faff;border-radius:17px;font-size:26px;display:grid;place-items:center}
+.voice-head-label{flex:1;min-width:0;text-align:center}.voice-head-label strong{display:block;font-size:24px;line-height:1.3;color:#f7fbff}.voice-head-label span{display:block;font-size:15px;color:#c0d5e6;line-height:1.4;margin-top:3px}
+.voice-settings{position:absolute;z-index:4;top:85px;right:20px;width:min(340px,calc(100vw - 40px));padding:17px;background:#202e3c;border:1px solid #6689a5;border-radius:18px;box-shadow:0 22px 50px #000a}
+.voice-settings label{display:block;font-size:18px;font-weight:750;margin-bottom:9px}
+.voice-settings select{width:100%;min-height:52px;border-radius:12px;background:#2d3f50;color:#fff;border:1px solid #7393a8;padding:10px;font-size:16px}
+.voice-settings p{color:#d0e0ed;font-size:15px;line-height:1.55;margin:13px 0 0}
+.voice-main{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:26px 20px 20px}
+.voice-orb{position:relative;display:grid;place-items:center;width:min(47vw,220px);height:min(47vw,220px);min-width:155px;min-height:155px;flex:none;margin:12px auto 24px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#b5e6ff13,#297bbb28 47%,transparent 70%);border:1px solid #5d91b53d;box-shadow:0 0 60px #1e75b337,inset 0 0 70px #247bb91f;transition:box-shadow .35s,border-color .35s}
+.voice-orb:after{content:"";position:absolute;inset:-13px;border:1px solid #80c5f847;border-radius:50%;pointer-events:none}
+.voice-orb-inner{display:grid;place-items:center;width:76%;height:76%;border-radius:50%;background:
+radial-gradient(circle at 30% 24%,#7cceff,#277ab7 40%,#153752 78%);
+box-shadow:inset 0 1px 12px #ccf3ff82,inset 0 -18px 35px #071c3480,0 0 38px #2680c663;border:1px solid #a1dbff66}
+.voice-orb-inner span{font-size:clamp(68px,12vw,96px);font-weight:850;color:#effaff;text-shadow:0 0 18px #ffffff83}
+.voice-orb.listening{border-color:#8ed5ff9c;box-shadow:0 0 0 14px #3a8dc00c,0 0 70px #267dbc70}
+.voice-orb.listening:after{animation:voiceBreath 2.6s ease-in-out infinite}
+.voice-orb.speaking .voice-orb-inner{box-shadow:0 0 45px #69c0ff9c,inset 0 1px 15px #ccf3ff}
+.voice-orb.processing{box-shadow:0 0 55px #2374b361}
+#voiceState{font-size:clamp(26px,4vw,35px);margin:0 0 4px;line-height:1.25;letter-spacing:-.3px;text-align:center}
+#voiceHint{text-align:center;max-width:620px;font-size:18px;color:#c5d7e8;line-height:1.62;margin:0 0 15px}
+.voice-captions{width:min(650px,100%);padding:17px 20px;margin:6px auto 0;border:1px solid #52758f;background:#202d3af0;border-radius:17px}
+.voice-caption-name{font-size:14px;font-weight:800;letter-spacing:.7px;color:#a7cce8;margin-bottom:7px}
+.voice-captions p{font-size:18px;line-height:1.62;color:#f5faff;margin:8px 0;overflow-wrap:anywhere}
+.voice-controls{display:flex;justify-content:center;gap:clamp(7px,2vw,20px);padding:13px 15px 10px;flex:none;flex-wrap:wrap}
+.voice-control{min-width:105px;min-height:91px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#2a3949;border:1px solid #536f85;color:#eff7ff;border-radius:21px;padding:12px;font-size:16px}
+.voice-control span{font-size:27px;line-height:1.1}
+.voice-control strong{font-size:15px;font-weight:700}
+.voice-control[aria-pressed="true"]{background:#49617a;border-color:#94badb}
+.voice-control.voice-end{background:#a52f3f;border-color:#d76c7a;color:white}
+.voice-control.voice-end:hover{background:#b6424e}
+.voice-legal{font-size:14px;line-height:1.55;color:#acbfd2;text-align:center;margin:10px auto max(18px,env(safe-area-inset-bottom));max-width:760px;padding:0 17px;flex:none}
+@keyframes voiceBreath{0%,100%{transform:scale(.98);opacity:.5}50%{transform:scale(1.09);opacity:1}}
+@media(max-width:800px){
+ .voice-head{min-height:72px;padding:max(12px,env(safe-area-inset-top)) 12px 8px;gap:8px}
+ .voice-head-button{width:45px;height:45px;border-radius:13px}
+ .voice-head-label strong{font-size:21px}.voice-head-label span{font-size:13px}
+ .voice-main{padding:12px 14px 10px}
+ .voice-orb{width:min(49vw,194px);height:min(49vw,194px);margin:0 auto 14px;min-height:136px;min-width:136px}
+ #voiceState{font-size:28px}
+ #voiceHint{font-size:17px;line-height:1.54}
+ .voice-controls{gap:8px;padding:10px 8px}
+ .voice-control{min-width:72px;flex:1;max-width:130px;min-height:83px;padding:8px 4px;border-radius:16px}
+ .voice-control span{font-size:23px}
+ .voice-control strong{font-size:13px}
+ .voice-legal{font-size:12px;line-height:1.4;margin:7px auto max(10px,env(safe-area-inset-bottom))}
+ .voice-captions{padding:11px 13px}
+ .voice-captions p{font-size:16px}
+}
+@media(max-width:390px){
+ #voiceState{font-size:25px}.voice-legal{font-size:11px}
+ .voice-control{min-width:68px;min-height:76px}
+ .voice-control strong{font-size:12px}
+}
+@media(max-height:680px){
+ .voice-orb{height:136px;width:136px;min-width:136px;min-height:136px;margin:0 auto 7px}
+ .voice-main{padding-top:6px;padding-bottom:5px}
+ .voice-legal{font-size:11px;margin-top:4px}
+}
+@media(prefers-reduced-motion:reduce){.voice-orb.listening:after{animation:none}}
+
 </style>
 </head>
 <body>
@@ -594,13 +663,13 @@ main,#chat{background:
 <button type="button" data-topview="radars">◎ &nbsp; Radares mundiales</button>
 </div></div>
 <div class="headtitle"><b id="pageTitle">COMTROL 360</b><small id="pageSub">Conversación privada y supervisión</small></div>
-<span id="status" class="status">Verificando</span><button class="icon-btn hide-mobile" id="refresh" aria-label="Revisar conexión">↻</button>
+<span id="status" class="status">Verificando</span><button class="icon-btn voice-launch" id="callVoice" type="button" aria-label="Iniciar conversación de voz con COMTROL 360" title="Hablar con COMTROL 360"><svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4m4-5v6"/></svg></button><button class="icon-btn hide-mobile" id="refresh" aria-label="Revisar conexión">↻</button>
 <div class="top-more"><button class="icon-btn" id="topMore" type="button" aria-label="Más opciones" aria-expanded="false">⋯</button>
 <div class="pop-menu more-menu hidden" id="morePanel" role="menu">
 <button type="button" id="menuNewChat">＋ &nbsp; Nueva conversación</button>
 <button type="button" id="menuExport">⇩ &nbsp; Exportar conversación .txt</button>
 <button type="button" id="menuCopy">▢ &nbsp; Copiar última respuesta</button>
-<button type="button" id="menuSpeak">◖ &nbsp; Escuchar respuesta</button>
+<button type="button" id="menuVoice">◖ &nbsp; Iniciar llamada de voz</button><button type="button" id="menuSpeak">◖ &nbsp; Escuchar respuesta</button>
 <button type="button" id="menuFiles">▧ &nbsp; Mis archivos</button><button type="button" id="menuTemplates">▤ &nbsp; Plantillas de trabajo</button>
 <button type="button" id="menuFont">Aa &nbsp; Texto extra grande</button><button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
 </div></div>
@@ -621,12 +690,41 @@ main,#chat{background:
 <input id="camera" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Tomar fotografía">
 <button id="attach" type="button" class="round attachment-trigger" aria-label="Agregar archivo o foto" aria-expanded="false">＋</button>
 <textarea id="prompt" rows="1" maxlength="700" placeholder="Pregunta lo que necesites…" aria-label="Mensaje a KAIRÓS"></textarea>
-<button id="mic" type="button" class="round" aria-label="Dictar mensaje">♬</button>
+<button id="mic" type="button" class="round" aria-label="Dictar mensaje">♬</button><button id="callVoiceComposer" type="button" class="round voice-launch" aria-label="Iniciar modo voz, llamada manos libres" title="Hablar con COMTROL 360"><svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4m4-5v6"/></svg></button>
 <button id="send" type="submit" class="round primary" aria-label="Enviar mensaje">↑</button>
 </form></div>
 <div class="composer-foot"><span id="mode">Mentor guiado · sin ejecuciones externas</span><span id="attachmentHelp">＋ Archivos, fotos o cámara</span></div>
 </div></div></section>
 <section id="module" class="hidden"><div class="module-inner" id="moduleBody"></div></section></main></div>
+<div id="voiceScreen" class="voice-screen hidden" role="dialog" aria-modal="true" aria-labelledby="voiceTitle" aria-describedby="voiceHint">
+ <div class="voice-head">
+  <button id="voiceBack" class="voice-head-button" type="button" aria-label="Finalizar llamada y volver al chat">✕</button>
+  <div class="voice-head-label"><strong id="voiceTitle">COMTROL 360</strong><span>Conversación por voz · Prueba en navegador</span></div>
+  <button id="voiceOptions" class="voice-head-button" type="button" aria-label="Opciones de voz" aria-expanded="false">⋯</button>
+ </div>
+ <div id="voiceOptionsPanel" class="voice-settings hidden">
+  <label for="voiceSelect">Voz del dispositivo</label>
+  <select id="voiceSelect"><option value="">Predeterminada del navegador</option></select>
+  <p>Motor provisional de Android. No es la voz natural en tiempo real de ChatGPT.</p>
+ </div>
+ <div class="voice-main">
+  <div id="voiceOrb" class="voice-orb" aria-hidden="true"><div class="voice-orb-inner"><span>C</span></div></div>
+  <h2 id="voiceState" role="status" aria-live="polite">Preparando micrófono…</h2>
+  <p id="voiceHint">Habla en español. COMTROL responderá y volverá a escuchar automáticamente cuando sea posible.</p>
+  <div id="voiceCaptions" class="voice-captions hidden" aria-live="polite">
+    <div class="voice-caption-name">CONVERSACIÓN</div>
+    <p id="voiceYou">Tú: —</p>
+    <p id="voiceReply">COMTROL: —</p>
+  </div>
+ </div>
+ <div class="voice-controls">
+  <button id="voiceMute" type="button" class="voice-control" aria-pressed="false"><span aria-hidden="true">◖</span><strong>Micrófono</strong></button>
+  <button id="voiceCaptionsToggle" type="button" class="voice-control" aria-pressed="false"><span aria-hidden="true">▤</span><strong>Subtítulos</strong></button>
+  <button id="voiceReplay" type="button" class="voice-control"><span aria-hidden="true">↻</span><strong>Repetir</strong></button>
+  <button id="voiceEnd" type="button" class="voice-control voice-end"><span aria-hidden="true">✕</span><strong>Colgar</strong></button>
+ </div>
+ <p class="voice-legal">Funciona mientras COMTROL esté abierto y el navegador permita el micrófono. La voz usa servicios del navegador; no es una llamada telefónica ni audio dúplex de IA. En vista previa no consulta datos privados.</p>
+</div>
 <div id="toast" class="hidden" role="status"></div>
 <script type="module">
 const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQQ1JBHfDRRKut-trg_V-2isCjX",ENDPOINT=BASE+"/functions/v1/sjm_brain_hybrid_v1";
@@ -889,13 +987,203 @@ async function readLive(instruction){
   loading.remove();const m={role:"assistant",text:"Lectura técnica no completada: "+String(e.message||e)+". No se registran acciones externas desde este intento.",mode:"error"};c.messages.push(m);save();bubble(m);
  }finally{busy=false;$("send").disabled=false;historyRender()}
 }
+
+/* Modo voz: turnos automáticos en primer plano mediante Web Speech del navegador.
+   NO es voz dúplex, no se mantiene con pantalla bloqueada, ni otorga autenticación. */
+const voiceCall={active:false,muted:false,captions:false,busy:false,speaking:false,recognition:null,timer:null,token:0,voiceUri:"",lastResponse:"",lastTranscript:"",permissionBlocked:false};
+function voiceStatus(title,detail,mode=""){
+ if(!$("voiceState"))return;
+ $("voiceState").textContent=title;$("voiceHint").textContent=detail;
+ for(const item of ["listening","processing","speaking"])$("voiceOrb").classList.toggle(item,mode===item);
+}
+function voiceUpdateControls(){
+ $("voiceMute").setAttribute("aria-pressed",String(voiceCall.muted));
+ $("voiceMute").querySelector("strong").textContent=voiceCall.muted?"Activar micro":"Micrófono";
+ $("voiceMute").querySelector("span").textContent=voiceCall.muted?"✕":"◖";
+ $("voiceCaptionsToggle").setAttribute("aria-pressed",String(voiceCall.captions));
+ $("voiceCaptions").classList.toggle("hidden",!voiceCall.captions);
+}
+function voiceReadOptions(){
+ const sel=$("voiceSelect");sel.replaceChildren();
+ const base=document.createElement("option");base.value="";base.textContent="Voz predeterminada del dispositivo";sel.append(base);
+ if(!("speechSynthesis" in window))return;
+ for(const v of speechSynthesis.getVoices().filter(x=>(x.lang||"").toLowerCase().startsWith("es"))){
+  const option=document.createElement("option");option.value=v.voiceURI;option.textContent=v.name+" · "+v.lang;sel.append(option);
+ }
+ try{voiceCall.voiceUri=localStorage.getItem("comtrol-voice-uri-v1")||""}catch{}
+ if([...sel.options].some(x=>x.value===voiceCall.voiceUri))sel.value=voiceCall.voiceUri;
+ else sel.value="";
+}
+function voiceStopListening(){
+ const rec=voiceCall.recognition;voiceCall.recognition=null;
+ if(rec){rec.onresult=null;rec.onend=null;rec.onerror=null;try{rec.abort()}catch{}}
+ if(voiceCall.timer){clearTimeout(voiceCall.timer);voiceCall.timer=null}
+}
+function voiceResumeSoon(delay=650){
+ if(!voiceCall.active||voiceCall.muted||voiceCall.busy||voiceCall.speaking||voiceCall.permissionBlocked)return;
+ if(voiceCall.timer)clearTimeout(voiceCall.timer);
+ voiceCall.timer=setTimeout(()=>{voiceCall.timer=null;voiceListen()},delay);
+}
+function voiceListen(){
+ if(!voiceCall.active||voiceCall.muted||voiceCall.busy||voiceCall.speaking||voiceCall.permissionBlocked||voiceCall.recognition)return;
+ if(document.visibilityState==="hidden"){
+  voiceStatus("Pausado","La aplicación quedó en segundo plano. Ábrela para continuar.");return;
+ }
+ const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!R){
+  voiceCall.permissionBlocked=true;
+  voiceStatus("Micrófono no disponible","Este navegador no permite reconocer voz. Prueba Chrome en Android; también puedes usar el chat de texto.");return;
+ }
+ try{
+ const rec=new R();voiceCall.recognition=rec;rec.lang="es-CO";rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=1;
+ let recognized=false,partial="";
+ rec.onresult=e=>{
+  if(!voiceCall.active||voiceCall.muted||voiceCall.recognition!==rec||recognized)return;
+  let words="",isFinal=false;
+  for(let i=e.resultIndex;i<e.results.length;i++){
+   const item=e.results[i];words+=String(item[0]?.transcript||"")+" ";if(item.isFinal)isFinal=true;
+  }
+  words=words.trim();
+  if(!words)return;
+  if(!isFinal){partial=words;if(voiceCall.captions)$("voiceYou").textContent="Tú: "+partial;return}
+  recognized=true;voiceCall.busy=true;voiceStopListening();void voiceProcess(words);
+ };
+ rec.onerror=e=>{
+  if(!voiceCall.active)return;
+  const err=String(e.error||"error");
+  if(["not-allowed","service-not-allowed","audio-capture"].includes(err)){
+   voiceCall.permissionBlocked=true;voiceCall.muted=true;voiceUpdateControls();
+   voiceStatus("Micrófono bloqueado","Concede permiso al micrófono en Chrome y vuelve a iniciar la llamada.");return;
+  }
+  if(err==="no-speech"){voiceStatus("Te escucho…","Puedes hablar; no es necesario tocar Enviar.","listening");return}
+  voiceCall.permissionBlocked=true;
+  voiceStatus("Reconocimiento interrumpido","El navegador informó: "+err+". Pulsa Micrófono para intentar de nuevo.");
+ };
+ rec.onend=()=>{
+  if(voiceCall.recognition===rec)voiceCall.recognition=null;
+  if(voiceCall.active&&!voiceCall.busy&&!voiceCall.muted&&!voiceCall.speaking&&!voiceCall.permissionBlocked)voiceResumeSoon(700);
+ };
+ rec.start();
+ voiceStatus("Te escucho…","Habla normalmente. Para terminar también puedes decir «terminar llamada».","listening");
+ }catch(e){
+  voiceCall.recognition=null;voiceCall.permissionBlocked=true;
+  voiceStatus("No pudo iniciarse el micrófono","Prueba permitir micrófono en Chrome: "+String(e?.message||e).slice(0,100));
+ }
+}
+async function voiceSay(text,token){
+ if(!voiceCall.active||voiceCall.token!==token)return;
+ if(!("speechSynthesis" in window)){
+  voiceStatus("Respuesta en subtítulos","El navegador no ofrece lectura de voz. Puedes ver la respuesta en el chat.");return;
+ }
+ voiceCall.speaking=true;voiceStatus("COMTROL responde…","Escucharé nuevamente cuando termine la respuesta.","speaking");
+ await new Promise(resolve=>{
+  let done=false;
+  const finish=()=>{if(!done){done=true;resolve()}};
+  try{
+   speechSynthesis.cancel();
+   const utter=new SpeechSynthesisUtterance(String(text).slice(0,1800));
+   utter.lang="es-CO";utter.rate=.97;utter.pitch=.94;
+   const spanish=speechSynthesis.getVoices().filter(x=>(x.lang||"").toLowerCase().startsWith("es"));
+   utter.voice=spanish.find(x=>x.voiceURI===voiceCall.voiceUri)||
+     spanish.find(x=>/male|mascul|juan|jorge|pablo|diego/i.test(x.name))||spanish[0]||null;
+   utter.onend=finish;utter.onerror=finish;
+   speechSynthesis.speak(utter);
+   // On some Android WebViews, synthesis reports success without ending: allow manual stop.
+  }catch(e){finish()}
+  voiceCall.currentSpeechFinish=finish;
+ });
+ voiceCall.currentSpeechFinish=null;voiceCall.speaking=false;
+}
+async function voiceProcess(utterance){
+ const token=voiceCall.token;
+ let q=String(utterance).trim().slice(0,700);
+ q=q.replace(/^(?:hola[ ,]+)?(?:comtrol|control)(?:\s+(?:tres\s+sesenta|360))?[,.:]?\s*/i,"").trim()||"Hola";
+ voiceCall.lastTranscript=q;
+ $("voiceYou").textContent="Tú: "+q;
+ if(/^(?:terminar|finalizar|colgar|cortar|salir)(?:\s+(?:la\s+)?llamada)?[.!?]?$/i.test(q)){
+  endVoiceCall();return;
+ }
+ voiceStatus("Procesando tu mensaje…",preview?"Demostración local: no hay consultas privadas ni IA conectada.":"Consultando el Mentor autorizado…","processing");
+ try{
+  if(!preview&&!authorized)throw Error("El servidor requiere una sesión autorizada.");
+  await sendMessage(q);
+  if(!voiceCall.active||voiceCall.token!==token)return;
+  const messages=active()?.messages||[];
+  const reply=messages.length&&messages[messages.length-1]?.role==="assistant"?String(messages[messages.length-1].text||""):"No recibí una respuesta.";
+  voiceCall.lastResponse=reply;$("voiceReply").textContent="COMTROL: "+reply;
+  await voiceSay(reply,token);
+ }catch(e){
+  const reason="La consulta no pudo completarse: "+String(e.message||e).slice(0,130);
+  voiceCall.lastResponse=reason;$("voiceReply").textContent="COMTROL: "+reason;
+  if(voiceCall.active&&voiceCall.token===token)await voiceSay(reason,token);
+ }finally{
+  if(voiceCall.active&&voiceCall.token===token){
+   voiceCall.busy=false;voiceCall.speaking=false;
+   if(!voiceCall.muted&&!voiceCall.permissionBlocked)voiceResumeSoon(450);
+  }
+ }
+}
+function startVoiceCall(){
+ if(voiceCall.active)return;
+ closePanels();closeDrawer();
+ voiceCall.active=true;voiceCall.token++;voiceCall.muted=false;voiceCall.captions=false;
+ voiceCall.busy=false;voiceCall.speaking=false;voiceCall.permissionBlocked=false;
+ voiceCall.lastResponse="";voiceCall.lastTranscript="";
+ $("voiceYou").textContent="Tú: —";$("voiceReply").textContent="COMTROL: —";
+ $("voiceScreen").classList.remove("hidden");$("voiceOptionsPanel").classList.add("hidden");
+ $("voiceOptions").setAttribute("aria-expanded","false");
+ voiceReadOptions();voiceUpdateControls();
+ voiceStatus("Preparando llamada…","Autoriza el micrófono si Chrome lo solicita.");
+ voiceListen();
+}
+function endVoiceCall(){
+ if(!voiceCall.active)return;
+ voiceCall.active=false;voiceCall.token++;voiceCall.busy=false;voiceCall.speaking=false;
+ voiceStopListening();
+ if("speechSynthesis" in window){try{speechSynthesis.cancel()}catch{}}
+ if(voiceCall.currentSpeechFinish){voiceCall.currentSpeechFinish();voiceCall.currentSpeechFinish=null}
+ $("voiceScreen").classList.add("hidden");$("voiceOptionsPanel").classList.add("hidden");
+ voiceStatus("Llamada finalizada","Puedes iniciar otra conversación cuando quieras.");
+}
+function toggleVoiceMute(){
+ if(!voiceCall.active)return;
+ voiceCall.muted=!voiceCall.muted;voiceCall.permissionBlocked=false;
+ if(voiceCall.muted){
+  voiceStopListening();voiceStatus("Micrófono silenciado","Pulsa Activar micro para continuar.");
+ }else{
+  voiceStatus("Reanudando micrófono…","Habla cuando aparezca «Te escucho».");
+  if(!voiceCall.busy&&!voiceCall.speaking)voiceListen();
+ }
+ voiceUpdateControls();
+}
+function toggleVoiceCaptions(){
+ voiceCall.captions=!voiceCall.captions;voiceUpdateControls();
+}
+async function replayVoiceAnswer(){
+ if(!voiceCall.active||voiceCall.busy||voiceCall.speaking)return;
+ if(!voiceCall.lastResponse){voiceStatus("Todavía no hay respuesta","Haz una pregunta para escuchar a COMTROL.");return}
+ voiceCall.busy=true;voiceStopListening();
+ const token=voiceCall.token;
+ try{await voiceSay(voiceCall.lastResponse,token)}finally{
+  if(voiceCall.active&&voiceCall.token===token){voiceCall.busy=false;voiceResumeSoon(450)}
+ }
+}
+function voiceVisibility(){
+ if(!voiceCall.active)return;
+ if(document.visibilityState==="hidden"){
+  voiceStopListening();voiceStatus("Pausado","Para seguir hablando, vuelve a abrir COMTROL 360.");
+ }else if(!voiceCall.muted&&!voiceCall.busy&&!voiceCall.speaking&&!voiceCall.permissionBlocked){
+  voiceResumeSoon(750);
+ }
+}
+
 function speak(){if(!lastAnswer){info("Primero solicita una respuesta");return}if(!("speechSynthesis" in window)){info("El navegador no admite lectura de voz");return}speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(lastAnswer.slice(0,3000));utter.lang="es-CO";utter.rate=.95;utter.pitch=.9;const vv=speechSynthesis.getVoices().filter(v=>(v.lang||"").toLowerCase().startsWith("es"));utter.voice=vv.find(v=>/male|mascul|jorge|juan|pablo|diego/i.test(v.name))||vv[0]||null;speechSynthesis.speak(utter);info("Reproducción con la voz disponible en Android; aún no es el motor de voz premium")}
 function mic(){if(!authorized){info("Debes iniciar sesión");return}const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){info("Dictado no disponible en este navegador");return}if(recognizing)return;const rec=new R();rec.lang="es-CO";rec.interimResults=false;rec.onresult=e=>{$("prompt").value=String(e.results?.[0]?.[0]?.transcript||"").replace(/^kair[oó]s[,.:]?\s*/i,"");grow();info("Dictado recibido: revisa y pulsa enviar")};rec.onerror=e=>info("Micrófono: "+String(e.error||"no disponible"));rec.onend=()=>recognizing=false;recognizing=true;try{rec.start();info("Escuchando por el micrófono del navegador…")}catch{recognizing=false;info("No se pudo iniciar el micrófono")}}
-async function logout(){attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
+async function logout(){endVoiceCall();attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
 async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Pega tu clave privada para entrar a CONTROL 360.");return}
 preview=false;$("previewBanner").classList.add("hidden");attachments=[];renderAttachments();const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
 $("auth").classList.add("hidden");$("layout").classList.remove("hidden");restore();messagesRender();show("chat")}
-function previewLogin(){attachments=[];renderAttachments();const input=$("previewCode");const code=input.value.trim().toUpperCase();input.value="";if(code!=="SJM-360-VISTA"){authInfo("Código de vista previa incorrecto. Copia el código completo.");return}preview=true;authorized=false;session=null;chats=[];current=null;lastAnswer="";$("auth").classList.add("hidden");$("layout").classList.remove("hidden");$("previewBanner").classList.remove("hidden");connection(false,"Vista previa");$("mode").textContent="VISTA PREVIA · sin conexión privada";restore();messagesRender();show("chat");}
+function previewLogin(){endVoiceCall();attachments=[];renderAttachments();const input=$("previewCode");const code=input.value.trim().toUpperCase();input.value="";if(code!=="SJM-360-VISTA"){authInfo("Código de vista previa incorrecto. Copia el código completo.");return}preview=true;authorized=false;session=null;chats=[];current=null;lastAnswer="";$("auth").classList.add("hidden");$("layout").classList.remove("hidden");$("previewBanner").classList.remove("hidden");connection(false,"Vista previa");$("mode").textContent="VISTA PREVIA · sin conexión privada";restore();messagesRender();show("chat");}
 async function loginWithPassword(){
   if(!sb){authInfo("No hay conexión con el servidor de acceso. Revisa internet y vuelve a abrir KAIRÓS.");return}
   const input=$("accessCode"), password=input.value;
@@ -927,6 +1215,18 @@ $("menuNewChat").onclick=()=>{newChat();closePanels()};
 $("menuExport").onclick=()=>{exportConversation();closePanels()};
 $("menuCopy").onclick=()=>{copyLast();closePanels()};
 $("menuSpeak").onclick=()=>{speak();closePanels()};
+$("menuVoice").onclick=startVoiceCall;
+$("callVoice").onclick=startVoiceCall;$("callVoiceComposer").onclick=startVoiceCall;
+$("voiceBack").onclick=endVoiceCall;$("voiceEnd").onclick=endVoiceCall;
+$("voiceMute").onclick=toggleVoiceMute;$("voiceCaptionsToggle").onclick=toggleVoiceCaptions;
+$("voiceReplay").onclick=()=>{void replayVoiceAnswer()};
+$("voiceOptions").onclick=()=>{
+ const panel=$("voiceOptionsPanel");const open=panel.classList.toggle("hidden")===false;
+ $("voiceOptions").setAttribute("aria-expanded",String(open));
+};
+$("voiceSelect").onchange=e=>{
+ voiceCall.voiceUri=e.target.value;try{localStorage.setItem("comtrol-voice-uri-v1",voiceCall.voiceUri)}catch{}
+};
 $("menuFiles").onclick=()=>show("files");$("menuTemplates").onclick=()=>show("templates");$("menuFont").onclick=toggleFontSizePreference;$("menuSettings").onclick=()=>show("settings");
 $("chooseFiles").onclick=()=>openFilePicker("file");
 $("choosePhotos").onclick=()=>openFilePicker("photos");
@@ -940,6 +1240,8 @@ $("mic").onclick=mic;
 $("loginForm").onsubmit=e=>{e.preventDefault();loginWithPassword()};
 $("previewButton").onclick=previewLogin;$("previewCode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();previewLogin()}};
 document.addEventListener("click",e=>{if(!e.target.closest(".top-workspace,.top-more,.composer-anchor"))closePanels()});
+document.addEventListener("visibilitychange",voiceVisibility);
+if("speechSynthesis" in window)try{speechSynthesis.addEventListener("voiceschanged",()=>{if(!$("#voiceScreen").classList.contains("hidden"))voiceReadOptions()})}catch{}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
 async function start(){navBuild();events();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
