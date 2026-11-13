@@ -371,6 +371,195 @@ header,.main-header{background:#171c24;border-bottom:1px solid #334354;box-shado
  .composer textarea{font-size:18px}
 }
 
+
+/* COMTROL 360 · Cinematic polish v1.5 */
+/* Elegancia sobria: destellos muy suaves, máximo contraste y tipografía generosa. */
+:root{
+ --comtrol-glow:rgba(108,191,252,.20);
+ --comtrol-shine:#cde8ff;
+ --comtrol-surface:#1b222c;
+ --comtrol-surface-raised:#232c37;
+ --comtrol-stroke:#52677a;
+ --comtrol-focus:#9fdcff;
+ font-size:20px;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+ font-weight:430;
+ font-synthesis:none;
+ font-kerning:normal;
+}
+body{letter-spacing:.08px}
+button,input,textarea,select{font-family:inherit}
+button{touch-action:manipulation;transition:background-color .17s ease,border-color .17s ease,color .17s ease,box-shadow .22s ease,transform .22s ease}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--comtrol-focus);outline-offset:3px}
+button:active:not(:disabled){transform:scale(.985)}
+::selection{background:#347caa;color:white}
+/* Luz cinemática localizada; el texto permanece completamente nítido. */
+aside{background:
+ radial-gradient(ellipse 115% 260px at 50% -80px,rgba(54,125,181,.30),transparent 72%),
+ linear-gradient(155deg,#191f29 0%,#161b24 62%,#141a22 100%);
+ border-right:1px solid #3b4c5d}
+main,#chat{background:
+ radial-gradient(ellipse 780px 350px at 75% -200px,rgba(47,100,150,.11),transparent 80%),
+ #10141a}
+.brand{position:relative;overflow:hidden;min-height:87px}
+.brand:after{content:"";position:absolute;pointer-events:none;inset:auto 18px 0;height:1px;background:linear-gradient(90deg,transparent,#d2e7ff96,transparent)}
+.mark{position:relative;isolation:isolate;box-shadow:inset 0 1px 1px #ffffff52,0 7px 23px #13619b48,0 0 0 1px #bedcf342}
+.mark:after{content:"";position:absolute;inset:2px;border-radius:14px;border-top:1px solid #e4f5ff88;pointer-events:none}
+.main-header{position:relative;background:#191f29f2;border-bottom:1px solid #46586a;box-shadow:0 4px 22px #0002}
+.main-header:after{content:"";position:absolute;pointer-events:none;bottom:-1px;left:9%;right:9%;height:1px;background:linear-gradient(90deg,transparent,#80b8e166 48%,transparent)}
+/* Menús y botones amplios, acabado plateado. */
+#menu,#quickSearch,#topMore,.main-header .icon-btn{
+ border:1px solid transparent;border-radius:13px;min-height:49px;min-width:49px;font-size:27px
+}
+#menu:hover,#quickSearch:hover,#topMore:hover,.main-header .icon-btn:hover{border-color:#52677a;background:#2a3847}
+.top-workspace-trigger{font-size:21px;font-weight:740;min-height:50px}
+.pop-menu,.attach-pop{padding:9px;border-radius:18px;border:1px solid #65819b;box-shadow:0 20px 55px #0009,inset 0 1px #ffffff13}
+.pop-menu button,.attach-pop button{font-size:19px;min-height:56px;line-height:1.45;border-radius:12px}
+.attach-pop button{min-height:74px}
+.attach-pop button strong{font-size:19px}.attach-pop button small{font-size:16px;color:#d1ddea}
+.attach-pop button>span:first-child{height:42px;width:42px;font-size:24px}
+.side-top #newChat{font-size:19px;min-height:56px;font-weight:750;background:linear-gradient(165deg,#31475b,#263848);border:1px solid #648098;box-shadow:inset 0 1px #ffffff21}
+.side-top #newChat:hover{background:#3d5670;box-shadow:0 0 0 1px #8ab9da55}
+.search-wrap{min-height:54px;border-radius:13px}
+.search-wrap .search{min-height:54px;font-size:18px}
+.search-wrap .search::placeholder{color:#d2dfed}
+.section-label{font-size:15px;line-height:1.5;font-weight:800;color:#c3d6e8;margin-top:20px}
+.nav-item,.project-shortcut,.folder-open,.pinned-open{font-size:19px;line-height:1.45;min-height:56px;letter-spacing:.08px}
+.nav-item span,.project-shortcut span:first-child{font-size:23px}
+.hist-item{font-size:18px;line-height:1.5;min-height:53px;padding-block:12px}
+.sidebar-hint{font-size:16px;line-height:1.6}
+.folder-row,.pinned-row{min-height:54px}
+.folder-action,#createFolder,#toggleProjects{min-height:45px;min-width:45px;font-size:24px}
+.side-footer,.side-footer strong{font-size:16px;line-height:1.5}
+/* Área de conversación tipo ChatGPT: texto prioritario, descansado. */
+#messages{gap:25px}
+.bubble{font-size:21px;line-height:1.78;letter-spacing:.05px;padding:19px 22px;max-width:100%}
+.message.assistant .bubble{background:linear-gradient(125deg,#202a36,#1c2530 83%);border-color:#4a6277;box-shadow:inset 0 1px #ffffff0d}
+.message.user .bubble{background:linear-gradient(130deg,#2c5476,#254967 85%);box-shadow:inset 0 1px #ffffff12}
+.note{font-size:16px;color:#d0deed;padding-top:8px}
+.toolbtn{min-height:43px;font-size:16px;padding:9px 13px;border-radius:10px}
+.avatar{width:42px;height:42px;font-size:23px;border-radius:13px;box-shadow:0 0 0 1px #bcdcfb3f,0 4px 17px #0a5a9b40}
+.welcome .hero{position:relative;box-shadow:inset 0 1px #ffffff63,0 14px 42px #1267a24a,0 0 0 1px #a0d2fc40}
+.welcome .hero:after{content:"";position:absolute;inset:-7px;border:1px solid #82b6dc45;border-radius:28px;pointer-events:none}
+.welcome h1{font-size:clamp(36px,4.4vw,48px);line-height:1.17;letter-spacing:-1px}
+.welcome p{font-size:20px;line-height:1.75;max-width:640px}
+.suggestion{font-size:19px;min-height:100px;line-height:1.47;padding:18px;border-radius:18px;background:linear-gradient(145deg,#26323f,#202a34);border:1px solid #4c6378;box-shadow:inset 0 1px #ffffff0d}
+.suggestion small{font-size:17px;line-height:1.5;color:#d2dfeb}
+.suggestion:hover{background:#2b3b4a;border-color:#9ac4e4;box-shadow:0 0 0 1px #9ccdfc2b,0 9px 25px #0003;transform:translateY(-1px)}
+.composer-area{padding-top:12px}
+.composer{border-radius:27px;padding:9px;border:1px solid #70879c;box-shadow:inset 0 1px #ffffff1c,0 12px 35px #0003}
+.composer:focus-within{border-color:#8cc4ec;box-shadow:0 0 0 2px #7ab8eb37,0 12px 35px #0004}
+.composer textarea{font-size:21px;line-height:1.63;min-height:52px;max-height:172px}
+.composer .round{width:51px;height:51px;min-width:51px;font-size:26px;border:1px solid #5a7085;box-shadow:inset 0 1px #ffffff14}
+.composer .round.primary{background:linear-gradient(150deg,#218bd0,#11679e);border-color:#87c6ef;box-shadow:0 5px 18px #0b659c5c,inset 0 1px #ffffff4f}
+.composer-foot{font-size:15px;line-height:1.65;color:#c9d7e4}
+.attached-title,.attached-info small{font-size:16px}
+.attached-info strong{font-size:18px}
+.attached-help{font-size:15px;line-height:1.55}
+.attached-actions button{font-size:17px;min-height:46px}
+.attachment-list{border-color:#536f86}
+/* Fichas de proyectos y plantillas: relieve sobrio, borde superior perlado. */
+.tile,.project-card,.project-lane,.project-note-local,.project-folder-field,.saved-file-list{
+ position:relative;border-radius:19px;border:1px solid #4a6075;
+ background:linear-gradient(155deg,#232e3b,#1b242e);
+ box-shadow:inset 0 1px #ffffff14,0 8px 26px #0002
+}
+.tile:before,.project-card:before{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#a3d7fb70,transparent)}
+.tile,.project-card{padding:23px}
+.tile h3,.project-card h3,.project-lane h3{font-size:23px;line-height:1.37;color:#f5faff}
+.tile p,.project-card p,.project-lane li{font-size:19px;line-height:1.72;color:#e0eaf4}
+.project-lead,.intro,.portfolio-note,.disclaimer,.portfolio-count{font-size:19px;line-height:1.7}
+.module-inner h1,#projectDetail h2{font-size:clamp(31px,3.9vw,42px);line-height:1.26}
+.eyebrow,.project-detail-meta{font-size:16px;letter-spacing:.6px}
+.project-group,.project-lanes span,.pill{font-size:16px;line-height:1.4;padding:6px 10px}
+.portfolio-toolbar input,.project-folder-field select,.project-note-local textarea{min-height:55px;font-size:20px}
+.portfolio-filters{gap:10px}
+.filter-chip{min-height:48px;font-size:18px;padding:11px 16px}
+.pin-project{font-size:18px;min-height:49px;padding:10px 13px}
+.tile button,.action-main,.open-project,.back-project,.project-detail-actions button,.project-note-local button,.files-buttons button,.template-card button{
+ font-size:19px;font-weight:750;min-height:54px;border-radius:13px;
+ box-shadow:inset 0 1px #ffffff23
+}
+.tile button:hover,.open-project:hover,.project-detail-actions button:hover,.project-note-local button:hover,.files-buttons button:hover,.template-card button:hover{background:#2683be;box-shadow:0 6px 20px #0d679d42,inset 0 1px #ffffff40}
+.file-list-heading{font-size:26px}
+.file-list-entry>span{font-size:19px}
+.file-list-entry button{font-size:18px;min-height:46px}
+.disclaimer{border-left:4px solid #80b7dc}
+.step{font-size:18px;min-height:44px}
+#auth{background:
+ radial-gradient(ellipse at 20% 0%,#19436c73,transparent 60%),
+ radial-gradient(ellipse at 85% 110%,#12345666,transparent 60%),#080e16}
+.auth-card{border-radius:25px;border:1px solid #6d8ba4;box-shadow:inset 0 1px #ffffff20,0 26px 85px #0009}
+.auth-card h1{font-size:34px}.auth-card .summary{font-size:19px;line-height:1.6}
+.auth-card .small,.auth-card summary{font-size:17px;line-height:1.6}
+.auth-info,.auth-card label{font-size:19px;line-height:1.6}
+.auth-card input{min-height:57px;font-size:21px}
+.auth-card button{min-height:56px;font-size:20px}
+#previewBanner{font-size:17px!important;line-height:1.55}
+#toast{font-size:18px;line-height:1.6}
+/* Ajuste opcional, accesible desde el menú superior de COMTROL. */
+.font-max .bubble,.font-max .composer textarea{font-size:24px}
+.font-max .nav-item,.font-max .project-shortcut,.font-max .folder-open,.font-max .pinned-open,.font-max .hist-item{font-size:21px}
+.font-max .tile p,.font-max .project-card p,.font-max .project-lane li,.font-max .intro,.font-max .project-lead{font-size:21px}
+.font-max .pop-menu button,.font-max .attach-pop button,.font-max .tile button,.font-max .template-card button{font-size:21px}
+.font-max .welcome p{font-size:23px}
+.font-max .section-label,.font-max .composer-foot,.font-max .note,.font-max .sidebar-hint{font-size:18px}
+@media(hover:hover) and (min-width:801px){
+ .tile:hover,.project-card:hover{transform:translateY(-2px);border-color:#84add1;box-shadow:inset 0 1px #ffffff18,0 15px 32px #0004}
+ .tile,.project-card{transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease}
+}
+@media(max-width:800px){
+ :root{font-size:20px}
+ .main-header{min-height:67px;padding-inline:6px;gap:2px}
+ .main-header .icon-btn,#menu,#quickSearch,#topMore{min-height:43px;min-width:43px;font-size:24px}
+ .top-workspace-trigger{font-size:18px;padding:7px 4px;min-height:44px}
+ .status{font-size:13px;max-width:31%;padding:7px 8px}
+ aside{width:min(94vw,368px)}
+ .brand strong{font-size:23px}
+ .side-top #newChat{font-size:19px}
+ .section-label{font-size:15px}
+ .nav-item,.project-shortcut,.folder-open,.pinned-open{font-size:19px;min-height:55px}
+ .hist-item{font-size:18px;min-height:52px}
+ #messages{padding:20px 10px;gap:23px}
+ .message{gap:9px}
+ .avatar{height:35px;width:35px;font-size:20px}
+ .bubble{font-size:20px;line-height:1.74;padding:15px 16px}
+ .note{font-size:15px}
+ .welcome h1{font-size:35px}
+ .welcome p{font-size:19px;line-height:1.7}
+ .suggestions{grid-template-columns:1fr}
+ .suggestion{font-size:19px;min-height:85px;padding:15px 17px}
+ .suggestion small{font-size:16px}
+ .composer-area{padding-inline:8px;padding-bottom:max(11px,env(safe-area-inset-bottom))}
+ .composer{gap:3px;padding:6px;border-radius:25px}
+ .composer textarea{font-size:20px;line-height:1.57;min-height:46px;padding:10px 1px}
+ .composer .round{height:45px;width:45px;min-width:45px;font-size:23px}
+ .composer-foot{font-size:14px;gap:5px}
+ .pop-menu button,.attach-pop button{font-size:18px}
+ .attach-pop button strong{font-size:18px}
+ .attach-pop button small{font-size:16px}
+ .module-inner h1,#projectDetail h2{font-size:34px}
+ .tile h3,.project-card h3,.project-lane h3{font-size:22px}
+ .tile p,.project-card p,.project-lane li,.intro,.portfolio-note,.project-lead{font-size:19px}
+ .tile button,.open-project,.project-detail-actions button,.template-card button{font-size:19px;min-height:53px}
+ .template-card{min-height:initial}
+ .auth-card h1{font-size:31px}
+ .auth-card input{font-size:20px}
+ .font-max .bubble,.font-max .composer textarea{font-size:22px}
+ .font-max .tile p,.font-max .project-card p,.font-max .project-lane li{font-size:21px}
+}
+@media(max-width:375px){
+ .main-header .icon-btn{min-width:39px;width:39px}
+ .top-workspace-trigger{font-size:16px}
+ .status{max-width:27%;font-size:11px}
+ .bubble{font-size:19px;line-height:1.73}
+ .composer textarea{font-size:19px}
+ .composer .round{height:41px;min-width:41px;width:41px}
+}
+@media(prefers-reduced-motion:reduce){
+ button,.tile,.project-card,.suggestion{transition:none!important;transform:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -413,7 +602,7 @@ header,.main-header{background:#171c24;border-bottom:1px solid #334354;box-shado
 <button type="button" id="menuCopy">▢ &nbsp; Copiar última respuesta</button>
 <button type="button" id="menuSpeak">◖ &nbsp; Escuchar respuesta</button>
 <button type="button" id="menuFiles">▧ &nbsp; Mis archivos</button><button type="button" id="menuTemplates">▤ &nbsp; Plantillas de trabajo</button>
-<button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
+<button type="button" id="menuFont">Aa &nbsp; Texto extra grande</button><button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
 </div></div>
 </header>
 <section id="chat"><div id="previewBanner" class="hidden" role="status" style="padding:11px 16px;background:#203c60;color:#e3effc;border-bottom:1px solid #729ac0;font-size:13px"><b>VISTA PREVIA:</b> interfaz navegable, pero sin acceso a Supabase, IA ni acciones reales. Los resultados privados permanecen protegidos.</div><div id="messages"></div>
@@ -467,6 +656,20 @@ function createProjectFolder(){const name=prompt("Nombre de la carpeta (ejemplo:
 function applyTemplate(id){const template=templates.find(t=>t.id===id);if(!template)return;const project=projectCatalog.find(p=>p.id===selectedProjectId);show("chat");$("prompt").value=template.prompt.replace("{proyecto}",project?.name||"el proyecto SJM que te indique");grow();$("prompt").focus();info("Plantilla preparada. Revisa el texto y pulsa enviar cuando quieras.")}
 function renderTemplates(root,grid){grid.classList.add("template-grid");for(const t of templates){const article=document.createElement("article");article.className="tile template-card";const h=document.createElement("h3");h.textContent=t.name;const p=document.createElement("p");p.textContent=t.description;const b=document.createElement("button");b.type="button";b.textContent="Usar plantilla";b.onclick=()=>applyTemplate(t.id);article.append(h,p,b);grid.append(article)}const caveat=document.createElement("p");caveat.className="disclaimer";caveat.textContent="Las plantillas preparan textos en el chat. En vista previa no analizan archivos ni consultan el sistema privado; con sesión autorizada, las respuestas dependen de la información que el servicio realmente tenga.";root.append(caveat)}
 
+function fontSizePreference(){
+  try{return localStorage.getItem("comtrol-font-extra-v1")==="1"}catch{return false}
+}
+function applyFontSizePreference(){
+  const extra=fontSizePreference();document.documentElement.classList.toggle("font-max",extra);
+  const b=$("menuFont");if(b){b.textContent=extra?"Aa · Texto extra grande ✓":"Aa · Texto extra grande";b.setAttribute("aria-pressed",String(extra))}
+}
+function toggleFontSizePreference(){
+  const next=!document.documentElement.classList.contains("font-max");
+  try{localStorage.setItem("comtrol-font-extra-v1",next?"1":"0")}catch{}
+  document.documentElement.classList.toggle("font-max",next);
+  const b=$("menuFont");b.textContent=next?"Aa · Texto extra grande ✓":"Aa · Texto extra grande";b.setAttribute("aria-pressed",String(next));
+  closePanels();info(next?"Texto ampliado":"Texto grande estándar");
+}
 function info(t){$("toast").textContent=t;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),5800)}
 function authInfo(t){$("authInfo").textContent=t}
 function closeDrawer(){document.body.classList.remove("drawer");$("menu")?.setAttribute("aria-expanded","false")}
@@ -724,7 +927,7 @@ $("menuNewChat").onclick=()=>{newChat();closePanels()};
 $("menuExport").onclick=()=>{exportConversation();closePanels()};
 $("menuCopy").onclick=()=>{copyLast();closePanels()};
 $("menuSpeak").onclick=()=>{speak();closePanels()};
-$("menuFiles").onclick=()=>show("files");$("menuTemplates").onclick=()=>show("templates");$("menuSettings").onclick=()=>show("settings");
+$("menuFiles").onclick=()=>show("files");$("menuTemplates").onclick=()=>show("templates");$("menuFont").onclick=toggleFontSizePreference;$("menuSettings").onclick=()=>show("settings");
 $("chooseFiles").onclick=()=>openFilePicker("file");
 $("choosePhotos").onclick=()=>openFilePicker("photos");
 $("chooseCamera").onclick=()=>openFilePicker("camera");
@@ -739,6 +942,6 @@ $("previewButton").onclick=previewLogin;$("previewCode").onkeydown=e=>{if(e.key=
 document.addEventListener("click",e=>{if(!e.target.closest(".top-workspace,.top-more,.composer-anchor"))closePanels()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
-async function start(){navBuild();events();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
+async function start(){navBuild();events();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
