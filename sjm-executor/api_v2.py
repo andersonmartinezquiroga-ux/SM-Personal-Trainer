@@ -1,5 +1,7 @@
 """SJM browser executor: public inspection plus explicitly gated role submissions."""
 import json, os, secrets, threading, tempfile, re, hashlib
+from urllib.request import Request, build_opener, HTTPRedirectHandler
+from urllib.error import HTTPError, URLError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
@@ -72,6 +74,70 @@ def readonly_pulse_receipt(data):
         "external_action_executed": False, "employer_submission": False,
         "ack_scope": "signal_transport_only"
     }
+
+
+# Each pulse may perform ONE bounded, credential-free GET to an EXISTING
+# exact public SJM source. This is site monitoring, not research completion,
+# account access, an employment application, or permission to submit.
+# Do NOT accept URL input from the pulse client.
+PULSE_VETTED_READS = {
+    "empleo_y_postulaciones": (
+        "spe-colombia-public-offer",
+        "https://personas.serviciodeempleo.gov.co/detalle_oferta.aspx?proceso_id=7&sede_id=1626514975",
+    ),
+    "financiacion_no_reembolsable": (
+        "tools-competition-2027-rules",
+        "https://tools-competition.org/27-official-rules/",
+    ),
+    "alianzas": (
+        "techstars-accelerators",
+        "https://www.techstars.com/accelerators",
+    ),
+    "clientes_e_ingresos": (
+        "getonbrd-public-remote-listing",
+        "https://www.getonbrd.com/jobs/operations-management/asistente-operativo-primera-milla-enviame-remote",
+    ),
+}
+
+class _NoRedirect(HTTPRedirectHandler):
+    """Avoid following external redirects, including private destinations."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+def read_vetted_public_source(focus):
+    """Fetch at most 8192 bytes; never send a form, cookie, token or personal data."""
+    selected = PULSE_VETTED_READS.get(focus)
+    if selected is None:
+        return {"status": "no_vetted_source", "read_only_executed": False,
+                "employer_submission": False}
+    key, url = selected
+    try:
+        opener = build_opener(_NoRedirect)
+        req = Request(url, method="GET",
+                      headers={"Accept": "text/html", "User-Agent": "SJMControl360-PublicRead/1.0"})
+        with opener.open(req, timeout=6) as response:
+            status = int(response.status)
+            content_type = response.headers.get("Content-Type", "").lower()
+            if status != 200 or "text/html" not in content_type:
+                return {"status": "source_not_html_200", "source_key": key,
+                        "http_status": status, "read_only_executed": False,
+                        "employer_submission": False}
+            sample = response.read(8192)
+        if not sample:
+            return {"status": "empty_source", "source_key": key,
+                    "read_only_executed": False, "employer_submission": False}
+        return {"status": "read_ok", "source_key": key, "source_url": url,
+                "http_status": 200, "method": "GET", "bytes_sampled": len(sample),
+                "content_sha256": hashlib.sha256(sample).hexdigest(),
+                "read_only_executed": True, "employer_submission": False}
+    except HTTPError as exc:
+        return {"status": "http_error", "source_key": key,
+                "http_status": int(exc.code), "read_only_executed": False,
+                "employer_submission": False}
+    except (URLError, OSError, TimeoutError, ValueError) as exc:
+        return {"status": "source_unavailable", "source_key": key,
+                "error_class": type(exc).__name__, "read_only_executed": False,
+                "employer_submission": False}
 
 class API(BaseHTTPRequestHandler):
     def reply(self, status, body):
@@ -155,7 +221,12 @@ class API(BaseHTTPRequestHandler):
             if not self.authorized():
                 return self.reply(401, {"error": "unauthorized"})
             try:
-                return self.reply(200, readonly_pulse_receipt(self.parse_json(max_bytes=512)))
+                pulse = self.parse_json(max_bytes=512)
+                ack = readonly_pulse_receipt(pulse)
+                # ACK remains transport-only; a separately verified GET result is
+                # never interpreted as an application, grant or completed case.
+                ack["public_read_probe"] = read_vetted_public_source(pulse["focus_key"])
+                return self.reply(200, ack)
             except (ValueError, json.JSONDecodeError) as exc:
                 return self.reply(400, {"error": "invalid_readonly_pulse", "details": str(exc)[:100]})
 
