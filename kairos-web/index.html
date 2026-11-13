@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a3157"><meta name="referrer" content="no-referrer">
-<title>KAIRÓS 360 — SJM CONTROL 360</title>
+<title>COMTROL 360 — SJM CONTROL 360</title>
 <style>
 :root{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--navy:#0a3157;--dark:#092843;--blue:#146fae;--light:#e8f4fc;--silver:#b7c9d7;--ink:#183e5c;--muted:#698298;--line:#d9e7f0;--paper:#fff;background:#f3f8fc;color:var(--ink);font-size:16px}
 *{box-sizing:border-box}body{margin:0;height:100dvh;overflow:hidden}button,textarea,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #60b5f5;outline-offset:2px}.hidden{display:none!important}
@@ -243,10 +243,138 @@ main{background:#f9fbfd}
  .status{max-width:28%}
  .tile button,.open-project,.project-detail-actions button{font-size:16px;min-height:48px}
 }
+
+/* COMTROL 360 — tema oscuro, legibilidad grande, Motorola · v1.4 */
+:root{
+  color-scheme:dark;
+  --navy:#eaf4ff;--dark:#0e1116;--blue:#72bcff;--light:#1e2935;
+  --silver:#c5d2e0;--ink:#f3f7fc;--muted:#c2cedb;--line:#384655;--paper:#1e252f;
+  background:#0d1015;color:#f4f8ff;font-size:20px;
+}
+html,body,#layout{background:#0d1015;color:#f4f8ff}
+main,#chat{background:#10141a;color:#f4f8ff}
+aside{background:#171c24;color:#eff5ff;border-right:1px solid #344355;box-shadow:none}
+.brand{border-bottom:1px solid #344355}
+.brand strong{color:#fafcff;font-size:23px}.brand small{color:#b9cfe0;font-size:14px;letter-spacing:.6px}
+.mark{background:linear-gradient(135deg,#246a9f,#112f4b);border-color:#7bacd0;color:#fff}
+.side-top #newChat{background:#273747;border:1px solid #60758a;color:#f6faff;font-size:18px;min-height:53px}
+.search-wrap,.side-top .search{background:#252f3a;border:1px solid #4f6579;color:#fff}
+.search::placeholder{color:#c9d4e1}
+.search-wrap>span{color:#c4ddf0;font-size:27px}
+.section-label{color:#acc5d9;font-size:14px;letter-spacing:.4px}
+.nav-item,.project-shortcut,.folder-open,.pinned-open{color:#eaf2fc;font-size:18px;min-height:52px;border-radius:11px}
+.nav-item span,.project-shortcut span:first-child{font-size:23px;color:#b5dcf8}
+.nav-item.active{background:#2b4154;color:#fff;box-shadow:inset 3px 0 #79c5ff}
+.nav-item:hover,.project-shortcut:hover,.pinned-open:hover,.hist-item:hover{background:#303d4c;color:#fff}
+.hist-item{font-size:17px;min-height:49px;color:#e0eaf3}
+.hist-item.active{background:#2a3e50;color:#fff}
+.sidebar-hint{color:#c1d1df;font-size:15px}
+.folder-open,.pinned-open{font-size:17px}
+.folder-action,#createFolder,#toggleProjects{color:#e9f6ff;background:#28394a;border-color:#4f6576;min-height:43px}
+.side-footer{background:#141b22;border-color:#344355;color:#b7c7d8;font-size:15px}
+.side-footer strong{color:#f4f9ff;font-size:16px}
+header,.main-header{background:#171c24;border-bottom:1px solid #334354;box-shadow:none;color:#f5f8ff}
+.icon-btn{color:#ebf6ff}.icon-btn:hover,.top-workspace-trigger:hover,.top-more .icon-btn:hover{background:#2b3a4a}
+.top-workspace-trigger{font-size:19px;color:#f7faff}.top-workspace-trigger span{color:#a8bfce}
+.headtitle b{color:#eef5fe;font-size:19px}.headtitle small{color:#bacbdd;font-size:15px}
+.status{background:#25313d;border:1px solid #4f6579;color:#d9e6f0;font-size:14px}
+.pop-menu,.attach-pop{background:#212933;border:1px solid #4d6277;color:#f4f9ff;box-shadow:0 20px 44px #0009}
+.pop-menu button,.attach-pop button{color:#f0f5fc;font-size:17px;min-height:51px}
+.pop-menu button:hover,.attach-pop button:hover{background:#34485c}
+.attach-pop button>span:first-child{background:#324d64;color:#d7ecff}
+.attach-pop button strong{font-size:17px}.attach-pop button small{color:#bfcedd;font-size:15px}
+#messages{background:transparent}
+.welcome h1{color:#f6f9ff;font-size:clamp(32px,4vw,43px)}
+.welcome p{color:#c5d1de;font-size:19px;line-height:1.65}
+.hero{background:linear-gradient(135deg,#1b598b,#2684bc);box-shadow:0 8px 26px #143e63a6}
+.suggestion{background:#222c37;color:#f0f7ff;border:1px solid #465a6e;box-shadow:none;font-size:18px;min-height:92px}
+.suggestion:hover{background:#2c3b4a;border-color:#8dbbe0}
+.suggestion small{color:#c4d2de;font-size:16px}
+.message.assistant .bubble{background:#1c242e;color:#f3f8fd;border:1px solid #344758;box-shadow:none}
+.message.user .bubble{background:#274967;color:#fff}
+.bubble{font-size:20px;line-height:1.72;letter-spacing:0}
+.message.assistant a{color:#9dd4ff}
+.note{color:#bccbda;font-size:15px}
+.toolbtn{background:#273645;color:#e3effa;border:1px solid #53697d;font-size:15px;min-height:38px}
+.message.pending .bubble{color:#d4dfe9}
+.composer-area{background:#10141a}
+.composer{background:#242c36;border:1px solid #607186;border-radius:26px;box-shadow:none}
+.composer textarea{background:transparent;color:#f7f9fc;font-size:20px;line-height:1.62}
+.composer textarea::placeholder{color:#c5cfda}
+.composer .round{background:#394957;color:#f4f8ff}
+.composer .round.primary{background:#197bbb;color:white}
+.composer-foot,.attached-help{color:#bdcad7;font-size:14px}
+.attachment-list,.project-card,.tile,.project-lane,.project-note-local,.project-folder-field{background:#1d252f;color:#f2f7fd;border:1px solid #3b4d5e;box-shadow:none}
+.attached-title,.attached-info small{color:#c0cfde;font-size:15px}
+.attached-item{border-bottom:1px solid #394b5c}.attached-info strong{color:#f4f9ff;font-size:16px}
+.attached-icon,.attached-item>button{background:#35495b;color:#dcefff}
+.attached-actions button{background:#344a60;color:#f0f9ff;border-color:#6583a0;font-size:15px;min-height:43px}
+.attached-actions .attached-save{background:#166ea9;color:white}
+#module{background:#10141a}
+.eyebrow,.project-detail-meta{color:#a8c7df;font-size:14px}
+.module-inner h1,#projectDetail h2{color:#f5faff}
+.intro,.portfolio-note,.project-lead{color:#cbd6e0;font-size:18px;line-height:1.68}
+.tile h3,.project-card h3,.project-lane h3{color:#eff8ff;font-size:21px}
+.tile p,.project-card p,.project-lane li{color:#d7e2ee;font-size:18px;line-height:1.65}
+.tile button,.action-main,.open-project,.project-detail-actions button,.project-note-local button{background:#196eaa;color:#fff;font-size:17px;min-height:49px}
+.pill{background:#453926;color:#f6d6a4;font-size:14px}.pill.ok{background:#164834;color:#bbf5d8}.pill.bad{background:#4a2e30;color:#ffc8c8}.pill.human{background:#35365e;color:#d6d5ff}
+.step,.disclaimer{background:#243442;color:#d4e5f2;border-color:#5f85a3;font-size:17px;line-height:1.6}
+.project-icon,.project-group,.project-lanes span{background:#32455a;color:#e3f4ff}
+.project-group{font-size:15px}.project-lanes span{font-size:15px}
+.filter-chip,.pin-project,.back-project{background:#2b3c4b;color:#e6f2ff;border:1px solid #536c82;font-size:16px}
+.filter-chip.selected,.pin-project[aria-pressed="true"]{background:#1a669c;color:#fff;border-color:#71a9d0}
+.portfolio-toolbar input,.project-note-local textarea,.project-folder-field select{background:#27313d;color:#f2f8ff;border:1px solid #587087;font-size:18px}
+.project-note-local label,.project-folder-field label{color:#e8f4ff;font-size:18px}
+.portfolio-count{color:#bdcbda;font-size:16px}
+.files-buttons button{background:#206da6;color:#fff;font-size:17px;min-height:48px}
+.file-list-heading{color:#f2faff;font-size:23px}
+.saved-file-list{background:#212a35;color:#dce7f0;border:1px solid #43596c;font-size:17px}
+.file-list-entry{border-color:#3b4c5b}.file-list-entry>span{color:#e1edf7;font-size:16px}
+.file-list-entry button{background:#364d61;color:#ebf6ff;font-size:15px}
+#auth{background:radial-gradient(circle at 72% 12%,#163b5e 0%,transparent 45%),#0b1017}
+.auth-card{background:#1c2530;color:#f1f7ff;border:1px solid #50677b}
+.auth-card h1{color:#f5faff}.auth-card .summary{color:#cedae6;font-size:17px}
+.auth-info{background:#2b3b4d;color:#deeffc;font-size:16px}
+.auth-card label{font-size:17px;color:#f0f8ff}
+.auth-card input{background:#293847;color:#fff;border:1px solid #67829b;font-size:19px}
+.auth-card input::placeholder{color:#b9ccdc}
+.auth-card button{background:#146eaa;color:#fff;font-size:18px;min-height:50px}
+.auth-card button.alt{background:#38546d;color:#fff}
+.auth-card .small,.auth-card summary{color:#d3e0eb;font-size:16px}
+#toast{background:#273c50;color:#fff;font-size:17px;border:1px solid #7594aa}
+#previewBanner{background:#273847!important;color:#f4f8ff!important;border-color:#7893a8!important;font-size:16px!important}
+@media(max-width:800px){
+ :root{font-size:19px}
+ aside{background:#171c24;width:min(92vw,365px)}
+ .main-header{background:#171c24}
+ .main-header .icon-btn{min-width:42px;min-height:46px;color:#f0f7ff}
+ .top-workspace-trigger{font-size:17px;color:#f7f9fc}
+ .status{font-size:13px;max-width:34%}
+ #messages{padding:20px 12px}
+ .bubble{font-size:19px;line-height:1.75;padding:15px 16px}
+ .welcome h1{font-size:33px}.welcome p{font-size:18px}
+ .suggestions{grid-template-columns:1fr;gap:10px}
+ .suggestion{font-size:18px;min-height:74px}
+ .suggestion small{font-size:15px}
+ .composer-area{background:#10141a}
+ .composer textarea{font-size:19px}
+ .composer-foot{font-size:13px;flex-wrap:wrap}
+ .nav-item,.project-shortcut,.folder-open,.pinned-open{font-size:18px;min-height:52px}
+ .tile p,.project-card p,.project-lane li{font-size:18px}
+ .tile button,.open-project,.project-detail-actions button{font-size:17px;min-height:48px}
+ .auth-card{padding:23px 19px}
+ .auth-card h1{font-size:29px}
+}
+@media(max-width:380px){
+ .status{max-width:28%}.bubble{font-size:18px}
+ .top-workspace-trigger{font-size:16px}
+ .composer textarea{font-size:18px}
+}
+
 </style>
 </head>
 <body>
-<div id="auth"><div class="auth-card"><div class="auth-mark">K</div><h1>KAIRÓS 360</h1><p class="summary">SJM CONTROL 360<br>Tu inteligencia y centro de operaciones</p>
+<div id="auth"><div class="auth-card"><div class="auth-mark">K</div><h1>COMTROL 360</h1><p class="summary">SJM CONTROL 360<br>Tu inteligencia y centro de operaciones</p>
 <div class="auth-info" id="authInfo" role="status" aria-live="polite">Comprobando acceso…</div>
 <form id="loginForm" autocomplete="on">
 <label for="accessCode">Tu clave privada de acceso</label>
@@ -262,13 +390,13 @@ main{background:#f9fbfd}
 </div></div>
 <div id="overlay"></div>
 <div id="layout" class="hidden">
-<aside><div class="brand"><div class="mark">K</div><div><strong>KAIRÓS 360</strong><small>SJM CONTROL 360</small></div></div>
+<aside><div class="brand"><div class="mark">K</div><div><strong>COMTROL 360</strong><small>SJM CONTROL 360</small></div></div>
 <div class="side-top"><button id="newChat">＋ Nueva conversación</button><div class="search-wrap"><span aria-hidden="true">⌕</span><input class="search" type="search" id="search" placeholder="Buscar chats y proyectos" aria-label="Buscar chats y proyectos"></div></div>
 <div class="side-scroll"><div class="section-label">ESPACIOS DE TRABAJO</div><nav id="nav"></nav><div class="section-label">☆ PROYECTOS FIJADOS</div><div id="pinnedProjects"></div><div class="folder-side-title"><span class="section-label">CARPETAS DE PROYECTOS</span><button id="createFolder" type="button" title="Crear carpeta" aria-label="Crear carpeta">＋</button></div><div id="folderShortcuts"></div><div class="project-side-title"><span class="section-label">TODOS LOS PROYECTOS · <span id="projectCount">14</span></span><button id="toggleProjects" type="button" aria-label="Mostrar u ocultar lista de proyectos" aria-expanded="true">−</button></div><div id="projectShortcuts"></div><div class="section-label">CONVERSACIONES RECIENTES</div><div id="history"></div></div>
 <div class="side-footer"><strong id="connection">Conexión no verificada</strong><span>KAIRÓS 360 · Portafolio SJM · v1.1</span></div></aside>
 <main><header class="main-header">
 <button class="icon-btn" id="menu" type="button" aria-label="Abrir y cerrar menú lateral" aria-expanded="false">☰</button><button class="icon-btn" id="quickSearch" type="button" aria-label="Buscar chats y proyectos" title="Buscar">⌕</button>
-<div class="top-workspace"><button id="topWorkspace" class="top-workspace-trigger" type="button" aria-haspopup="true" aria-expanded="false"><b>KAIRÓS 360</b><span>⌄</span></button>
+<div class="top-workspace"><button id="topWorkspace" class="top-workspace-trigger" type="button" aria-haspopup="true" aria-expanded="false"><b>COMTROL 360</b><span>⌄</span></button>
 <div class="pop-menu hidden" id="workspacePanel" role="menu">
 <button type="button" data-topview="chat">◈ &nbsp; Conversación</button>
 <button type="button" data-topview="projects">▦ &nbsp; Mis proyectos</button><button type="button" data-topview="templates">▤ &nbsp; Plantillas</button>
@@ -276,7 +404,7 @@ main{background:#f9fbfd}
 <button type="button" data-topview="files">▧ &nbsp; Mis archivos</button>
 <button type="button" data-topview="radars">◎ &nbsp; Radares mundiales</button>
 </div></div>
-<div class="headtitle"><b id="pageTitle">KAIRÓS IA</b><small id="pageSub">Conversación privada y supervisión</small></div>
+<div class="headtitle"><b id="pageTitle">COMTROL 360</b><small id="pageSub">Conversación privada y supervisión</small></div>
 <span id="status" class="status">Verificando</span><button class="icon-btn hide-mobile" id="refresh" aria-label="Revisar conexión">↻</button>
 <div class="top-more"><button class="icon-btn" id="topMore" type="button" aria-label="Más opciones" aria-expanded="false">⋯</button>
 <div class="pop-menu more-menu hidden" id="morePanel" role="menu">
@@ -314,19 +442,19 @@ main{background:#f9fbfd}
 <script type="module">
 const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQQ1JBHfDRRKut-trg_V-2isCjX",ENDPOINT=BASE+"/functions/v1/sjm_brain_hybrid_v1";
 const $=id=>document.getElementById(id);
-const menu=[["chat","KAIRÓS IA","◈"],["control","CONTROL 360","▤"],["projects","Mis proyectos","◧"],["templates","Plantillas","▤"],["radars","Seis radares mundiales","◎"],["applications","Postulaciones","▣"],["executor","Ejecutor web","⌘"],["motorola","Motorola Android","▯"],["automation","Automatizaciones","◷"],["memory","Memoria","▦"],["files","Mis archivos","▧"],["audit","Auditoría","◇"],["settings","Configuración","⚙"]];
+const menu=[["chat","COMTROL 360","◈"],["control","CONTROL 360","▤"],["projects","Mis proyectos","◧"],["templates","Plantillas","▤"],["radars","Seis radares mundiales","◎"],["applications","Postulaciones","▣"],["executor","Ejecutor web","⌘"],["motorola","Motorola Android","▯"],["automation","Automatizaciones","◷"],["memory","Memoria","▦"],["files","Mis archivos","▧"],["audit","Auditoría","◇"],["settings","Configuración","⚙"]];
 const infos={templates:["Plantillas de trabajo","Balance, comparación, auditoría y planes de acción en pocos toques. Las plantillas preparan preguntas; no certifican resultados."],control:["CONTROL 360","Operaciones, verificación y trazabilidad de actividades."],projects:["Mis proyectos","Desarrollo técnico y búsqueda de apoyos, tratados como líneas distintas."],radars:["Seis radares mundiales","Consulta cada región sin mezclar expedientes."],applications:["Postulaciones","Consulta no significa envío; envío no significa respuesta o aprobación."],executor:["Ejecutor web","Estado del servidor y registro de pruebas. Acciones externas requieren un ejecutor autorizado."],motorola:["Motorola Android","Control y notificaciones con permisos del teléfono y acuses verificables."],automation:["Automatizaciones","Ejecuciones, programación, supervisión y fallos."],memory:["Memoria","Historial de este navegador y memoria central son dos cosas diferentes."],files:["Mis archivos","Documentos, fotografías y archivos privados de la cuenta SJM."],audit:["Auditoría","Evidencia real de solicitudes, fallas, correcciones y pruebas."],settings:["Configuración","Voz, permisos, conexiones y privacidad."]};
 const regions=[["1 · Latinoamérica y Caribe","Radar 1 Latinoamérica y Caribe"],["2 · Estados Unidos y Canadá","Radar 2 Estados Unidos y Canadá"],["3 · Europa ampliada","Radar 3 Europa"],["4 · Oriente Medio y Norte de África","Radar 4 Oriente Medio y Norte de África"],["5 · Asia y Oceanía","Radar 5 Asia y Oceanía"],["6 · África subsahariana","Radar 6 África subsahariana"]];
 let sb,session=null,authorized=false,preview=false,checking=false,busy=false,view="chat",chats=[],current=null,lastAnswer="",toastTimer,recognizing=false,attachments=[],uploading=false;
 const projectCatalog=[{"id":"control","name":"KAIRÓS 360 · SJM CONTROL 360","group":"Central","icon":"◈","desc":"Cerebro IA, orquestación, ejecutor web, supervisión y verificación de autonomía.","dev":["Cerebro híbrido y Mentor con consultas protegidas","Control Android y avisos en Motorola","Orquestación, auditoría, permisos y pruebas integrales"],"support":["Infraestructura gratuita y continuidad","Alianzas técnicas para ejecución y voz","Validación de funcionamiento en el dispositivo real"]},{"id":"performance","name":"SJM Human Performance 360","group":"Principal","icon":"◉","desc":"Plataforma integral de entrenamiento, evaluación del movimiento y seguimiento.","dev":["Motion 360: cámara, IA y sensores IMU","Performance 360, Nutrition Pro y biblioteca de ejercicios","Visualización 3D, pruebas de campo y prototipos"],"support":["Financiación no reembolsable y concursos","Donación definitiva de computador y componentes","Alianzas deportivas, tecnológicas y pilotos"]},{"id":"translator","name":"SJM Universal Translator","group":"Principal","icon":"◎","desc":"Traducción bidireccional con accesibilidad y dispositivos portátiles.","dev":["Aplicación móvil con voz y subtítulos","Auricular privado y módulo de solapa","Pruebas de latencia y accesibilidad"],"support":["Convocatorias de innovación y accesibilidad","Socios de hardware y pruebas piloto","Alianzas internacionales"]},{"id":"prayer","name":"Mi Casa de Oración","group":"Principal","icon":"✦","desc":"Templo virtual con espacios de oración, adoración, predicación y lectura.","dev":["Templo virtual 3D luminoso","Servidor virtual y espacios de encuentro","Oración, adoración, predicación y Biblia"],"support":["Alianzas ministeriales","Apoyo para infraestructura y producción","Difusión y colaboración internacional"]},{"id":"bible","name":"Mi Biblia Viva","group":"Ministerial","icon":"✧","desc":"Lectura y escucha bíblica móvil en español, con experiencia accesible.","dev":["Experiencia de lectura del Nuevo Testamento","Narración natural en español y continuidad diaria","Versión Android funcional y verificada"],"support":["Apoyo para voces y producción de audio","Pruebas de usabilidad","Distribución gratuita y alianzas"]},{"id":"mentor","name":"SJM Mentor IA · Secretario 360","group":"Central","icon":"◇","desc":"Asistente conversacional con memoria, seguimiento, voz y avisos útiles.","dev":["Conversación en español y recuperación de contexto","Memoria y comandos con permisos","Voz natural, reportes y avisos"],"support":["Motor de voz y recursos sin pagos obligatorios","Pruebas reales de integración","Integración técnica con CONTROL 360"]},{"id":"complex","name":"SJM Human Performance Complex","group":"Expansión","icon":"▦","desc":"Visión futura de un centro físico de rendimiento, tecnología y bienestar.","dev":["Diseño de espacios y servicios deportivos","Laboratorio de evaluación y biomecánica","Modelo por fases para una sede física"],"support":["Aliados de infraestructura y equipamiento","Patrocinio y financiación","Convenios con centros deportivos"]},{"id":"services","name":"SJM Servicios Autónomos Globales","group":"Servicios","icon":"◫","desc":"Servicios digitales con apoyo de IA y operaciones auditables.","dev":["Catálogo de servicios y entrega digital","Automatización supervisada de operaciones","Registro de evidencias y calidad"],"support":["Clientes y alianzas B2B","Herramientas gratuitas y soporte técnico","Pruebas comerciales sin inversión inicial"]},{"id":"work","name":"SJM Work Autónomo","group":"Servicios","icon":"⌘","desc":"Flujos de trabajo asistidos por agentes, tareas y expedientes sin duplicados.","dev":["Bandejas, reintentos y trazabilidad","Aislamiento de casos y control de permisos","Pruebas técnicas y despliegue progresivo"],"support":["Proveedores y recursos para pruebas","Alianzas de implementación","Casos reales remunerados"]},{"id":"income","name":"SJM Ingresos Digitales Automatizados","group":"Servicios","icon":"◈","desc":"Oportunidades de ingresos digitales legítimos y seguimiento comercial.","dev":["Clasificación de oportunidades viables","Preparación de propuestas y entregables","Seguimiento sin confundir búsqueda con contratación"],"support":["Clientes remotos y ventas B2B","Colaboraciones verificadas","Modelos sin pagos de inscripción"]},{"id":"lab7","name":"SJM Laboratorio 7 · Agencia Mundial","group":"Servicios","icon":"◴","desc":"Investigación de negocios digitales, mercados y experimentos comerciales.","dev":["Análisis de demanda, competencia y precios","Pruebas de prototipos y propuestas","Evaluación de riesgos y viabilidad"],"support":["Compradores y socios de ejecución","Validación comercial internacional","Infraestructura de bajo costo"]},{"id":"motion","name":"SJM Motion AI Studio","group":"Tecnología","icon":"◉","desc":"Herramientas visuales, análisis de movimiento y creación de recursos 3D.","dev":["Escenas y ejercicios 3D","Puntos articulares, ángulos y animaciones","Integración con evaluación de movimiento"],"support":["Recursos gráficos y computación","Pruebas con dispositivos disponibles","Colaboración en animación y biomecánica"]},{"id":"marketing","name":"SJM Marketing 360","group":"Servicios","icon":"✳","desc":"Identidad SJM, comunicación comercial y contenidos de proyectos.","dev":["Mensajes y materiales por proyecto","Portafolio comercial y difusión","Procesos de contenido verificables"],"support":["Alianzas de difusión y ventas","Canales orgánicos sin inversión obligatoria","Colaboración de marca"]},{"id":"academy","name":"SJM English Academy","group":"Expansión","icon":"◌","desc":"Idea educativa del ecosistema SJM, pendiente de definir y validar en detalle.","dev":["Definir alcance educativo y contenidos","Diseñar experiencia didáctica","Validar necesidad y prototipo"],"support":["Recursos gratuitos","Alianzas educativas","Pruebas de interés"]}];
 let projectFilter="Todos",projectQuery="",folderFilter=null,selectedProjectId=null;
 const templates=[
- {id:"balance",name:"Balance de avances",description:"Lo logrado, lo pendiente, los bloqueos y la próxima acción.",prompt:"KAIRÓS, prepara un balance de {proyecto}. Divide en hechos comprobados, tareas en proceso, bloqueos y próximos pasos. No inventes resultados ni ejecuciones."},
- {id:"compare",name:"Comparar opciones",description:"Comparación sencilla con ventajas, riesgos, costos y recomendación.",prompt:"KAIRÓS, compara las opciones de {proyecto}. Haz una tabla con ventajas, limitaciones, costo, viabilidad y evidencia disponible; indica qué falta verificar."},
- {id:"audit",name:"Auditoría",description:"Revisar evidencia y distinguir pruebas reales de afirmaciones.",prompt:"KAIRÓS, haz una auditoría de {proyecto}. Separa acciones confirmadas con evidencia, afirmaciones sin verificar, errores, permisos y próxima prueba."},
- {id:"plan",name:"Plan de acción",description:"Una secuencia corta de tareas por prioridad.",prompt:"KAIRÓS, crea un plan de acción para {proyecto}. Prioriza acciones sin costo, responsable, dependencia, evidencia de cierre y lo que requiere mi autorización."},
- {id:"day",name:"Informe del día",description:"Resumen diario sin confundir solicitudes con aprobaciones.",prompt:"KAIRÓS, prepara el informe de hoy de {proyecto}: hechos del día, avances verificados, pendientes, errores y decisiones necesarias. Distingue lo confirmado de lo estimado."},
- {id:"risks",name:"Riesgos y prioridades",description:"Detectar obstáculos y proponer soluciones sencillas.",prompt:"KAIRÓS, identifica riesgos y prioridades de {proyecto}. Clasifica por impacto, urgencia, acción de mitigación y evidencia pendiente."}
+ {id:"balance",name:"Balance de avances",description:"Lo logrado, lo pendiente, los bloqueos y la próxima acción.",prompt:"COMTROL 360, prepara un balance de {proyecto}. Divide en hechos comprobados, tareas en proceso, bloqueos y próximos pasos. No inventes resultados ni ejecuciones."},
+ {id:"compare",name:"Comparar opciones",description:"Comparación sencilla con ventajas, riesgos, costos y recomendación.",prompt:"COMTROL 360, compara las opciones de {proyecto}. Haz una tabla con ventajas, limitaciones, costo, viabilidad y evidencia disponible; indica qué falta verificar."},
+ {id:"audit",name:"Auditoría",description:"Revisar evidencia y distinguir pruebas reales de afirmaciones.",prompt:"COMTROL 360, haz una auditoría de {proyecto}. Separa acciones confirmadas con evidencia, afirmaciones sin verificar, errores, permisos y próxima prueba."},
+ {id:"plan",name:"Plan de acción",description:"Una secuencia corta de tareas por prioridad.",prompt:"COMTROL 360, crea un plan de acción para {proyecto}. Prioriza acciones sin costo, responsable, dependencia, evidencia de cierre y lo que requiere mi autorización."},
+ {id:"day",name:"Informe del día",description:"Resumen diario sin confundir solicitudes con aprobaciones.",prompt:"COMTROL 360, prepara el informe de hoy de {proyecto}: hechos del día, avances verificados, pendientes, errores y decisiones necesarias. Distingue lo confirmado de lo estimado."},
+ {id:"risks",name:"Riesgos y prioridades",description:"Detectar obstáculos y proponer soluciones sencillas.",prompt:"COMTROL 360, identifica riesgos y prioridades de {proyecto}. Clasifica por impacto, urgencia, acción de mitigación y evidencia pendiente."}
 ];
 let organization={pinned:[],folders:[],assignments:{}};
 function orgKey(){return "kairos-organization-v1:"+((!preview&&session?.user?.id)||"preview")}
@@ -346,7 +474,7 @@ function closePanels(){for(const id of ["workspacePanel","morePanel","attachPane
 function togglePanel(id,trigger){const was=$(id).classList.contains("hidden");closePanels();if(was){$(id).classList.remove("hidden");$(trigger).setAttribute("aria-expanded","true")}}
 function openFilePicker(id){closePanels();$(id).click()}
 function downloadText(name,text){const blob=new Blob([text],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
-function exportConversation(){const chat=active();if(!chat){info("Aún no hay conversación para exportar");return}const rows=chat.messages.map(m=>(m.role==="user"?"Tú":"KAIRÓS")+":\n"+String(m.text||"")).join("\n\n");downloadText("KAIRÓS-conversacion-"+new Date().toISOString().slice(0,10)+".txt",chat.title+"\n\n"+rows);info("Conversación exportada desde este navegador")}
+function exportConversation(){const chat=active();if(!chat){info("Aún no hay conversación para exportar");return}const rows=chat.messages.map(m=>(m.role==="user"?"Tú":"COMTROL 360")+":\n"+String(m.text||"")).join("\n\n");downloadText("KAIRÓS-conversacion-"+new Date().toISOString().slice(0,10)+".txt",chat.title+"\n\n"+rows);info("Conversación exportada desde este navegador")}
 async function copyLast(){if(!lastAnswer){info("Todavía no hay respuesta para copiar");return}try{await navigator.clipboard.writeText(lastAnswer);info("Última respuesta copiada")}catch{info("El navegador no permitió copiar")}}
 
 function navBuild(){for(const [id,title,sym] of menu){const b=document.createElement("button");b.className="nav-item";b.dataset.view=id;const s=document.createElement("span");s.textContent=sym;const t=document.createTextNode(title);b.append(s,t);b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};$("nav").append(b)}sidebarProjects();renderFolders()}
@@ -363,26 +491,26 @@ function active(){return chats.find(c=>c.id===current)}
 function ensureChat(){if(active())return active();const c={id:Date.now()+"-"+Math.random().toString(36).slice(2),title:"Nueva conversación",messages:[],at:new Date().toISOString()};chats.unshift(c);current=c.id;save();return c}
 function historyRender(){const box=$("history");box.replaceChildren();const q=$("search").value.toLowerCase();let count=0;for(const c of chats){if(q&&!((c.title||"")+" "+c.messages.map(m=>m.text||"").join(" ")).toLowerCase().includes(q))continue;const b=document.createElement("button");b.className="hist-item"+(current===c.id?" active":"");b.textContent=c.title;b.title=c.title;b.onclick=()=>{current=c.id;historyRender();show("chat");messagesRender();closeDrawer()};box.append(b);count++}if(!count){const e=document.createElement("div");e.style.cssText="color:#b4d0df;padding:12px;font-size:12px";e.textContent="Sin conversaciones en este dispositivo";box.append(e)}}
 function newChat(){current=null;historyRender();show("chat");messagesRender()}
-function welcome(){const home=document.createElement("div");home.className="welcome";home.innerHTML='<div class="hero">K</div><h1>¿Qué vamos a construir hoy?</h1><p>Conversa, abre tus proyectos y organiza SJM desde un solo lugar. Las consultas reales siguen protegidas y cada avance necesita evidencia.</p><div class="suggestions"><button class="suggestion" data-view="projects">▦ Abrir proyectos<small>14 frentes SJM organizados</small></button><button class="suggestion" data-view="control">◈ Centro de control<small>Estado y trazabilidad</small></button><button class="suggestion" data-prompt="KAIRÓS, dame un reporte general de CONTROL 360">▤ Reporte general<small>Consulta protegida al Mentor</small></button><button class="suggestion" data-prompt="KAIRÓS, revisa mis postulaciones">◎ Mis postulaciones<small>Etapas y comprobantes</small></button><button class="suggestion" data-prompt="KAIRÓS, identifica las fallas">◇ Diagnóstico de fallas<small>Sin inventar reparaciones</small></button><button class="suggestion" data-prompt="KAIRÓS, muéstrame qué está funcionando">◉ Capacidades verificadas<small>Solo lectura del sistema</small></button></div>';return home}
+function welcome(){const home=document.createElement("div");home.className="welcome";home.innerHTML='<div class="hero">K</div><h1>¿Qué hacemos hoy?</h1><p>Habla con COMTROL 360, abre tus proyectos y organiza SJM desde un solo lugar. Las consultas reales siguen protegidas y cada avance necesita evidencia.</p><div class="suggestions"><button class="suggestion" data-view="projects">▦ Abrir proyectos<small>14 frentes SJM organizados</small></button><button class="suggestion" data-view="control">◈ Centro de control<small>Estado y trazabilidad</small></button><button class="suggestion" data-prompt="COMTROL 360, dame un reporte general de CONTROL 360">▤ Reporte general<small>Consulta protegida al Mentor</small></button><button class="suggestion" data-prompt="COMTROL 360, revisa mis postulaciones">◎ Mis postulaciones<small>Etapas y comprobantes</small></button><button class="suggestion" data-prompt="COMTROL 360, identifica las fallas">◇ Diagnóstico de fallas<small>Sin inventar reparaciones</small></button><button class="suggestion" data-prompt="COMTROL 360, muéstrame qué está funcionando">◉ Capacidades verificadas<small>Solo lectura del sistema</small></button></div>';return home}
 function decorate(target,value){const re=/https:\/\/[^\s<>"']+/g;let p=0;for(const m of value.matchAll(re)){target.append(document.createTextNode(value.slice(p,m.index)));try{const u=new URL(m[0]);const link=document.createElement("a");link.href=u.href;link.rel="noopener noreferrer";link.target="_blank";link.textContent=m[0];target.append(link)}catch{target.append(document.createTextNode(m[0]))}p=m.index+m[0].length}target.append(document.createTextNode(value.slice(p)))}
-function bubble(m,pending=false){const wrap=document.createElement("div");wrap.className="message "+m.role+(pending?" pending":"");if(m.role==="assistant"){const a=document.createElement("div");a.className="avatar";a.textContent="K";wrap.append(a)}const b=document.createElement("div");b.className="msg-body";const text=document.createElement("div");text.className="bubble";decorate(text,m.text);b.append(text);if(!pending){const note=document.createElement("div");note.className="note";note.textContent=m.role==="assistant"?(m.mode==="supabase_live"?"Supabase · consulta técnica de solo lectura":"Mentor protegido · respuesta de solo lectura"):"Tu consulta";b.append(note);const actions=document.createElement("div");actions.className="tools";const copy=document.createElement("button");copy.className="toolbtn";copy.textContent="Copiar";copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.text);info("Texto copiado")}catch{info("No se pudo copiar")}};actions.append(copy);if(m.role==="user"){const edit=document.createElement("button");edit.className="toolbtn";edit.textContent="Editar";edit.onclick=()=>{$("prompt").value=m.text;grow();$("prompt").focus()};actions.append(edit)}else{const regen=document.createElement("button");regen.className="toolbtn";regen.textContent="Regenerar";regen.onclick=()=>{const c=active();const i=c?.messages.indexOf(m);const prev=c?.messages.slice(0,i).reverse().find(v=>v.role==="user");if(prev)sendMessage(prev.text)};actions.append(regen)}b.append(actions)}wrap.append(b);$("messages").append(wrap);$("messages").scrollTop=$("messages").scrollHeight;return wrap}
+function bubble(m,pending=false){const wrap=document.createElement("div");wrap.className="message "+m.role+(pending?" pending":"");if(m.role==="assistant"){const a=document.createElement("div");a.className="avatar";a.textContent="C";a.setAttribute("aria-label","COMTROL 360");wrap.append(a)}const b=document.createElement("div");b.className="msg-body";const text=document.createElement("div");text.className="bubble";decorate(text,m.text);b.append(text);if(!pending){const note=document.createElement("div");note.className="note";note.textContent=m.role==="assistant"?(m.mode==="demo"?"COMTROL 360 · demostración sin IA":m.mode==="supabase_live"?"COMTROL 360 · lectura técnica de Supabase":"COMTROL 360 · Mentor protegido"):"Tu consulta";b.append(note);const actions=document.createElement("div");actions.className="tools";const copy=document.createElement("button");copy.className="toolbtn";copy.textContent="Copiar";copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.text);info("Texto copiado")}catch{info("No se pudo copiar")}};actions.append(copy);if(m.role==="user"){const edit=document.createElement("button");edit.className="toolbtn";edit.textContent="Editar";edit.onclick=()=>{$("prompt").value=m.text;grow();$("prompt").focus()};actions.append(edit)}else{const regen=document.createElement("button");regen.className="toolbtn";regen.textContent="Regenerar";regen.onclick=()=>{const c=active();const i=c?.messages.indexOf(m);const prev=c?.messages.slice(0,i).reverse().find(v=>v.role==="user");if(prev)sendMessage(prev.text)};actions.append(regen)}b.append(actions)}wrap.append(b);$("messages").append(wrap);$("messages").scrollTop=$("messages").scrollHeight;return wrap}
 function messagesRender(){const box=$("messages");box.replaceChildren();const c=active();if(!c||!c.messages.length)box.append(welcome());else for(const m of c.messages)bubble(m)}
-function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"KAIRÓS IA":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").children)b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
+function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"COMTROL 360":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").children)b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
 function heading(root,id){const k=document.createElement("div");k.className="eyebrow";k.textContent="SJM HUMAN PERFORMANCE 360";const h=document.createElement("h1");h.textContent=infos[id][0];const p=document.createElement("p");p.className="intro";p.textContent=infos[id][1];root.append(k,h,p)}
 function tile(grid,title,description,status,action,handler){const c=document.createElement("article");c.className="tile";const h=document.createElement("h3");h.textContent=title;const tag=document.createElement("span");tag.className="pill "+(status==="Confirmado"?"ok":status==="Bloqueado"?"bad":status==="Requiere mi intervención"?"human":"");tag.textContent=preview?"Vista previa":status;const p=document.createElement("p");p.textContent=description;c.append(h,tag,p);if(action){const b=document.createElement("button");b.textContent=action;b.onclick=handler;c.append(b)}grid.append(c)}
 function askAbout(q){show("chat");$("prompt").value=q;grow();$("prompt").focus();info("Consulta preparada. Pulsa enviar para solicitar registros reales.")}
 function moduleRender(id){const root=$("moduleBody");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
 const grid=document.createElement("div");grid.className="tile-grid";root.append(grid);
-if(id==="templates"){renderTemplates(root,grid)}else if(id==="control"){tile(grid,"Puente del cerebro","Conectado a la función protegida del Mentor. El estado se comprueba con autorización.",authorized?"Confirmado":"En proceso","Comprobar",checkStatus);tile(grid,"Estado operativo real","Consulta autorizada a la base existente: memoria operativa, navegador, Motorola y resumen de expedientes. Solo lectura.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Informe del día","Consulta del día; el filtro exacto desde las 00:00 todavía no está certificado por el servicio.","En proceso","Consultar",()=>askAbout("KAIRÓS, dame un reporte del día y separa hechos comprobados"));tile(grid,"Informe general","Resumen disponible en el Mentor, no auditoría histórica total garantizada.","En proceso","Consultar",()=>askAbout("KAIRÓS, dame un reporte general de CONTROL 360"));tile(grid,"Ejecuciones externas","No se ejecutan postulaciones, pagos ni navegación desde el cerebro de esta pantalla.","Bloqueado",null,null)}
-else if(id==="radars"){for(const [name,q] of regions)tile(grid,name,"Registros regionales por verificar. Una consulta no significa postulación enviada.","En proceso","Consultar región",()=>askAbout("KAIRÓS, dame un reporte de "+q+" con evidencia"))}
-else if(id==="applications"){tile(grid,"Etapas y comprobantes","Consulta ≠ postulación ≠ acuse ≠ respuesta ≠ entrevista ≠ aprobación ≠ contratación.","En proceso","Consultar",()=>askAbout("KAIRÓS, revisa mis postulaciones y los comprobantes"));tile(grid,"Pendientes personales","CAPTCHA, identidad, autorización y otras decisiones requieren intervención humana.","Requiere mi intervención","Consultar",()=>askAbout("KAIRÓS, qué postulaciones requieren intervención"));tile(grid,"Pruebas de envíos","No convertir consultas o búsquedas en candidaturas exitosas.","En proceso","Consultar",()=>askAbout("KAIRÓS, qué resultados de postulaciones están confirmados"))}
+if(id==="templates"){renderTemplates(root,grid)}else if(id==="control"){tile(grid,"Puente del cerebro","Conectado a la función protegida del Mentor. El estado se comprueba con autorización.",authorized?"Confirmado":"En proceso","Comprobar",checkStatus);tile(grid,"Estado operativo real","Consulta autorizada a la base existente: memoria operativa, navegador, Motorola y resumen de expedientes. Solo lectura.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Informe del día","Consulta del día; el filtro exacto desde las 00:00 todavía no está certificado por el servicio.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte del día y separa hechos comprobados"));tile(grid,"Informe general","Resumen disponible en el Mentor, no auditoría histórica total garantizada.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte general de CONTROL 360"));tile(grid,"Ejecuciones externas","No se ejecutan postulaciones, pagos ni navegación desde el cerebro de esta pantalla.","Bloqueado",null,null)}
+else if(id==="radars"){for(const [name,q] of regions)tile(grid,name,"Registros regionales por verificar. Una consulta no significa postulación enviada.","En proceso","Consultar región",()=>askAbout("COMTROL 360, dame un reporte de "+q+" con evidencia"))}
+else if(id==="applications"){tile(grid,"Etapas y comprobantes","Consulta ≠ postulación ≠ acuse ≠ respuesta ≠ entrevista ≠ aprobación ≠ contratación.","En proceso","Consultar",()=>askAbout("COMTROL 360, revisa mis postulaciones y los comprobantes"));tile(grid,"Pendientes personales","CAPTCHA, identidad, autorización y otras decisiones requieren intervención humana.","Requiere mi intervención","Consultar",()=>askAbout("COMTROL 360, qué postulaciones requieren intervención"));tile(grid,"Pruebas de envíos","No convertir consultas o búsquedas en candidaturas exitosas.","En proceso","Consultar",()=>askAbout("COMTROL 360, qué resultados de postulaciones están confirmados"))}
 else if(id==="projects"){renderPortfolio(root,grid)}
-else if(id==="executor"){tile(grid,"Render · Ejecutor web","Servicio existente: sjm-playwright-executor. Esta pantalla no despacha acciones.","En proceso","Consultar fallas",()=>askAbout("KAIRÓS, qué fallas hay en el ejecutor web"));tile(grid,"Comprobantes","El registro debe distinguir intento, respuesta del sitio y acción final.","En proceso","Consultar",()=>askAbout("KAIRÓS, qué ejecuciones tienen evidencia comprobada"));tile(grid,"Navegación autónoma desde chat","Requiere conexión autorizada y comprobación de permisos antes de habilitarse.","Bloqueado",null,null)}
+else if(id==="executor"){tile(grid,"Render · Ejecutor web","Servicio existente: sjm-playwright-executor. Esta pantalla no despacha acciones.","En proceso","Consultar fallas",()=>askAbout("COMTROL 360, qué fallas hay en el ejecutor web"));tile(grid,"Comprobantes","El registro debe distinguir intento, respuesta del sitio y acción final.","En proceso","Consultar",()=>askAbout("COMTROL 360, qué ejecuciones tienen evidencia comprobada"));tile(grid,"Navegación autónoma desde chat","Requiere conexión autorizada y comprobación de permisos antes de habilitarse.","Bloqueado",null,null)}
 else if(id==="motorola"){tile(grid,"Teléfono real","Debe verificarse la confirmación desde Android, no solo el envío de la orden.","En proceso","Consultar estado real",()=>readLive("Estado de conexión del Motorola"));tile(grid,"MacroDroid","Permisos, notificaciones y recepción necesitan pruebas reales.","En proceso",null,null);tile(grid,"Voz masculina premium","Pendiente de enlazar el motor de voz natural; por ahora se usa la voz disponible de Android.","Bloqueado",null,null)}
 else if(id==="automation"){tile(grid,"Orquestación","Se requiere lectura de eventos de ejecución para confirmar cada tarea.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Acciones de escritura","El cerebro no modifica expedientes ni envía solicitudes desde aquí.","Bloqueado",null,null)}
 else if(id==="files"){renderFilesModule(root,grid)}
 else if(id==="memory"){tile(grid,"Historial del navegador","Se conserva en este dispositivo, no sincronizado con la memoria central.","Confirmado","Ver historial",()=>show("chat"));tile(grid,"Memoria del cerebro","No conectada para consultar ni actualizar desde este frontend.","Bloqueado",null,null);tile(grid,"Borrar historial local","Solo borra conversaciones guardadas por esta interfaz, no datos de Supabase.","En proceso","Borrar",()=>{if(confirm("¿Borrar el historial local de esta cuenta en este navegador?")){chats=[];current=null;save();historyRender();show("chat");messagesRender();info("Historial local borrado")}})}
-else if(id==="audit"){tile(grid,"Prueba de conexión","Comprueba en vivo autorización y estado del servicio de cerebro.","En proceso","Probar",checkStatus);tile(grid,"Consulta técnica verificada","Lectura limitada a la cuenta SJM usando una función existente, sin modificar tareas.","En proceso","Consultar",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Errores y fallas","Sin evidencia de reparación no se registra como resuelto.","En proceso","Consultar",()=>askAbout("KAIRÓS, cuáles fallas están pendientes"));tile(grid,"Autonomía integral","No certificada sin una prueba completa en el Motorola.","Bloqueado",null,null)}
+else if(id==="audit"){tile(grid,"Prueba de conexión","Comprueba en vivo autorización y estado del servicio de cerebro.","En proceso","Probar",checkStatus);tile(grid,"Consulta técnica verificada","Lectura limitada a la cuenta SJM usando una función existente, sin modificar tareas.","En proceso","Consultar",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Errores y fallas","Sin evidencia de reparación no se registra como resuelto.","En proceso","Consultar",()=>askAbout("COMTROL 360, cuáles fallas están pendientes"));tile(grid,"Autonomía integral","No certificada sin una prueba completa en el Motorola.","Bloqueado",null,null)}
 else if(id==="settings"){tile(grid,"Sesión","Supabase verifica la cuenta y el Mentor controla el acceso a la información.","Confirmado","Cerrar sesión",logout);tile(grid,"Voz","Dictado y lectura del navegador con los permisos de Android.","En proceso","Ir a conversación",()=>show("chat"));tile(grid,"Archivos privados","En vista previa solo se seleccionan archivos. Con sesión autorizada puedes subirlos explícitamente a almacenamiento privado; el Mentor no los analiza automáticamente.","En proceso","Mis archivos",()=>show("files"))}
 const notice=document.createElement("div");notice.className="disclaimer";notice.textContent="Confirmado = evidencia verificada. En proceso = trabajo sin finalización acreditada. Requiere mi intervención = acción personal. Bloqueado = impedimento. Estos estados corresponden a la integración de esta pantalla, no a postulaciones aprobadas.";root.append(notice)}
 function renderPortfolio(root,grid){
@@ -430,7 +558,7 @@ function renderProjectDetail(id){
   for(const it of items){const li=document.createElement("li");li.textContent=it;ul.append(li)}card.append(h,ul);lanes.append(card)
  }
  const actions=document.createElement("div");actions.className="project-detail-actions";
- const ask=document.createElement("button");ask.textContent="Consultar este proyecto a KAIRÓS";ask.onclick=()=>askAbout("KAIRÓS, dame el estado real y los siguientes pasos de "+project.name+"; distingue comprobados y pendientes.");const pin=document.createElement("button");pin.type="button";pin.className="pin-project";pin.dataset.pinProject=id;pin.onclick=()=>togglePin(id);
+ const ask=document.createElement("button");ask.textContent="Consultar este proyecto a KAIRÓS";ask.onclick=()=>askAbout("COMTROL 360, dame el estado real y los siguientes pasos de "+project.name+"; distingue comprobados y pendientes.");const pin=document.createElement("button");pin.type="button";pin.className="pin-project";pin.dataset.pinProject=id;pin.onclick=()=>togglePin(id);
  const note=document.createElement("div");note.className="project-note-local";const lab=document.createElement("label");lab.textContent="Mis notas en este dispositivo (no sincronizadas)";lab.htmlFor="projectMemo";const ta=document.createElement("textarea");ta.id="projectMemo";ta.rows=4;ta.maxLength=1500;ta.value=String(getNotes()[id]||"");ta.placeholder="Escribe pendientes o decisiones que quieras conservar aquí…";
  const save=document.createElement("button");save.textContent="Guardar nota local";save.onclick=()=>saveProjectNote(id,ta.value);note.append(lab,ta,save);
  const caveat=document.createElement("p");caveat.className="portfolio-note";caveat.textContent="Ficha de trabajo precargada. No indica que un prototipo esté terminado ni que un apoyo haya sido aprobado. Los datos operativos necesitan autorización del servidor.";
