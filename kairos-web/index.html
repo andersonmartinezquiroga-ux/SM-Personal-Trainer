@@ -109,6 +109,84 @@ header{height:69px;background:#f9fcffec}
  .project-lead{font-size:16px}
 }
 @media(max-width:370px){.suggestions{grid-template-columns:1fr}.status{font-size:10px}.bubble{font-size:16px}}
+
+/* KAIRÓS 360 · chat-first workspace v1.2 */
+#layout{grid-template-columns:280px minmax(0,1fr)}
+aside{background:linear-gradient(170deg,#0e2640,#0e3655 70%,#134769);box-shadow:none}
+.side-top{padding-top:12px}
+.side-top #newChat{font-weight:730;border:1px solid #ffffff32;background:#ffffff10}
+.nav-item{min-height:43px}
+main{background:#f9fbfd}
+.main-header{height:65px;padding:0 20px;gap:12px;background:#ffffffeb;border-bottom:1px solid #e4edf5;position:relative;z-index:12}
+.headtitle{flex:1;max-width:none}.headtitle b{font-size:14px;font-weight:680;color:#627b8c}.headtitle small{font-size:11px}
+.top-workspace,.top-more{position:relative;flex:none}
+.top-workspace-trigger{display:flex;align-items:center;gap:9px;border:0;background:transparent;border-radius:12px;padding:10px 11px;color:#123e60;font-size:17px;min-height:44px}
+.top-workspace-trigger:hover,.top-more .icon-btn:hover{background:#eaf3fa}
+.top-workspace-trigger span{font-size:18px;color:#6e8799}
+.pop-menu{position:absolute;z-index:60;top:calc(100% + 8px);left:0;width:245px;max-width:calc(100vw - 24px);padding:7px;border:1px solid #d4e4ef;background:#fff;box-shadow:0 18px 45px #153a5960;border-radius:16px;display:flex;flex-direction:column;gap:2px}
+.pop-menu button{border:0;background:transparent;text-align:left;min-height:44px;padding:11px 12px;color:#284e69;font-size:14px;border-radius:10px}
+.pop-menu button:hover{background:#eef6fb}
+.more-menu{left:auto;right:0;width:245px}
+#chat{background:linear-gradient(180deg,#fcfeff,#f8fbfd 70%)}
+#messages{padding:22px max(20px,calc((100vw - 1080px)/2))}
+.welcome{padding-bottom:24px}
+.welcome h1{font-size:clamp(27px,4vw,38px)}
+.welcome .hero{width:71px;height:71px;font-size:37px;border-radius:22px;margin-bottom:18px}
+.suggestion{min-height:75px;background:#fff;box-shadow:none;border-color:#dfeaf2}
+.composer-area{background:linear-gradient(0deg,#f9fbfd 78%,transparent);padding-top:7px}
+.composer-inner{max-width:820px}
+.composer-anchor{position:relative}
+.composer{padding:7px;border-radius:26px;border-color:#c4d6e4;box-shadow:0 4px 14px #17354d11}
+.composer textarea{min-height:47px;padding:11px 4px}
+.composer .round{background:#f0f5f8;border-radius:100px;color:#376682}
+.composer .round.primary{background:#185e96;color:#fff}
+.attach-pop{position:absolute;bottom:calc(100% + 11px);left:1px;background:#fff;border:1px solid #d5e2ed;box-shadow:0 18px 48px #1641603b;border-radius:18px;z-index:25;min-width:285px;max-width:min(355px,calc(100vw - 25px));padding:7px;display:flex;flex-direction:column;gap:2px}
+.attach-pop button{display:flex;align-items:center;gap:12px;border:0;border-radius:11px;background:transparent;color:#27516c;min-height:61px;text-align:left;padding:9px 11px}
+.attach-pop button:hover{background:#eaf4fb}.attach-pop button>span:first-child{width:35px;height:35px;flex:none;display:grid;place-items:center;background:#e9f3fa;border-radius:10px;font-size:21px;color:#1d699c}
+.attach-pop button strong{display:block;font-weight:750;font-size:14px}
+.attach-pop button small{display:block;color:#6e8798;font-size:12px;margin-top:3px}
+.attachment-list{max-height:195px;overflow-y:auto;padding:10px 12px;margin-bottom:9px;border:1px solid #d4e4ee;border-radius:15px;background:#fff;box-shadow:0 3px 11px #1438500a}
+.attached-title{font-size:12px;color:#536f81;margin-bottom:7px;font-weight:670}
+.attached-item{display:flex;gap:9px;align-items:center;padding:5px 0;border-bottom:1px solid #edf1f6}
+.attached-icon{flex:none;width:31px;height:31px;background:#e8f2f9;border-radius:8px;display:grid;place-items:center;color:#16547f}
+.attached-info{min-width:0;flex:1}.attached-info strong,.attached-info small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.attached-info strong{font-size:13px}.attached-info small{font-size:11px;color:#6a8495}
+.attached-item>button{width:30px;height:30px;border:0;border-radius:9px;background:#f0f5f9;color:#4e718d;font-size:20px}
+.attached-actions{display:flex;gap:7px;margin-top:10px}.attached-actions button{border:1px solid #c2d8e6;background:#f0f7fc;color:#245c82;padding:8px 10px;font-size:12px;border-radius:9px;font-weight:750}
+.attached-actions .attached-save{background:#145b8e;color:white;border-color:#145b8e}
+.attached-help{font-size:11px;color:#5a7184;display:block;margin-top:8px;line-height:1.5}
+.files-module{display:block}
+.files-buttons{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.files-buttons button{background:#176493;color:#fff;border:0;border-radius:10px;padding:12px 15px;min-height:44px;font-size:14px}
+.file-list-heading{font-size:20px;color:#154968;margin:30px 0 12px}
+.saved-file-list{background:#fff;border:1px solid #d4e4ee;border-radius:14px;padding:15px;color:#506c81;line-height:1.55}
+.file-list-entry{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #ecf1f6;padding:12px 0}
+.file-list-entry:last-child{border:0}.file-list-entry>span{min-width:0;overflow-wrap:anywhere;font-size:13px;color:#345c76}
+.file-list-entry>div{display:flex;flex:none;gap:6px}.file-list-entry button{border:0;background:#e8f3fa;color:#135982;border-radius:8px;padding:8px 10px;font-size:12px}
+@media(max-width:800px){
+ #layout{display:block}
+ .main-header{height:62px;padding:0 8px;gap:3px}
+ .top-workspace-trigger{padding:9px 5px;font-size:15px;gap:6px}
+ .headtitle{display:none}
+ .status{margin-left:auto;max-width:35%;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+ .main-header .icon-btn{width:38px;min-width:38px}
+ .pop-menu{top:calc(100% + 5px)}
+ #messages{padding:17px 11px;gap:16px}
+ .message{gap:8px}
+ .bubble{font-size:16.5px;line-height:1.68;padding:14px 16px}
+ .composer-area{padding:6px 8px max(13px,env(safe-area-inset-bottom))}
+ .composer{padding:6px 5px;gap:4px;border-radius:23px}
+ .composer textarea{font-size:16px;padding:11px 1px}
+ .composer .round{height:41px;min-width:41px}
+ .attach-pop{left:0;bottom:calc(100% + 8px)}
+ .composer-foot{font-size:10px}
+ .welcome .hero{height:65px;width:65px;margin-bottom:15px}
+ .welcome h1{font-size:28px}
+ .welcome p{font-size:14px}
+ .suggestions{gap:9px}
+ .suggestion{min-height:78px}
+ .file-list-entry{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:360px){.top-workspace-trigger{font-size:14px}.status{max-width:31%}.composer .round{min-width:37px;width:37px;height:38px}}
 </style>
 </head>
 <body>
@@ -129,28 +207,73 @@ header{height:69px;background:#f9fcffec}
 <div id="overlay"></div>
 <div id="layout" class="hidden">
 <aside><div class="brand"><div class="mark">K</div><div><strong>KAIRÓS 360</strong><small>SJM CONTROL 360</small></div></div>
-<div class="side-top"><button id="newChat">＋ Nueva conversación</button><input class="search" id="search" placeholder="Buscar conversaciones…" aria-label="Buscar en historial"></div>
+<div class="side-top"><button id="newChat">＋ Nueva conversación</button><input class="search" id="search" placeholder="⌕ Buscar chats y mensajes…" aria-label="Buscar en historial"></div>
 <div class="side-scroll"><div class="section-label">ESPACIOS DE TRABAJO</div><nav id="nav"></nav><div class="project-side-title"><span class="section-label">MIS PROYECTOS · <span id="projectCount">14</span></span><button id="toggleProjects" type="button" aria-label="Mostrar u ocultar lista de proyectos" aria-expanded="true">−</button></div><div id="projectShortcuts"></div><div class="section-label">CONVERSACIONES RECIENTES</div><div id="history"></div></div>
 <div class="side-footer"><strong id="connection">Conexión no verificada</strong><span>KAIRÓS 360 · Portafolio SJM · v1.1</span></div></aside>
-<main><header><button class="icon-btn" id="menu" aria-label="Abrir menú">☰</button><div class="headtitle"><b id="pageTitle">KAIRÓS IA</b><small id="pageSub">Conversación privada y supervisión</small></div><span id="status" class="status">Verificando</span><button class="icon-btn hide-mobile" id="refresh" aria-label="Revisar conexión">↻</button></header>
+<main><header class="main-header">
+<button class="icon-btn" id="menu" type="button" aria-label="Abrir y cerrar menú lateral" aria-expanded="false">☰</button>
+<div class="top-workspace"><button id="topWorkspace" class="top-workspace-trigger" type="button" aria-haspopup="true" aria-expanded="false"><b>KAIRÓS 360</b><span>⌄</span></button>
+<div class="pop-menu hidden" id="workspacePanel" role="menu">
+<button type="button" data-topview="chat">◈ &nbsp; Conversación</button>
+<button type="button" data-topview="projects">▦ &nbsp; Mis proyectos</button>
+<button type="button" data-topview="control">▤ &nbsp; CONTROL 360</button>
+<button type="button" data-topview="files">▧ &nbsp; Mis archivos</button>
+<button type="button" data-topview="radars">◎ &nbsp; Radares mundiales</button>
+</div></div>
+<div class="headtitle"><b id="pageTitle">KAIRÓS IA</b><small id="pageSub">Conversación privada y supervisión</small></div>
+<span id="status" class="status">Verificando</span><button class="icon-btn hide-mobile" id="refresh" aria-label="Revisar conexión">↻</button>
+<div class="top-more"><button class="icon-btn" id="topMore" type="button" aria-label="Más opciones" aria-expanded="false">⋯</button>
+<div class="pop-menu more-menu hidden" id="morePanel" role="menu">
+<button type="button" id="menuNewChat">＋ &nbsp; Nueva conversación</button>
+<button type="button" id="menuExport">⇩ &nbsp; Exportar conversación .txt</button>
+<button type="button" id="menuCopy">▢ &nbsp; Copiar última respuesta</button>
+<button type="button" id="menuSpeak">◖ &nbsp; Escuchar respuesta</button>
+<button type="button" id="menuFiles">▧ &nbsp; Mis archivos</button>
+<button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
+</div></div>
+</header>
 <section id="chat"><div id="previewBanner" class="hidden" role="status" style="padding:11px 16px;background:#203c60;color:#e3effc;border-bottom:1px solid #729ac0;font-size:13px"><b>VISTA PREVIA:</b> interfaz navegable, pero sin acceso a Supabase, IA ni acciones reales. Los resultados privados permanecen protegidos.</div><div id="messages"></div>
-<div class="composer-area"><div class="composer-inner"><div id="attachment" class="attachment hidden"></div>
-<form id="form" class="composer"><input id="file" type="file" accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,image/*" class="hidden"><button id="attach" type="button" class="round" title="Adjuntar archivo" aria-label="Adjuntar archivo">＋</button><textarea id="prompt" rows="1" maxlength="700" placeholder="Escribe a KAIRÓS…" aria-label="Mensaje a KAIRÓS"></textarea><button id="mic" type="button" class="round" aria-label="Dictar">♬</button><button id="speak" type="button" class="round" aria-label="Escuchar última respuesta">◖))</button><button id="send" type="submit" class="round primary" aria-label="Enviar">↑</button></form>
-<div class="composer-foot"><span id="mode">Mentor guiado · sin ejecuciones externas</span><span>Archivos sin envío · Voz Android</span></div></div></div></section>
+<div class="composer-area"><div class="composer-inner">
+<div id="attachment" class="attachment-list hidden" aria-live="polite"></div>
+<div class="composer-anchor">
+<div class="attach-pop hidden" id="attachPanel" role="menu">
+<button type="button" id="chooseFiles"><span>▧</span><span><strong>Archivos</strong><small>PDF, Word, Excel, ZIP, TXT y más</small></span></button>
+<button type="button" id="choosePhotos"><span>▧</span><span><strong>Fotos y galería</strong><small>Imágenes del teléfono</small></span></button>
+<button type="button" id="chooseCamera"><span>◉</span><span><strong>Tomar foto</strong><small>Abrir la cámara</small></span></button>
+<button type="button" id="chooseLibrary"><span>▦</span><span><strong>Mis archivos guardados</strong><small>Biblioteca privada</small></span></button>
+</div>
+<form id="form" class="composer">
+<input id="file" type="file" multiple class="hidden" aria-label="Elegir archivos del dispositivo">
+<input id="photos" type="file" multiple accept="image/*" class="hidden" aria-label="Elegir fotografías">
+<input id="camera" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Tomar fotografía">
+<button id="attach" type="button" class="round attachment-trigger" aria-label="Agregar archivo o foto" aria-expanded="false">＋</button>
+<textarea id="prompt" rows="1" maxlength="700" placeholder="Pregunta lo que necesites…" aria-label="Mensaje a KAIRÓS"></textarea>
+<button id="mic" type="button" class="round" aria-label="Dictar mensaje">♬</button>
+<button id="send" type="submit" class="round primary" aria-label="Enviar mensaje">↑</button>
+</form></div>
+<div class="composer-foot"><span id="mode">Mentor guiado · sin ejecuciones externas</span><span id="attachmentHelp">＋ Archivos, fotos o cámara</span></div>
+</div></div></section>
 <section id="module" class="hidden"><div class="module-inner" id="moduleBody"></div></section></main></div>
 <div id="toast" class="hidden" role="status"></div>
 <script type="module">
 const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQQ1JBHfDRRKut-trg_V-2isCjX",ENDPOINT=BASE+"/functions/v1/sjm_brain_hybrid_v1";
 const $=id=>document.getElementById(id);
-const menu=[["chat","KAIRÓS IA","◈"],["control","CONTROL 360","▤"],["projects","Mis proyectos","◧"],["radars","Seis radares mundiales","◎"],["applications","Postulaciones","▣"],["executor","Ejecutor web","⌘"],["motorola","Motorola Android","▯"],["automation","Automatizaciones","◷"],["memory","Memoria","▦"],["audit","Auditoría","◇"],["settings","Configuración","⚙"]];
-const infos={control:["CONTROL 360","Operaciones, verificación y trazabilidad de actividades."],projects:["Mis proyectos","Desarrollo técnico y búsqueda de apoyos, tratados como líneas distintas."],radars:["Seis radares mundiales","Consulta cada región sin mezclar expedientes."],applications:["Postulaciones","Consulta no significa envío; envío no significa respuesta o aprobación."],executor:["Ejecutor web","Estado del servidor y registro de pruebas. Acciones externas requieren un ejecutor autorizado."],motorola:["Motorola Android","Control y notificaciones con permisos del teléfono y acuses verificables."],automation:["Automatizaciones","Ejecuciones, programación, supervisión y fallos."],memory:["Memoria","Historial de este navegador y memoria central son dos cosas diferentes."],audit:["Auditoría","Evidencia real de solicitudes, fallas, correcciones y pruebas."],settings:["Configuración","Voz, permisos, conexiones y privacidad."]};
+const menu=[["chat","KAIRÓS IA","◈"],["control","CONTROL 360","▤"],["projects","Mis proyectos","◧"],["radars","Seis radares mundiales","◎"],["applications","Postulaciones","▣"],["executor","Ejecutor web","⌘"],["motorola","Motorola Android","▯"],["automation","Automatizaciones","◷"],["memory","Memoria","▦"],["files","Mis archivos","▧"],["audit","Auditoría","◇"],["settings","Configuración","⚙"]];
+const infos={control:["CONTROL 360","Operaciones, verificación y trazabilidad de actividades."],projects:["Mis proyectos","Desarrollo técnico y búsqueda de apoyos, tratados como líneas distintas."],radars:["Seis radares mundiales","Consulta cada región sin mezclar expedientes."],applications:["Postulaciones","Consulta no significa envío; envío no significa respuesta o aprobación."],executor:["Ejecutor web","Estado del servidor y registro de pruebas. Acciones externas requieren un ejecutor autorizado."],motorola:["Motorola Android","Control y notificaciones con permisos del teléfono y acuses verificables."],automation:["Automatizaciones","Ejecuciones, programación, supervisión y fallos."],memory:["Memoria","Historial de este navegador y memoria central son dos cosas diferentes."],files:["Mis archivos","Documentos, fotografías y archivos privados de la cuenta SJM."],audit:["Auditoría","Evidencia real de solicitudes, fallas, correcciones y pruebas."],settings:["Configuración","Voz, permisos, conexiones y privacidad."]};
 const regions=[["1 · Latinoamérica y Caribe","Radar 1 Latinoamérica y Caribe"],["2 · Estados Unidos y Canadá","Radar 2 Estados Unidos y Canadá"],["3 · Europa ampliada","Radar 3 Europa"],["4 · Oriente Medio y Norte de África","Radar 4 Oriente Medio y Norte de África"],["5 · Asia y Oceanía","Radar 5 Asia y Oceanía"],["6 · África subsahariana","Radar 6 África subsahariana"]];
-let sb,session=null,authorized=false,preview=false,checking=false,busy=false,view="chat",chats=[],current=null,lastAnswer="",toastTimer,recognizing=false;
+let sb,session=null,authorized=false,preview=false,checking=false,busy=false,view="chat",chats=[],current=null,lastAnswer="",toastTimer,recognizing=false,attachments=[],uploading=false;
 const projectCatalog=[{"id":"control","name":"KAIRÓS 360 · SJM CONTROL 360","group":"Central","icon":"◈","desc":"Cerebro IA, orquestación, ejecutor web, supervisión y verificación de autonomía.","dev":["Cerebro híbrido y Mentor con consultas protegidas","Control Android y avisos en Motorola","Orquestación, auditoría, permisos y pruebas integrales"],"support":["Infraestructura gratuita y continuidad","Alianzas técnicas para ejecución y voz","Validación de funcionamiento en el dispositivo real"]},{"id":"performance","name":"SJM Human Performance 360","group":"Principal","icon":"◉","desc":"Plataforma integral de entrenamiento, evaluación del movimiento y seguimiento.","dev":["Motion 360: cámara, IA y sensores IMU","Performance 360, Nutrition Pro y biblioteca de ejercicios","Visualización 3D, pruebas de campo y prototipos"],"support":["Financiación no reembolsable y concursos","Donación definitiva de computador y componentes","Alianzas deportivas, tecnológicas y pilotos"]},{"id":"translator","name":"SJM Universal Translator","group":"Principal","icon":"◎","desc":"Traducción bidireccional con accesibilidad y dispositivos portátiles.","dev":["Aplicación móvil con voz y subtítulos","Auricular privado y módulo de solapa","Pruebas de latencia y accesibilidad"],"support":["Convocatorias de innovación y accesibilidad","Socios de hardware y pruebas piloto","Alianzas internacionales"]},{"id":"prayer","name":"Mi Casa de Oración","group":"Principal","icon":"✦","desc":"Templo virtual con espacios de oración, adoración, predicación y lectura.","dev":["Templo virtual 3D luminoso","Servidor virtual y espacios de encuentro","Oración, adoración, predicación y Biblia"],"support":["Alianzas ministeriales","Apoyo para infraestructura y producción","Difusión y colaboración internacional"]},{"id":"bible","name":"Mi Biblia Viva","group":"Ministerial","icon":"✧","desc":"Lectura y escucha bíblica móvil en español, con experiencia accesible.","dev":["Experiencia de lectura del Nuevo Testamento","Narración natural en español y continuidad diaria","Versión Android funcional y verificada"],"support":["Apoyo para voces y producción de audio","Pruebas de usabilidad","Distribución gratuita y alianzas"]},{"id":"mentor","name":"SJM Mentor IA · Secretario 360","group":"Central","icon":"◇","desc":"Asistente conversacional con memoria, seguimiento, voz y avisos útiles.","dev":["Conversación en español y recuperación de contexto","Memoria y comandos con permisos","Voz natural, reportes y avisos"],"support":["Motor de voz y recursos sin pagos obligatorios","Pruebas reales de integración","Integración técnica con CONTROL 360"]},{"id":"complex","name":"SJM Human Performance Complex","group":"Expansión","icon":"▦","desc":"Visión futura de un centro físico de rendimiento, tecnología y bienestar.","dev":["Diseño de espacios y servicios deportivos","Laboratorio de evaluación y biomecánica","Modelo por fases para una sede física"],"support":["Aliados de infraestructura y equipamiento","Patrocinio y financiación","Convenios con centros deportivos"]},{"id":"services","name":"SJM Servicios Autónomos Globales","group":"Servicios","icon":"◫","desc":"Servicios digitales con apoyo de IA y operaciones auditables.","dev":["Catálogo de servicios y entrega digital","Automatización supervisada de operaciones","Registro de evidencias y calidad"],"support":["Clientes y alianzas B2B","Herramientas gratuitas y soporte técnico","Pruebas comerciales sin inversión inicial"]},{"id":"work","name":"SJM Work Autónomo","group":"Servicios","icon":"⌘","desc":"Flujos de trabajo asistidos por agentes, tareas y expedientes sin duplicados.","dev":["Bandejas, reintentos y trazabilidad","Aislamiento de casos y control de permisos","Pruebas técnicas y despliegue progresivo"],"support":["Proveedores y recursos para pruebas","Alianzas de implementación","Casos reales remunerados"]},{"id":"income","name":"SJM Ingresos Digitales Automatizados","group":"Servicios","icon":"◈","desc":"Oportunidades de ingresos digitales legítimos y seguimiento comercial.","dev":["Clasificación de oportunidades viables","Preparación de propuestas y entregables","Seguimiento sin confundir búsqueda con contratación"],"support":["Clientes remotos y ventas B2B","Colaboraciones verificadas","Modelos sin pagos de inscripción"]},{"id":"lab7","name":"SJM Laboratorio 7 · Agencia Mundial","group":"Servicios","icon":"◴","desc":"Investigación de negocios digitales, mercados y experimentos comerciales.","dev":["Análisis de demanda, competencia y precios","Pruebas de prototipos y propuestas","Evaluación de riesgos y viabilidad"],"support":["Compradores y socios de ejecución","Validación comercial internacional","Infraestructura de bajo costo"]},{"id":"motion","name":"SJM Motion AI Studio","group":"Tecnología","icon":"◉","desc":"Herramientas visuales, análisis de movimiento y creación de recursos 3D.","dev":["Escenas y ejercicios 3D","Puntos articulares, ángulos y animaciones","Integración con evaluación de movimiento"],"support":["Recursos gráficos y computación","Pruebas con dispositivos disponibles","Colaboración en animación y biomecánica"]},{"id":"marketing","name":"SJM Marketing 360","group":"Servicios","icon":"✳","desc":"Identidad SJM, comunicación comercial y contenidos de proyectos.","dev":["Mensajes y materiales por proyecto","Portafolio comercial y difusión","Procesos de contenido verificables"],"support":["Alianzas de difusión y ventas","Canales orgánicos sin inversión obligatoria","Colaboración de marca"]},{"id":"academy","name":"SJM English Academy","group":"Expansión","icon":"◌","desc":"Idea educativa del ecosistema SJM, pendiente de definir y validar en detalle.","dev":["Definir alcance educativo y contenidos","Diseñar experiencia didáctica","Validar necesidad y prototipo"],"support":["Recursos gratuitos","Alianzas educativas","Pruebas de interés"]}];
 let projectFilter="Todos",projectQuery="";
 function info(t){$("toast").textContent=t;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),5800)}
 function authInfo(t){$("authInfo").textContent=t}
-function closeDrawer(){document.body.classList.remove("drawer")}
+function closeDrawer(){document.body.classList.remove("drawer");$("menu")?.setAttribute("aria-expanded","false")}
+function closePanels(){for(const id of ["workspacePanel","morePanel","attachPanel"])$(id)?.classList.add("hidden");for(const id of ["topWorkspace","topMore","attach"])$(id)?.setAttribute("aria-expanded","false")}
+function togglePanel(id,trigger){const was=$(id).classList.contains("hidden");closePanels();if(was){$(id).classList.remove("hidden");$(trigger).setAttribute("aria-expanded","true")}}
+function openFilePicker(id){closePanels();$(id).click()}
+function downloadText(name,text){const blob=new Blob([text],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
+function exportConversation(){const chat=active();if(!chat){info("Aún no hay conversación para exportar");return}const rows=chat.messages.map(m=>(m.role==="user"?"Tú":"KAIRÓS")+":\n"+String(m.text||"")).join("\n\n");downloadText("KAIRÓS-conversacion-"+new Date().toISOString().slice(0,10)+".txt",chat.title+"\n\n"+rows);info("Conversación exportada desde este navegador")}
+async function copyLast(){if(!lastAnswer){info("Todavía no hay respuesta para copiar");return}try{await navigator.clipboard.writeText(lastAnswer);info("Última respuesta copiada")}catch{info("El navegador no permitió copiar")}}
+
 function navBuild(){for(const [id,title,sym] of menu){const b=document.createElement("button");b.className="nav-item";b.dataset.view=id;const s=document.createElement("span");s.textContent=sym;const t=document.createTextNode(title);b.append(s,t);b.onclick=()=>show(id);$("nav").append(b)}sidebarProjects()}
 function sidebarProjects(){const root=$("projectShortcuts");root.replaceChildren();for(const p of projectCatalog){const b=document.createElement("button");b.className="project-shortcut";b.type="button";const mark=document.createElement("span");mark.textContent=p.icon;const name=document.createElement("span");name.textContent=p.name;b.append(mark,name);b.title=p.name;b.onclick=()=>openProject(p.id);root.append(b)}$("projectCount").textContent=String(projectCatalog.length)}
 function openProject(id){projectQuery="";projectFilter="Todos";show("projects");renderProjectDetail(id);closeDrawer()}
@@ -169,7 +292,7 @@ function welcome(){const home=document.createElement("div");home.className="welc
 function decorate(target,value){const re=/https:\/\/[^\s<>"']+/g;let p=0;for(const m of value.matchAll(re)){target.append(document.createTextNode(value.slice(p,m.index)));try{const u=new URL(m[0]);const link=document.createElement("a");link.href=u.href;link.rel="noopener noreferrer";link.target="_blank";link.textContent=m[0];target.append(link)}catch{target.append(document.createTextNode(m[0]))}p=m.index+m[0].length}target.append(document.createTextNode(value.slice(p)))}
 function bubble(m,pending=false){const wrap=document.createElement("div");wrap.className="message "+m.role+(pending?" pending":"");if(m.role==="assistant"){const a=document.createElement("div");a.className="avatar";a.textContent="K";wrap.append(a)}const b=document.createElement("div");b.className="msg-body";const text=document.createElement("div");text.className="bubble";decorate(text,m.text);b.append(text);if(!pending){const note=document.createElement("div");note.className="note";note.textContent=m.role==="assistant"?(m.mode==="supabase_live"?"Supabase · consulta técnica de solo lectura":"Mentor protegido · respuesta de solo lectura"):"Tu consulta";b.append(note);const actions=document.createElement("div");actions.className="tools";const copy=document.createElement("button");copy.className="toolbtn";copy.textContent="Copiar";copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.text);info("Texto copiado")}catch{info("No se pudo copiar")}};actions.append(copy);if(m.role==="user"){const edit=document.createElement("button");edit.className="toolbtn";edit.textContent="Editar";edit.onclick=()=>{$("prompt").value=m.text;grow();$("prompt").focus()};actions.append(edit)}else{const regen=document.createElement("button");regen.className="toolbtn";regen.textContent="Regenerar";regen.onclick=()=>{const c=active();const i=c?.messages.indexOf(m);const prev=c?.messages.slice(0,i).reverse().find(v=>v.role==="user");if(prev)sendMessage(prev.text)};actions.append(regen)}b.append(actions)}wrap.append(b);$("messages").append(wrap);$("messages").scrollTop=$("messages").scrollHeight;return wrap}
 function messagesRender(){const box=$("messages");box.replaceChildren();const c=active();if(!c||!c.messages.length)box.append(welcome());else for(const m of c.messages)bubble(m)}
-function show(id){view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"KAIRÓS IA":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").children)b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
+function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"KAIRÓS IA":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").children)b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
 function heading(root,id){const k=document.createElement("div");k.className="eyebrow";k.textContent="SJM HUMAN PERFORMANCE 360";const h=document.createElement("h1");h.textContent=infos[id][0];const p=document.createElement("p");p.className="intro";p.textContent=infos[id][1];root.append(k,h,p)}
 function tile(grid,title,description,status,action,handler){const c=document.createElement("article");c.className="tile";const h=document.createElement("h3");h.textContent=title;const tag=document.createElement("span");tag.className="pill "+(status==="Confirmado"?"ok":status==="Bloqueado"?"bad":status==="Requiere mi intervención"?"human":"");tag.textContent=preview?"Vista previa":status;const p=document.createElement("p");p.textContent=description;c.append(h,tag,p);if(action){const b=document.createElement("button");b.textContent=action;b.onclick=handler;c.append(b)}grid.append(c)}
 function askAbout(q){show("chat");$("prompt").value=q;grow();$("prompt").focus();info("Consulta preparada. Pulsa enviar para solicitar registros reales.")}
@@ -182,9 +305,10 @@ else if(id==="projects"){renderPortfolio(root,grid)}
 else if(id==="executor"){tile(grid,"Render · Ejecutor web","Servicio existente: sjm-playwright-executor. Esta pantalla no despacha acciones.","En proceso","Consultar fallas",()=>askAbout("KAIRÓS, qué fallas hay en el ejecutor web"));tile(grid,"Comprobantes","El registro debe distinguir intento, respuesta del sitio y acción final.","En proceso","Consultar",()=>askAbout("KAIRÓS, qué ejecuciones tienen evidencia comprobada"));tile(grid,"Navegación autónoma desde chat","Requiere conexión autorizada y comprobación de permisos antes de habilitarse.","Bloqueado",null,null)}
 else if(id==="motorola"){tile(grid,"Teléfono real","Debe verificarse la confirmación desde Android, no solo el envío de la orden.","En proceso","Consultar estado real",()=>readLive("Estado de conexión del Motorola"));tile(grid,"MacroDroid","Permisos, notificaciones y recepción necesitan pruebas reales.","En proceso",null,null);tile(grid,"Voz masculina premium","Pendiente de enlazar el motor de voz natural; por ahora se usa la voz disponible de Android.","Bloqueado",null,null)}
 else if(id==="automation"){tile(grid,"Orquestación","Se requiere lectura de eventos de ejecución para confirmar cada tarea.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Acciones de escritura","El cerebro no modifica expedientes ni envía solicitudes desde aquí.","Bloqueado",null,null)}
+else if(id==="files"){renderFilesModule(root,grid)}
 else if(id==="memory"){tile(grid,"Historial del navegador","Se conserva en este dispositivo, no sincronizado con la memoria central.","Confirmado","Ver historial",()=>show("chat"));tile(grid,"Memoria del cerebro","No conectada para consultar ni actualizar desde este frontend.","Bloqueado",null,null);tile(grid,"Borrar historial local","Solo borra conversaciones guardadas por esta interfaz, no datos de Supabase.","En proceso","Borrar",()=>{if(confirm("¿Borrar el historial local de esta cuenta en este navegador?")){chats=[];current=null;save();historyRender();show("chat");messagesRender();info("Historial local borrado")}})}
 else if(id==="audit"){tile(grid,"Prueba de conexión","Comprueba en vivo autorización y estado del servicio de cerebro.","En proceso","Probar",checkStatus);tile(grid,"Consulta técnica verificada","Lectura limitada a la cuenta SJM usando una función existente, sin modificar tareas.","En proceso","Consultar",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Errores y fallas","Sin evidencia de reparación no se registra como resuelto.","En proceso","Consultar",()=>askAbout("KAIRÓS, cuáles fallas están pendientes"));tile(grid,"Autonomía integral","No certificada sin una prueba completa en el Motorola.","Bloqueado",null,null)}
-else if(id==="settings"){tile(grid,"Sesión","Supabase verifica la cuenta y el Mentor controla el acceso a la información.","Confirmado","Cerrar sesión",logout);tile(grid,"Voz","Dictado y lectura del navegador con los permisos de Android.","En proceso","Ir a conversación",()=>show("chat"));tile(grid,"Privacidad de adjuntos","Seleccionar archivos no envía nada al servidor.","Confirmado",null,null)}
+else if(id==="settings"){tile(grid,"Sesión","Supabase verifica la cuenta y el Mentor controla el acceso a la información.","Confirmado","Cerrar sesión",logout);tile(grid,"Voz","Dictado y lectura del navegador con los permisos de Android.","En proceso","Ir a conversación",()=>show("chat"));tile(grid,"Archivos privados","En vista previa solo se seleccionan archivos. Con sesión autorizada puedes subirlos explícitamente a almacenamiento privado; el Mentor no los analiza automáticamente.","En proceso","Mis archivos",()=>show("files"))}
 const notice=document.createElement("div");notice.className="disclaimer";notice.textContent="Confirmado = evidencia verificada. En proceso = trabajo sin finalización acreditada. Requiere mi intervención = acción personal. Bloqueado = impedimento. Estos estados corresponden a la integración de esta pantalla, no a postulaciones aprobadas.";root.append(notice)}
 function renderPortfolio(root,grid){
   grid.classList.add("portfolio-grid");
@@ -237,6 +361,98 @@ function renderProjectDetail(id){
  const caveat=document.createElement("p");caveat.className="portfolio-note";caveat.textContent="Ficha de trabajo precargada. No indica que un prototipo esté terminado ni que un apoyo haya sido aprobado. Los datos operativos necesitan autorización del servidor.";
  actions.append(ask);detail.append(back,eyebrow,title,desc,lanes,actions,note,caveat);detail.scrollIntoView({behavior:"auto",block:"start"});
 }
+
+const FILE_BUCKET="kairos-private-files",MAX_FILE_BYTES=15*1024*1024,MAX_ATTACHMENTS=5;
+function fileSize(bytes){return bytes<1024?bytes+" B":bytes<1024*1024?(bytes/1024).toFixed(1)+" KB":(bytes/1024/1024).toFixed(1)+" MB"}
+function selectAttachments(list){
+ closePanels();const items=Array.from(list||[]);
+ if(!items.length)return;
+ let added=0;
+ for(const file of items){
+ if(attachments.length>=MAX_ATTACHMENTS){info("Máximo cinco archivos seleccionados");break}
+ if(file.size>MAX_FILE_BYTES){info("No se seleccionó "+file.name+": límite 15 MB");continue}
+ if(attachments.some(x=>x.file.name===file.name&&x.file.size===file.size&&x.file.lastModified===file.lastModified))continue;
+ attachments.push({id:Date.now()+"-"+Math.random().toString(36).slice(2),file,uploadedPath:null});added++;
+ }
+ for(const input of [$("file"),$("photos"),$("camera")])input.value="";
+ renderAttachments();if(added)info(added+" archivo(s) seleccionado(s). Revisa antes de guardarlos.");
+}
+function renderAttachments(){
+ const wrap=$("attachment");wrap.replaceChildren();wrap.classList.toggle("hidden",attachments.length===0);
+ if(!attachments.length)return;
+ const title=document.createElement("div");title.className="attached-title";title.textContent=attachments.length+" archivo(s) preparados · El botón Enviar solo envía texto al Mentor";
+ wrap.append(title);
+ for(const item of attachments){
+ const row=document.createElement("div");row.className="attached-item";
+ const ico=document.createElement("span");ico.className="attached-icon";ico.textContent=item.file.type.startsWith("image/")?"▧":"▤";
+ const details=document.createElement("div");details.className="attached-info";
+ const name=document.createElement("strong");name.textContent=item.file.name;
+ const status=document.createElement("small");status.textContent=fileSize(item.file.size)+(item.uploadedPath?" · Guardado en privado":" · En este dispositivo");
+ details.append(name,status);
+ const del=document.createElement("button");del.type="button";del.setAttribute("aria-label","Quitar "+item.file.name);del.textContent="×";del.onclick=()=>{attachments=attachments.filter(x=>x.id!==item.id);renderAttachments()};
+ row.append(ico,details,del);wrap.append(row);
+ }
+ const tip=document.createElement("div");tip.className="attached-actions";
+ const save=document.createElement("button");save.type="button";save.className="attached-save";save.disabled=uploading||preview||!authorized||attachments.every(x=>x.uploadedPath);save.textContent=uploading?"Guardando…":"Guardar en Mis archivos";
+ save.onclick=uploadSelected;
+ const open=document.createElement("button");open.type="button";open.textContent="Ver biblioteca";open.onclick=()=>show("files");
+ tip.append(save,open);wrap.append(tip);
+ const note=document.createElement("small");note.className="attached-help";note.textContent=preview?"Vista previa: archivos solo en el teléfono. No se han subido ni enviado.":authorized?"Guarda con el botón si quieres almacenar; enviar un mensaje no adjunta el archivo a la IA.":"Para guardar en privado necesitas iniciar sesión real.";wrap.append(note);
+}
+async function uploadSelected(){
+ if(preview||!authorized||!session?.user?.id||!sb){info("Necesitas sesión autorizada; la vista previa no sube archivos");return}
+ if(uploading)return;uploading=true;renderAttachments();
+ let done=0,errors=[];
+ try{
+ for(const item of attachments){
+ if(item.uploadedPath)continue;
+ const clean=item.file.name.normalize("NFKC").replace(/[^a-zA-Z0-9._-]+/g,"_").slice(-100)||"archivo";
+ const uid=crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2);
+ const path=session.user.id+"/"+uid+"-"+clean;
+ const {error}=await sb.storage.from(FILE_BUCKET).upload(path,item.file,{upsert:false,contentType:item.file.type||"application/octet-stream",cacheControl:"0"});
+ if(error)errors.push(item.file.name+": "+error.message);else{item.uploadedPath=path;done++}
+ }
+ }finally{uploading=false;renderAttachments()}
+ if(done)info(done+" archivo(s) guardado(s) en espacio privado");
+ if(errors.length)info("Algunos archivos fallaron: "+errors.join("; ").slice(0,180));
+ if(view==="files")renderFilesModule($("moduleBody"),$("moduleBody").querySelector(".tile-grid"));
+}
+function renderFilesModule(root,grid){
+ if(!grid)return;
+ grid.classList.add("files-module");grid.replaceChildren();
+ const intro=document.createElement("p");intro.className="portfolio-note";intro.textContent="Elige cualquier documento, PDF, Word, Excel, ZIP, imagen u otro archivo desde tu teléfono. Para subirlo necesitas una cuenta autorizada. Los archivos no se envían automáticamente al Mentor IA.";
+ grid.append(intro);
+ const actions=document.createElement("div");actions.className="files-buttons";
+ const choose=document.createElement("button");choose.textContent="＋ Elegir archivos";choose.onclick=()=>openFilePicker("file");
+ const pics=document.createElement("button");pics.textContent="▧ Fotos";pics.onclick=()=>openFilePicker("photos");
+ const cam=document.createElement("button");cam.textContent="◉ Cámara";cam.onclick=()=>openFilePicker("camera");
+ actions.append(choose,pics,cam);grid.append(actions);
+ const label=document.createElement("h2");label.className="file-list-heading";label.textContent="Mis archivos privados";grid.append(label);
+ const content=document.createElement("div");content.className="saved-file-list";grid.append(content);
+ if(preview||!authorized||!session?.user?.id||!sb){content.textContent="En esta vista previa no se consulta el almacenamiento privado. Los archivos que selecciones se preparan junto al mensaje y no salen del teléfono.";return}
+ content.textContent="Buscando archivos privados…";
+ sb.storage.from(FILE_BUCKET).list(session.user.id,{limit:100,offset:0,sortBy:{column:"created_at",order:"desc"}}).then(({data,error})=>{
+ if(view!=="files"||!content.isConnected)return;content.replaceChildren();if(error){content.textContent="No se pudo consultar la biblioteca: "+error.message;return}
+ if(!data?.length){content.textContent="Todavía no hay archivos guardados.";return}
+ for(const f of data){
+ if(!f.name||f.name===".emptyFolderPlaceholder")continue;
+ const path=session.user.id+"/"+f.name;const item=document.createElement("div");item.className="file-list-entry";
+ const meta=document.createElement("span");meta.textContent=f.name.replace(/^[^\-]+\-/,"")+" · "+fileSize(Number(f.metadata?.size||0));
+ const btns=document.createElement("div");const dl=document.createElement("button");dl.textContent="Abrir";dl.onclick=()=>openPrivateFile(path);
+ const del=document.createElement("button");del.textContent="Borrar";del.onclick=()=>removePrivateFile(path);
+ btns.append(dl,del);item.append(meta,btns);content.append(item);
+ }
+ }).catch(e=>{if(content.isConnected)content.textContent="No disponible: "+String(e.message||e)});
+}
+async function openPrivateFile(path){
+ if(!authorized||preview||!sb)return;
+ try{const {data,error}=await sb.storage.from(FILE_BUCKET).download(path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement("a");a.href=url;a.download=path.split("/").pop().replace(/^[^-]+-/,"");document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}catch(e){info("No se pudo abrir archivo: "+String(e.message||e))}
+}
+async function removePrivateFile(path){
+ if(!authorized||preview||!sb)return;
+ if(!confirm("¿Eliminar este archivo del almacenamiento privado?"))return;
+ try{const {error}=await sb.storage.from(FILE_BUCKET).remove([path]);if(error)throw error;info("Archivo eliminado");show("files")}catch(e){info("No se pudo borrar: "+String(e.message||e))}
+}
 function connection(ok,message){$("status").className="status "+(ok?"ok":"bad");$("status").textContent=message;$("connection").textContent=ok?"Mentor verificado · acceso autorizado":"Sin conexión verificada"}
 async function api(body,url=ENDPOINT){if(!session?.access_token)throw Error("Inicia sesión");const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),26000);try{const r=await fetch(url,{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+session.access_token,"apikey":KEY},body:JSON.stringify(body),signal:ctrl.signal});const d=await r.json().catch(()=>({ok:false,error:"Respuesta inválida"}));if(!r.ok||d.ok!==true)throw Error(String(d.error||"Servidor no disponible")+" ("+r.status+")");return d}finally{clearTimeout(timer)}}
 async function checkStatus(){if(preview){connection(false,"Vista previa");return false}if(!session)return false;if(checking)return authorized;checking=true;connection(false,"Verificando…");try{const r=await api({action:"status"});authorized=true;connection(true,r.cloud_model_configured?"Mentor + nube":"Mentor activo");$("mode").textContent=r.cloud_model_configured?"Nube configurada · consentimiento requerido":"Mentor guiado · IA generativa no conectada";if(view!=="chat")moduleRender(view);return true}catch(e){authorized=false;connection(false,"Sin verificar");info("Conexión o permisos: "+e.message);return false}finally{checking=false}}
@@ -269,11 +485,11 @@ async function readLive(instruction){
 }
 function speak(){if(!lastAnswer){info("Primero solicita una respuesta");return}if(!("speechSynthesis" in window)){info("El navegador no admite lectura de voz");return}speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(lastAnswer.slice(0,3000));utter.lang="es-CO";utter.rate=.95;utter.pitch=.9;const vv=speechSynthesis.getVoices().filter(v=>(v.lang||"").toLowerCase().startsWith("es"));utter.voice=vv.find(v=>/male|mascul|jorge|juan|pablo|diego/i.test(v.name))||vv[0]||null;speechSynthesis.speak(utter);info("Reproducción con la voz disponible en Android; aún no es el motor de voz premium")}
 function mic(){if(!authorized){info("Debes iniciar sesión");return}const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){info("Dictado no disponible en este navegador");return}if(recognizing)return;const rec=new R();rec.lang="es-CO";rec.interimResults=false;rec.onresult=e=>{$("prompt").value=String(e.results?.[0]?.[0]?.transcript||"").replace(/^kair[oó]s[,.:]?\s*/i,"");grow();info("Dictado recibido: revisa y pulsa enviar")};rec.onerror=e=>info("Micrófono: "+String(e.error||"no disponible"));rec.onend=()=>recognizing=false;recognizing=true;try{rec.start();info("Escuchando por el micrófono del navegador…")}catch{recognizing=false;info("No se pudo iniciar el micrófono")}}
-async function logout(){if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
+async function logout(){attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
 async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Pega tu clave privada para entrar a CONTROL 360.");return}
-preview=false;$("previewBanner").classList.add("hidden");const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
+preview=false;$("previewBanner").classList.add("hidden");attachments=[];renderAttachments();const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
 $("auth").classList.add("hidden");$("layout").classList.remove("hidden");restore();messagesRender();show("chat")}
-function previewLogin(){const input=$("previewCode");const code=input.value.trim().toUpperCase();input.value="";if(code!=="SJM-360-VISTA"){authInfo("Código de vista previa incorrecto. Copia el código completo.");return}preview=true;authorized=false;session=null;chats=[];current=null;lastAnswer="";$("auth").classList.add("hidden");$("layout").classList.remove("hidden");$("previewBanner").classList.remove("hidden");connection(false,"Vista previa");$("mode").textContent="VISTA PREVIA · sin conexión privada";restore();messagesRender();show("chat");}
+function previewLogin(){attachments=[];renderAttachments();const input=$("previewCode");const code=input.value.trim().toUpperCase();input.value="";if(code!=="SJM-360-VISTA"){authInfo("Código de vista previa incorrecto. Copia el código completo.");return}preview=true;authorized=false;session=null;chats=[];current=null;lastAnswer="";$("auth").classList.add("hidden");$("layout").classList.remove("hidden");$("previewBanner").classList.remove("hidden");connection(false,"Vista previa");$("mode").textContent="VISTA PREVIA · sin conexión privada";restore();messagesRender();show("chat");}
 async function loginWithPassword(){
   if(!sb){authInfo("No hay conexión con el servidor de acceso. Revisa internet y vuelve a abrir KAIRÓS.");return}
   const input=$("accessCode"), password=input.value;
@@ -291,12 +507,35 @@ async function loginWithPassword(){
     authInfo(code==="400"||code==="401"?"Clave incorrecta. Compruébala y vuelve a intentarlo.":"No fue posible iniciar sesión: "+String(e?.message||e).slice(0,140));
   }finally{b.disabled=false;b.textContent="Entrar a KAIRÓS"}
 }
-function events(){$("menu").onclick=()=>{if(matchMedia("(max-width:800px)").matches)document.body.classList.toggle("drawer");else document.body.classList.toggle("collapsed")};$("overlay").onclick=closeDrawer;$("newChat").onclick=newChat;$("search").oninput=historyRender;$("refresh").onclick=checkStatus;$("toggleProjects").onclick=()=>{const el=$("projectShortcuts");const hidden=el.classList.toggle("hidden");$("toggleProjects").textContent=hidden?"+":"−";$("toggleProjects").setAttribute("aria-expanded",String(!hidden))};
-$("form").onsubmit=e=>{e.preventDefault();sendMessage($("prompt").value)};$("prompt").oninput=grow;$("prompt").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage($("prompt").value)}};
+function events(){
+$("menu").onclick=()=>{closePanels();if(matchMedia("(max-width:800px)").matches){const open=document.body.classList.toggle("drawer");$("menu").setAttribute("aria-expanded",String(open))}else{const hide=document.body.classList.toggle("collapsed");$("menu").setAttribute("aria-expanded",String(!hide))}};
+$("overlay").onclick=closeDrawer;
+$("newChat").onclick=()=>{newChat();closeDrawer()};$("search").oninput=historyRender;
+$("refresh").onclick=checkStatus;
+$("toggleProjects").onclick=()=>{const el=$("projectShortcuts");const hide=el.classList.toggle("hidden");$("toggleProjects").textContent=hide?"+":"−";$("toggleProjects").setAttribute("aria-expanded",String(!hide))};
+$("topWorkspace").onclick=()=>togglePanel("workspacePanel","topWorkspace");
+$("topMore").onclick=()=>togglePanel("morePanel","topMore");
+$("attach").onclick=()=>togglePanel("attachPanel","attach");
+$("workspacePanel").onclick=e=>{const b=e.target.closest("[data-topview]");if(b)show(b.dataset.topview)};
+$("menuNewChat").onclick=()=>{newChat();closePanels()};
+$("menuExport").onclick=()=>{exportConversation();closePanels()};
+$("menuCopy").onclick=()=>{copyLast();closePanels()};
+$("menuSpeak").onclick=()=>{speak();closePanels()};
+$("menuFiles").onclick=()=>show("files");$("menuSettings").onclick=()=>show("settings");
+$("chooseFiles").onclick=()=>openFilePicker("file");
+$("choosePhotos").onclick=()=>openFilePicker("photos");
+$("chooseCamera").onclick=()=>openFilePicker("camera");
+$("chooseLibrary").onclick=()=>show("files");
+for(const id of ["file","photos","camera"])$(id).onchange=e=>selectAttachments(e.target.files);
+$("form").onsubmit=e=>{e.preventDefault();sendMessage($("prompt").value)};
+$("prompt").oninput=grow;$("prompt").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage($("prompt").value)}};
 $("messages").onclick=e=>{const b=e.target.closest("[data-prompt]");if(b)sendMessage(b.dataset.prompt);const v=e.target.closest("[data-view]");if(v)show(v.dataset.view)};
-$("attach").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files?.[0];if(f){$("attachment").classList.remove("hidden");$("attachment").textContent=f.name+" — SELECCIONADO ÚNICAMENTE, NO ENVIADO NI ANALIZADO. Toca para quitar.";$("attachment").onclick=()=>{$("file").value="";$("attachment").classList.add("hidden")};info("El archivo permanece en el teléfono; el backend no acepta adjuntos")}};
-$("mic").onclick=mic;$("speak").onclick=speak;$("loginForm").onsubmit=e=>{e.preventDefault();loginWithPassword()};$("previewButton").onclick=previewLogin;$("previewCode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();previewLogin()}};
-document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("search").focus()}})}
+$("mic").onclick=mic;
+$("loginForm").onsubmit=e=>{e.preventDefault();loginWithPassword()};
+$("previewButton").onclick=previewLogin;$("previewCode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();previewLogin()}};
+document.addEventListener("click",e=>{if(!e.target.closest(".top-workspace,.top-more,.composer-anchor"))closePanels()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
+}
 async function start(){navBuild();events();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
