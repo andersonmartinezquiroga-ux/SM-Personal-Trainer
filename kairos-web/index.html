@@ -375,7 +375,7 @@ function selectAttachments(list){
  attachments.push({id:Date.now()+"-"+Math.random().toString(36).slice(2),file,uploadedPath:null});added++;
  }
  for(const input of [$("file"),$("photos"),$("camera")])input.value="";
- renderAttachments();if(added)info(added+" archivo(s) seleccionado(s). Revisa antes de guardarlos.");
+ renderAttachments();if(added&&view==="files")show("chat");if(added)info(added+" archivo(s) preparado(s). Revisa la barra de archivos antes de guardar.");
 }
 function renderAttachments(){
  const wrap=$("attachment");wrap.replaceChildren();wrap.classList.toggle("hidden",attachments.length===0);
