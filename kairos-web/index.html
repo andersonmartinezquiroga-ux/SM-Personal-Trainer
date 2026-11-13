@@ -829,6 +829,88 @@ nav#nav .nav-item{white-space:normal;text-align:left;line-height:1.4}
 }
 @media(prefers-reduced-motion:reduce){.business-service{transition:none!important;transform:none!important}}
 
+
+/* COMTROL 360 · Jerarquía de accesos v1.9: un chat normal, un gran acceso empresarial y herramientas secundarias. */
+nav#nav{gap:7px}
+nav#nav .nav-chat{display:flex;align-items:center;gap:13px;background:#202e3d;border:1px solid #4a6379;border-radius:15px;
+ color:#e4f0fc;min-height:59px;font-size:20px;font-weight:590;padding:12px 15px}
+nav#nav .nav-chat:hover{background:#2c4054;border-color:#789db8}
+nav#nav .nav-chat.active{background:#31495f;border-color:#8abfe1;box-shadow:inset 3px 0 #b5e0ff}
+nav#nav .nav-chat .nav-symbol{font-size:26px;color:#a9d6f5}
+nav#nav .nav-chat-label{font-size:20px;font-weight:610;line-height:1.4}
+nav#nav .nav-enterprise{display:flex;align-items:center;gap:13px;text-align:left;min-height:108px;border-radius:19px;
+ margin:13px 0 12px;padding:16px 14px;color:#fff;background:linear-gradient(125deg,#174f79 0%,#1a689c 47%,#264d6b 100%);
+ border:1px solid #83b8d9;box-shadow:inset 0 1px #e7f8ff37,0 8px 24px #0005,0 0 18px #2d85bf22;
+ position:relative;overflow:hidden;isolation:isolate}
+nav#nav .nav-enterprise:before{content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(112deg,transparent 15%,#ffffff13 44%,transparent 57%);opacity:.8}
+nav#nav .nav-enterprise:after{content:"";position:absolute;height:1px;left:18px;right:18px;top:0;pointer-events:none;
+ background:linear-gradient(90deg,transparent,#d7efffff,transparent)}
+nav#nav .nav-enterprise:hover{background:linear-gradient(125deg,#1f608c,#267dae,#285f82);border-color:#d3efff;
+ box-shadow:inset 0 1px #ffffff52,0 10px 28px #0005,0 0 20px #268ac94a;transform:translateY(-1px)}
+nav#nav .nav-enterprise.active{border-color:#f0faff;box-shadow:inset 0 0 0 1px #d5edff,0 0 0 2px #61b3ed55,0 9px 30px #0005}
+nav#nav .nav-enterprise .nav-symbol{display:grid;place-items:center;flex:none;width:44px;height:44px;font-size:26px;
+ background:#ffffff20;border:1px solid #d4efff55;color:#fff;border-radius:13px}
+.nav-enterprise-body{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;position:relative;z-index:1}
+.nav-enterprise-body strong{font-size:21px;font-weight:800;line-height:1.3;letter-spacing:-.2px}
+.nav-enterprise-body small{font-size:14px;color:#e3f3ff;line-height:1.45;font-weight:650}
+nav#nav .nav-enterprise-arrow{flex:none;display:grid;place-items:center;width:19px;font-size:30px;color:#fff;position:relative;z-index:1}
+.nav-service-heading{font-size:15px;line-height:1.5;letter-spacing:.5px;font-weight:800;color:#bed2e4;margin:11px 9px 4px}
+nav#nav .nav-item:not(.nav-chat):not(.nav-enterprise){padding:11px 12px;min-height:52px;border:1px solid transparent;font-size:18px;
+ background:transparent;color:#d9e6f0}
+nav#nav .nav-item:not(.nav-chat):not(.nav-enterprise).active{border-color:#6d92b3;background:#2b4257;box-shadow:inset 3px 0 #93cbf5;color:#fff}
+nav#nav .nav-item:not(.nav-chat):not(.nav-enterprise):hover{background:#2b3e51}
+nav#nav .advanced-nav .nav-item{font-size:17px;min-height:48px}
+nav#nav .advanced-toggle{margin-top:12px}
+.welcome{width:min(790px,100%)}
+.welcome-enterprise{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:17px;
+ width:100%;min-height:126px;padding:22px 21px;margin:3px auto 20px;text-align:left;
+ border-radius:22px;border:1px solid #a0d4f3;color:#fff;background:linear-gradient(124deg,#164a71,#1e699b 52%,#234867);
+ box-shadow:inset 0 1px #effaff44,0 15px 35px #0005,0 0 28px #155b8a36}
+.welcome-enterprise:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(circle at 90% 12%,#a9dcff31,transparent 50%)}
+.welcome-enterprise:after{content:"";position:absolute;top:0;left:22px;right:22px;height:1px;pointer-events:none;
+ background:linear-gradient(90deg,transparent,#eff8ffd6,transparent)}
+.welcome-enterprise:hover{border-color:#e6f7ff;background:linear-gradient(124deg,#225f89,#2878ac 55%,#265c80);
+ box-shadow:0 0 0 2px #8fcaf150,0 18px 42px #0006;transform:translateY(-2px)}
+.welcome-enterprise-icon{display:grid;place-items:center;width:63px;height:63px;flex:none;border-radius:19px;
+ background:#ffffff24;border:1px solid #d0ebfc7d;color:#f6fbff;font-size:34px}
+.welcome-enterprise-content{min-width:0;display:flex;flex-direction:column;gap:7px;flex:1;position:relative;z-index:1}
+.welcome-enterprise-content strong{font-size:clamp(23px,3vw,29px);line-height:1.22;letter-spacing:-.4px;font-weight:800}
+.welcome-enterprise-content small{font-size:18px;line-height:1.5;color:#e3f3ff;font-weight:530}
+.welcome-enterprise-arrow{font-size:36px;font-weight:350;flex:none}
+.welcome-other-label{text-align:left;width:100%;font-weight:770;font-size:15px;letter-spacing:.6px;color:#c3d5e4;margin:7px 2px 12px}
+.welcome .suggestions{gap:11px}
+.welcome .suggestion{font-size:18px;min-height:85px;border-color:#455c71;background:linear-gradient(145deg,#232e3a,#202934)}
+.welcome .suggestion small{font-size:16px;line-height:1.55}
+@media(max-width:800px){
+ nav#nav .nav-enterprise{min-height:105px;margin:12px 0 10px;padding:15px 13px;gap:12px}
+ .nav-enterprise-body strong{font-size:21px}
+ .nav-enterprise-body small{font-size:14px}
+ nav#nav .nav-chat .nav-chat-label{font-size:20px}
+ nav#nav .nav-item:not(.nav-chat):not(.nav-enterprise){min-height:52px;font-size:18px}
+ .nav-service-heading{font-size:15px}
+ .welcome-enterprise{min-height:118px;padding:19px 16px;gap:13px;border-radius:19px}
+ .welcome-enterprise-icon{width:50px;height:50px;font-size:29px;border-radius:15px}
+ .welcome-enterprise-content strong{font-size:23px}
+ .welcome-enterprise-content small{font-size:16px;line-height:1.5}
+ .welcome-enterprise-arrow{font-size:28px}
+ .welcome-other-label{font-size:14px}
+ .welcome .suggestion{font-size:18px;min-height:78px}
+ .welcome .suggestion small{font-size:15px}
+}
+@media(max-width:380px){
+ .welcome-enterprise{gap:9px;padding:16px 12px}
+ .welcome-enterprise-icon{width:43px;height:43px;font-size:25px}
+ .welcome-enterprise-content strong{font-size:21px}
+ .welcome-enterprise-content small{font-size:15px}
+ .nav-enterprise-body strong{font-size:20px}
+ .nav-enterprise-body small{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+ nav#nav .nav-enterprise:hover,.welcome-enterprise:hover{transform:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -1060,11 +1142,29 @@ function navBuild(){
  const root=$("nav");root.replaceChildren();
  function navButton(id,title,sym,target){
   const b=document.createElement("button");b.type="button";b.className="nav-item";b.dataset.view=id;
-  const s=document.createElement("span");s.textContent=sym;b.append(s,document.createTextNode(title));
+  const s=document.createElement("span");s.className="nav-symbol";s.textContent=sym;
+  if(id==="chat"){
+   b.classList.add("nav-chat");
+   const label=document.createElement("span");label.className="nav-chat-label";label.textContent="Chat normal";
+   b.append(s,label);
+   b.setAttribute("aria-label","Abrir conversación normal con COMTROL 360");
+  }else if(id==="enterprise"){
+   b.classList.add("nav-enterprise");
+   const body=document.createElement("span");body.className="nav-enterprise-body";
+   const name=document.createElement("strong");name.textContent="Soluciones Empresariales";
+   const desc=document.createElement("small");desc.textContent="SJM Empresa 360 IA · Acceso principal";
+   body.append(name,desc);
+   const marker=document.createElement("span");marker.className="nav-enterprise-arrow";marker.textContent="›";
+   b.append(s,body,marker);
+   b.setAttribute("aria-label","Abrir Soluciones Empresariales 360, acceso principal");
+  }else{b.append(s,document.createTextNode(title))}
   b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};
   target.append(b);
  }
- for(const [id,title,sym] of menu)navButton(id,title,sym,root);
+ const chat=menu.find(([id])=>id==="chat"),enterprise=menu.find(([id])=>id==="enterprise");
+ navButton(...chat,root);navButton(...enterprise,root);
+ const label=document.createElement("div");label.className="nav-service-heading";label.textContent="HERRAMIENTAS DE TRABAJO";root.append(label);
+ for(const [id,title,sym] of menu.filter(([id])=>id!=="chat"&&id!=="enterprise"))navButton(id,title,sym,root);
  const header=document.createElement("button");header.type="button";header.id="advancedToggle";header.className="advanced-toggle";
  header.textContent="▸ Otras herramientas SJM";header.setAttribute("aria-expanded","false");root.append(header);
  const advanced=document.createElement("div");advanced.id="advancedNav";advanced.className="hidden advanced-nav";root.append(advanced);
@@ -1087,10 +1187,13 @@ function historyRender(){const box=$("history");box.replaceChildren();const q=$(
 function newChat(){current=null;historyRender();show("chat");messagesRender()}
 function welcome(){
  const home=document.createElement("div");home.className="welcome";
- home.innerHTML='<div class="hero">C</div><h1>¿Qué vamos a resolver hoy?</h1><p>COMTROL 360 · Soluciones empresariales, proyectos, creación y trabajo desde una sola conversación.</p><div class="suggestions">'+
- '<button class="suggestion" data-view="enterprise">▦ Soluciones Empresariales<small>Nómina, inventario, finanzas y más</small></button>'+
+ home.innerHTML='<div class="hero">C</div><h1>¿Qué necesitas hacer hoy?</h1><p>Conversa normalmente con COMTROL 360 o entra directamente a una herramienta especializada.</p>'+
+ '<button class="welcome-enterprise" type="button" data-view="enterprise"><span class="welcome-enterprise-icon" aria-hidden="true">▦</span><span class="welcome-enterprise-content"><strong>Soluciones Empresariales 360°</strong><small>Administración, inventarios, ventas, finanzas, marketing y más</small></span><span class="welcome-enterprise-arrow" aria-hidden="true">›</span></button>'+
+ '<div class="welcome-other-label">OTROS ESPACIOS DE TRABAJO</div>'+
+ '<div class="suggestions">'+
  '<button class="suggestion" data-view="builder">⌘ Crear Web y Apps<small>Sitios, programas y prototipos</small></button>'+
  '<button class="suggestion" data-view="tasks">◷ Tareas y Automatizaciones<small>Preparar y supervisar trabajo</small></button>'+
+ '<button class="suggestion" data-view="research">◉ Investigación y Proyectos<small>Estudios, planes y comparaciones</small></button>'+
  '<button class="suggestion" data-view="companies">▤ Mis Empresas y Proyectos<small>Portafolio y diagnóstico inicial</small></button>'+
  '</div>';
  return home;
