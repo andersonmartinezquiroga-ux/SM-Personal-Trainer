@@ -911,6 +911,46 @@ nav#nav .advanced-toggle{margin-top:12px}
  nav#nav .nav-enterprise:hover,.welcome-enterprise:hover{transform:none!important}
 }
 
+
+/* COMTROL 360 · accesos destacados discretos solamente en menú lateral inicial · v2.0 */
+nav#nav .nav-enterprise{
+ min-height:72px; margin:7px 2px 8px; padding:10px 12px; gap:10px; border-radius:14px;
+ background:linear-gradient(120deg,#204b6d,#1a3f5b 85%);border:1px solid #6b9cc0;
+ box-shadow:inset 0 1px #c9ebff24,0 3px 11px #0003;
+}
+nav#nav .nav-enterprise:hover{transform:none;box-shadow:inset 0 1px #d6f2ff32,0 4px 14px #0004}
+nav#nav .nav-enterprise.active{box-shadow:inset 3px 0 #bbdfff,0 0 0 1px #8fbfe266}
+nav#nav .nav-enterprise .nav-symbol{width:36px;height:36px;font-size:22px;border-radius:10px}
+nav#nav .nav-enterprise .nav-enterprise-body{gap:2px}
+nav#nav .nav-enterprise .nav-enterprise-body strong{font-size:18px;line-height:1.28;letter-spacing:0;font-weight:740}
+nav#nav .nav-enterprise .nav-enterprise-body small{font-size:13px;line-height:1.3;font-weight:500;color:#d9eafa}
+nav#nav .nav-enterprise .nav-enterprise-arrow{font-size:23px;width:14px}
+nav#nav .nav-item.nav-important{
+ min-height:55px; margin:3px 2px; padding:10px 12px; border-radius:12px;
+ background:#243749;border:1px solid #506f89;color:#f2f8ff;
+ font-size:18px;font-weight:650;box-shadow:none
+}
+nav#nav .nav-item.nav-important:hover,nav#nav .nav-item.nav-important.active{
+ background:#304b63;border-color:#83b0d0
+}
+nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
+.welcome .suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.welcome .suggestion{font-size:18px;min-height:84px;padding:15px 17px;
+ border:1px solid #465e73;border-radius:15px;background:#232d37;
+ color:#eef7ff;box-shadow:none;line-height:1.5}
+.welcome .suggestion small{font-size:16px;line-height:1.5;color:#cbddeb}
+.welcome .suggestion:hover{background:#2a3c4c;border-color:#89b7d7;transform:none}
+@media(max-width:800px){
+ nav#nav .nav-enterprise{min-height:70px;margin:6px 2px 7px;padding:10px 11px;gap:10px}
+ nav#nav .nav-enterprise .nav-enterprise-body strong{font-size:18px}
+ nav#nav .nav-enterprise .nav-enterprise-body small{font-size:13px}
+ nav#nav .nav-item.nav-important{min-height:55px;font-size:18px}
+ .welcome .suggestions{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .welcome .suggestion{font-size:17px;min-height:82px;padding:13px}
+ .welcome .suggestion small{font-size:15px}
+}
+@media(max-width:390px){.welcome .suggestions{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1157,7 +1197,7 @@ function navBuild(){
    const marker=document.createElement("span");marker.className="nav-enterprise-arrow";marker.textContent="›";
    b.append(s,body,marker);
    b.setAttribute("aria-label","Abrir Soluciones Empresariales 360, acceso principal");
-  }else{b.append(s,document.createTextNode(title))}
+  }else{b.append(s,document.createTextNode(title));if(target===root&&["builder","tasks","research"].includes(id))b.classList.add("nav-important")}
   b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};
   target.append(b);
  }
@@ -1187,14 +1227,12 @@ function historyRender(){const box=$("history");box.replaceChildren();const q=$(
 function newChat(){current=null;historyRender();show("chat");messagesRender()}
 function welcome(){
  const home=document.createElement("div");home.className="welcome";
- home.innerHTML='<div class="hero">C</div><h1>¿Qué necesitas hacer hoy?</h1><p>Conversa normalmente con COMTROL 360 o entra directamente a una herramienta especializada.</p>'+
- '<button class="welcome-enterprise" type="button" data-view="enterprise"><span class="welcome-enterprise-icon" aria-hidden="true">▦</span><span class="welcome-enterprise-content"><strong>Soluciones Empresariales 360°</strong><small>Administración, inventarios, ventas, finanzas, marketing y más</small></span><span class="welcome-enterprise-arrow" aria-hidden="true">›</span></button>'+
- '<div class="welcome-other-label">OTROS ESPACIOS DE TRABAJO</div>'+
+ home.innerHTML='<div class="hero">C</div><h1>¿Qué necesitas hacer hoy?</h1><p>Conversa normalmente con COMTROL 360 o abre una herramienta de trabajo.</p>'+
  '<div class="suggestions">'+
- '<button class="suggestion" data-view="builder">⌘ Crear Web y Apps<small>Sitios, programas y prototipos</small></button>'+
- '<button class="suggestion" data-view="tasks">◷ Tareas y Automatizaciones<small>Preparar y supervisar trabajo</small></button>'+
+ '<button class="suggestion" data-view="enterprise">▦ Soluciones Empresariales<small>Administración, ventas, finanzas y más</small></button>'+
+ '<button class="suggestion" data-view="builder">⌘ Crear Web y Apps<small>Desarrollo tecnológico</small></button>'+
+ '<button class="suggestion" data-view="tasks">◷ Automatizaciones y Tareas<small>Preparación y supervisión</small></button>'+
  '<button class="suggestion" data-view="research">◉ Investigación y Proyectos<small>Estudios, planes y comparaciones</small></button>'+
- '<button class="suggestion" data-view="companies">▤ Mis Empresas y Proyectos<small>Portafolio y diagnóstico inicial</small></button>'+
  '</div>';
  return home;
 }
