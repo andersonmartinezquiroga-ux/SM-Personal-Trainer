@@ -761,6 +761,73 @@ h1,h2,h3,p{overflow-wrap:break-word}
  .voice-head-label strong{font-size:21px}
 }
 
+
+/* SJM EMPRESA 360 IA · menú de trabajo claro y centros de soluciones */
+nav#nav{display:flex;flex-direction:column;gap:3px}
+nav#nav .nav-item{white-space:normal;text-align:left;line-height:1.4}
+.advanced-toggle{width:100%;margin:15px 0 8px;min-height:52px;padding:10px 13px;border-radius:12px;background:#233244;border:1px solid #526b82;color:#e4f2ff;font-size:18px;font-weight:750;text-align:left}
+.advanced-toggle:hover{background:#2d455b}
+.advanced-nav{border-left:2px solid #53718e;margin-left:10px;padding:1px 0 2px 8px;display:flex;flex-direction:column;gap:2px}
+.advanced-nav .nav-item{font-size:18px;min-height:48px;padding:10px 8px}
+.enterprise-center .tile-grid{margin-top:15px}
+.enterprise-hero{position:relative;isolation:isolate;overflow:hidden;padding:28px 26px;border-radius:22px;margin:16px 0 22px;
+ background:linear-gradient(135deg,#1b334b,#152231 55%,#1e3041);
+ border:1px solid #6287a4;box-shadow:inset 0 1px #ffffff15,0 9px 26px #0003}
+.enterprise-hero:after{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:radial-gradient(circle at 92% 15%,#8dcaff1c,transparent 45%)}
+.enterprise-eyebrow{display:block;color:#bcddfa;font-size:16px;letter-spacing:.6px;font-weight:820}
+.enterprise-hero h2{font-size:clamp(28px,3vw,36px);line-height:1.25;color:#f5fbff;margin:11px 0}
+.enterprise-hero p{font-size:19px;color:#d5e6f4;line-height:1.62;max-width:760px;margin:0 0 15px}
+.business-hero-button{margin-top:5px}
+.business-module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:15px}
+.business-service{display:flex;flex-direction:column;align-items:stretch;min-width:0;background:linear-gradient(145deg,#202c39,#19232e);border-radius:17px;border:1px solid #4d657b;
+ padding:21px;box-shadow:inset 0 1px #ffffff10,0 5px 18px #0002}
+.business-service-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.business-service-icon{height:45px;width:45px;display:grid;place-items:center;border-radius:13px;background:#324c65;color:#b7e1ff;font-size:26px}
+.business-status{color:#c5dbeb;font-size:14px;line-height:1.3;background:#354758;border:1px solid #4c6477;border-radius:999px;padding:6px 9px;max-width:190px;text-align:right}
+.business-service h3{font-size:22px;line-height:1.35;color:#f2f9ff;margin:0 0 10px}
+.business-service p{font-size:18px;line-height:1.66;color:#d2e2ee;margin:0 0 16px;flex:1}
+.business-card-actions{display:flex;flex-wrap:wrap;gap:9px}
+.business-primary,.business-secondary{border-radius:12px;min-height:52px;padding:11px 15px;font-size:18px;font-weight:760;line-height:1.3}
+.business-primary{background:#1c75b0;color:#fff;border:1px solid #4e9acb}
+.business-primary:hover{background:#2c8dca}
+.business-secondary{background:#2b3e4f;color:#ecf7ff;border:1px solid #5e7b91}
+.business-secondary:hover{background:#3b5266}
+.business-card-actions .business-primary{flex:1}
+.business-intake{background:#1d2a38;border:1px solid #6591b0;border-radius:22px;padding:24px 22px;margin-top:32px}
+.business-intake h2,.business-section-label h2{font-size:27px;color:#f0f9ff;line-height:1.3;margin:0 0 10px}
+.business-intake>p,.business-section-label p{font-size:18px;color:#cbdceb;line-height:1.58;margin:0 0 16px}
+.business-intake-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.business-intake-grid label{display:flex;flex-direction:column;gap:8px;color:#eaf6ff;font-size:18px;font-weight:690}
+.business-intake-grid label input,.business-intake-grid label select,.business-intake-grid label textarea{width:100%;background:#273a4a;border:1px solid #6988a2;color:#f1f8ff;border-radius:12px;min-height:51px;padding:10px 12px;font-size:18px;font-weight:480;line-height:1.5}
+.business-intake-grid label textarea{resize:vertical;min-height:100px}
+.business-intake-grid label input::placeholder,.business-intake-grid label textarea::placeholder{color:#c5d6e4}
+.business-wide{grid-column:1/-1}
+.business-actions{display:flex;flex-wrap:wrap;gap:10px}
+.business-privacy{font-size:15px;line-height:1.6;color:#bdd1e2;margin:0}
+.business-section-label{margin:29px 0 13px}
+.enterprise-phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.enterprise-phases section{border:1px solid #4c667d;background:#1d2a38;border-radius:15px;padding:17px}
+.enterprise-phases h3{font-size:19px;color:#f4faff;line-height:1.35;margin:0 0 9px}
+.enterprise-phases p{font-size:16px;line-height:1.63;color:#cbddeb;margin:0}
+.business-safe-notice{font-size:17px;line-height:1.65;color:#d8e7f4;border-left:3px solid #94c4e8;padding:12px 15px;background:#253548;border-radius:11px;margin:23px 0}
+@media(hover:hover){.business-service{transition:border-color .2s ease,transform .2s ease}.business-service:hover{border-color:#8dbde0;transform:translateY(-2px)}}
+@media(max-width:800px){
+ .advanced-toggle{font-size:18px}
+ .business-module-grid{grid-template-columns:1fr}
+ .enterprise-hero{padding:23px 19px}
+ .enterprise-hero h2{font-size:29px}
+ .enterprise-hero p{font-size:19px}
+ .business-service{padding:19px}
+ .business-service h3{font-size:22px}
+ .business-service p{font-size:19px}
+ .business-primary,.business-secondary{min-height:52px;font-size:18px}
+ .business-intake-grid{grid-template-columns:1fr}
+ .business-intake{padding:20px 16px}
+ .business-intake-grid label{font-size:18px}
+ .business-status{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){.business-service{transition:none!important;transform:none!important}}
+
 </style>
 </head>
 <body>
@@ -789,7 +856,12 @@ h1,h2,h3,p{overflow-wrap:break-word}
 <div class="top-workspace"><button id="topWorkspace" class="top-workspace-trigger" type="button" aria-haspopup="true" aria-expanded="false"><b>COMTROL 360</b><span>⌄</span></button>
 <div class="pop-menu hidden" id="workspacePanel" role="menu">
 <button type="button" data-topview="chat">◈ &nbsp; Conversación</button>
-<button type="button" data-topview="projects">▦ &nbsp; Mis proyectos</button><button type="button" data-topview="templates">▤ &nbsp; Plantillas</button>
+<button type="button" data-topview="enterprise">▦ &nbsp; Soluciones Empresariales</button>
+<button type="button" data-topview="builder">⌘ &nbsp; Crear Web y Apps</button>
+<button type="button" data-topview="research">◉ &nbsp; Investigación y Proyectos</button>
+<button type="button" data-topview="creative">✧ &nbsp; Diseño y Contenido</button>
+<button type="button" data-topview="tasks">◷ &nbsp; Automatizaciones y Tareas</button>
+<button type="button" data-topview="companies">▤ &nbsp; Mis Empresas y Proyectos</button>
 <button type="button" data-topview="control">▤ &nbsp; CONTROL 360</button>
 <button type="button" data-topview="files">▧ &nbsp; Mis archivos</button>
 <button type="button" data-topview="radars">◎ &nbsp; Radares mundiales</button>
@@ -802,7 +874,7 @@ h1,h2,h3,p{overflow-wrap:break-word}
 <button type="button" id="menuExport">⇩ &nbsp; Exportar conversación .txt</button>
 <button type="button" id="menuCopy">▢ &nbsp; Copiar última respuesta</button>
 <button type="button" id="menuVoice">◖ &nbsp; Iniciar llamada de voz</button><button type="button" id="menuSpeak">◖ &nbsp; Escuchar respuesta</button>
-<button type="button" id="menuFiles">▧ &nbsp; Mis archivos</button><button type="button" id="menuTemplates">▤ &nbsp; Plantillas de trabajo</button>
+<button type="button" id="menuFiles">▧ &nbsp; Mis archivos</button><button type="button" id="menuEnterprise">▦ &nbsp; Soluciones Empresariales</button><button type="button" id="menuTemplates">▤ &nbsp; Plantillas de trabajo</button>
 <button type="button" id="menuFont">Aa &nbsp; Texto extra grande</button><button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
 </div></div>
 </header>
@@ -861,10 +933,83 @@ h1,h2,h3,p{overflow-wrap:break-word}
 <script type="module">
 const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQQ1JBHfDRRKut-trg_V-2isCjX",ENDPOINT=BASE+"/functions/v1/sjm_brain_hybrid_v1";
 const $=id=>document.getElementById(id);
-const menu=[["chat","COMTROL 360","◈"],["control","CONTROL 360","▤"],["projects","Mis proyectos","◧"],["templates","Plantillas","▤"],["radars","Seis radares mundiales","◎"],["applications","Postulaciones","▣"],["executor","Ejecutor web","⌘"],["motorola","Motorola Android","▯"],["automation","Automatizaciones","◷"],["memory","Memoria","▦"],["files","Mis archivos","▧"],["audit","Auditoría","◇"],["settings","Configuración","⚙"]];
-const infos={templates:["Plantillas de trabajo","Balance, comparación, auditoría y planes de acción en pocos toques. Las plantillas preparan preguntas; no certifican resultados."],control:["CONTROL 360","Operaciones, verificación y trazabilidad de actividades."],projects:["Mis proyectos","Desarrollo técnico y búsqueda de apoyos, tratados como líneas distintas."],radars:["Seis radares mundiales","Consulta cada región sin mezclar expedientes."],applications:["Postulaciones","Consulta no significa envío; envío no significa respuesta o aprobación."],executor:["Ejecutor web","Estado del servidor y registro de pruebas. Acciones externas requieren un ejecutor autorizado."],motorola:["Motorola Android","Control y notificaciones con permisos del teléfono y acuses verificables."],automation:["Automatizaciones","Ejecuciones, programación, supervisión y fallos."],memory:["Memoria","Historial de este navegador y memoria central son dos cosas diferentes."],files:["Mis archivos","Documentos, fotografías y archivos privados de la cuenta SJM."],audit:["Auditoría","Evidencia real de solicitudes, fallas, correcciones y pruebas."],settings:["Configuración","Voz, permisos, conexiones y privacidad."]};
+const menu=[
+["chat","COMTROL 360","◈"],
+["enterprise","Soluciones Empresariales","▦"],
+["builder","Crear Web y Apps","⌘"],
+["research","Investigación y Proyectos","◉"],
+["creative","Diseño y Contenido","✧"],
+["tasks","Automatizaciones y Tareas","◷"],
+["companies","Mis Empresas y Proyectos","▤"]
+];
+const advancedMenu=[
+["projects","Mis proyectos SJM","◧"],
+["templates","Plantillas de trabajo","▤"],
+["control","CONTROL 360 · Supervisión","▦"],
+["radars","Seis radares mundiales","◎"],
+["applications","Postulaciones","▣"],
+["executor","Ejecutor web","⌘"],
+["motorola","Motorola Android","▯"],
+["automation","Orquestación","◷"],
+["memory","Memoria","▦"],
+["files","Mis archivos","▧"],
+["audit","Auditoría","◇"],
+["settings","Configuración","⚙"]
+];
+const infos={
+enterprise:["SJM EMPRESA 360 IA","Soluciones empresariales organizadas por área. Elige qué necesitas, prepara una solicitud y autoriza cada acción importante."],
+builder:["Crear Aplicaciones y Páginas Web","Diseña y prepara sitios web, aplicaciones, prototipos, código y herramientas con ayuda de COMTROL 360."],
+research:["Investigación y Proyectos","Estudios de mercado, planes de negocio, comparaciones, riesgos y propuestas."],
+creative:["Diseño y Contenido","Documentos, presentaciones, informes, piezas visuales y recursos de comunicación."],
+tasks:["Automatizaciones y Tareas","Prepara rutinas y solicitudes de trabajo. La programación autónoma requiere conectarla al orquestador existente."],
+companies:["Mis Empresas y Proyectos","Un lugar para preparar necesidades de una empresa y acceder al portafolio SJM. Los espacios multiempresa aún no están habilitados."],
+templates:["Plantillas de trabajo","Balance, comparación, auditoría y planes de acción en pocos toques. Las plantillas preparan preguntas; no certifican resultados."],control:["CONTROL 360","Operaciones, verificación y trazabilidad de actividades."],projects:["Mis proyectos","Desarrollo técnico y búsqueda de apoyos, tratados como líneas distintas."],radars:["Seis radares mundiales","Consulta cada región sin mezclar expedientes."],applications:["Postulaciones","Consulta no significa envío; envío no significa respuesta o aprobación."],executor:["Ejecutor web","Estado del servidor y registro de pruebas. Acciones externas requieren un ejecutor autorizado."],motorola:["Motorola Android","Control y notificaciones con permisos del teléfono y acuses verificables."],automation:["Automatizaciones","Ejecuciones, programación, supervisión y fallos."],memory:["Memoria","Historial de este navegador y memoria central son dos cosas diferentes."],files:["Mis archivos","Documentos, fotografías y archivos privados de la cuenta SJM."],audit:["Auditoría","Evidencia real de solicitudes, fallas, correcciones y pruebas."],settings:["Configuración","Voz, permisos, conexiones y privacidad."]};
 const regions=[["1 · Latinoamérica y Caribe","Radar 1 Latinoamérica y Caribe"],["2 · Estados Unidos y Canadá","Radar 2 Estados Unidos y Canadá"],["3 · Europa ampliada","Radar 3 Europa"],["4 · Oriente Medio y Norte de África","Radar 4 Oriente Medio y Norte de África"],["5 · Asia y Oceanía","Radar 5 Asia y Oceanía"],["6 · África subsahariana","Radar 6 África subsahariana"]];
 let sb,session=null,authorized=false,preview=false,checking=false,busy=false,view="chat",chats=[],current=null,lastAnswer="",toastTimer,recognizing=false,attachments=[],uploading=false;
+/* SJM EMPRESA 360 IA · Centro empresarial v1 — catálogo y borradores, no ejecución de nómina ni contabilidad. */
+const enterpriseModules=[
+ {id:"administracion",title:"Administración",icon:"▦",summary:"Organización de empresas, procesos, documentos y operaciones.",focus:"Organizar procesos, responsabilidades, procedimientos, documentos y controles."},
+ {id:"finanzas",title:"Contabilidad y Finanzas",icon:"▤",summary:"Presupuestos, costos, ingresos, flujo de caja y proyecciones.",focus:"Preparar presupuesto, control de ingresos y egresos, escenarios y proyecciones sin certificar cifras.",csv:"flujo"},
+ {id:"nomina",title:"Nómina y Recursos Humanos",icon:"◈",summary:"Turnos, contratos, asistencia, personal y preparación de nómina.",focus:"Organizar turnos, plantillas de asistencia y validaciones de nómina según la legislación aplicable; cálculos finales requieren revisión profesional."},
+ {id:"inventarios",title:"Inventarios y Compras",icon:"▣",summary:"Existencias, productos, proveedores, alertas y movimientos.",focus:"Diseñar catálogo de productos, control de entradas y salidas y alertas de inventario.",csv:"inventario"},
+ {id:"marketing",title:"Marketing y Publicidad",icon:"✧",summary:"Campañas, contenido, mensajes, estrategia y publicidad.",focus:"Preparar un plan comercial de campañas, calendario de contenidos, presupuesto y medición."},
+ {id:"ventas",title:"Ventas y CRM",icon:"◎",summary:"Clientes, cotizaciones, oportunidades y seguimiento.",focus:"Diseñar un flujo de ventas, seguimiento de contactos y cotizaciones.",csv:"crm"},
+ {id:"auditorias",title:"Auditorías y Controles",icon:"◇",summary:"Inconsistencias, riesgos, evidencias y controles de procesos.",focus:"Preparar lista de verificación, hallazgos y recomendaciones; la auditoría formal requiere validación profesional."},
+ {id:"estudios",title:"Investigación Empresarial",icon:"◉",summary:"Mercado, competencia, tendencias y análisis de viabilidad.",focus:"Definir estudio de mercado, competencia, clientes, demanda y riesgos con fuentes comprobables."},
+ {id:"proyectos",title:"Proyectos y Planes de Negocio",icon:"▥",summary:"Modelos de negocio, planes empresariales y propuestas de inversión.",focus:"Preparar modelo de negocio, fases, presupuesto y propuesta de financiación."},
+ {id:"automatizar",title:"Automatización de Procesos",icon:"◷",summary:"Flujos de trabajo, alertas, integraciones y seguimiento.",focus:"Diseñar flujo automatizado, permisos, disparadores, control de fallos y registro de evidencias."}
+];
+const enterpriseCsvTemplates={
+ inventario:{file:"plantilla_inventario_sjm.csv",header:"codigo,producto,categoria,unidad,existencia_inicial,entradas,salidas,existencia_final,costo_unitario,proveedor,fecha_actualizacion,observaciones\n"},
+ flujo:{file:"plantilla_flujo_caja_sjm.csv",header:"fecha,concepto,categoria,tipo_ingreso_o_egreso,valor,medio_pago,comprobante,observaciones\n"},
+ crm:{file:"plantilla_crm_sjm.csv",header:"cliente_o_empresa,contacto,canal,necesidad,oportunidad,etapa,proxima_accion,fecha_seguimiento,observaciones\n"}
+};
+const workCenters={
+ builder:[
+  ["Páginas Web","Preparar el diseño, estructura, contenido, funcionalidades y plan de publicación de una página web."],
+  ["Aplicaciones Web y Móviles","Definir requisitos, pantallas, datos, permisos y arquitectura para una aplicación."],
+  ["Código y Prototipos","Especificar, revisar, depurar y probar programas sin simular una ejecución que no ocurrió."],
+  ["Agentes e IA Especializadas","Diseñar asistentes, herramientas y agentes con funciones y permisos delimitados."],
+  ["Bases de Datos y Paneles","Preparar estructura de datos, controles, indicadores y paneles informativos."],
+  ["Pruebas y Despliegues","Diseñar pruebas, evidencias, permisos y despliegue cuando exista integración autorizada."]
+ ],
+ research:[
+  ["Estudio de Mercado","Analizar clientes, demanda, competencia, oportunidades y fuentes."],
+  ["Comparaciones","Comparar proveedores, tecnologías, servicios o decisiones con criterios verificables."],
+  ["Planes de Negocio","Estructurar propuesta de valor, costos, ingresos, etapas y riesgos."],
+  ["Propuestas de Inversión","Preparar presentación, justificación y presupuesto para posibles financiadores."],
+  ["Riesgos y Viabilidad","Identificar barreras, dependencias, costos e indicadores de éxito."],
+  ["Investigación General","Formular una pregunta, recopilar fuentes y preparar informe con incertidumbres."]
+ ],
+ creative:[
+  ["Documentos e Informes","Preparar propuestas, contratos borrador, informes y documentos de trabajo."],
+  ["Hojas de Cálculo","Estructurar tablas, controles, modelos y análisis para Excel o CSV."],
+  ["Presentaciones","Organizar mensajes, estructura y contenido de diapositivas."],
+  ["Diseño y Publicidad","Preparar concepto visual, textos de campañas y piezas de comunicación."],
+  ["Imágenes y Video","Diseñar guiones, instrucciones y entregables sujetos a motores multimedia disponibles."],
+  ["Traducción y Comunicación","Preparar traducciones y materiales profesionales multilingües."]
+ ]
+};
 const projectCatalog=[{"id":"control","name":"KAIRÓS 360 · SJM CONTROL 360","group":"Central","icon":"◈","desc":"Cerebro IA, orquestación, ejecutor web, supervisión y verificación de autonomía.","dev":["Cerebro híbrido y Mentor con consultas protegidas","Control Android y avisos en Motorola","Orquestación, auditoría, permisos y pruebas integrales"],"support":["Infraestructura gratuita y continuidad","Alianzas técnicas para ejecución y voz","Validación de funcionamiento en el dispositivo real"]},{"id":"performance","name":"SJM Human Performance 360","group":"Principal","icon":"◉","desc":"Plataforma integral de entrenamiento, evaluación del movimiento y seguimiento.","dev":["Motion 360: cámara, IA y sensores IMU","Performance 360, Nutrition Pro y biblioteca de ejercicios","Visualización 3D, pruebas de campo y prototipos"],"support":["Financiación no reembolsable y concursos","Donación definitiva de computador y componentes","Alianzas deportivas, tecnológicas y pilotos"]},{"id":"translator","name":"SJM Universal Translator","group":"Principal","icon":"◎","desc":"Traducción bidireccional con accesibilidad y dispositivos portátiles.","dev":["Aplicación móvil con voz y subtítulos","Auricular privado y módulo de solapa","Pruebas de latencia y accesibilidad"],"support":["Convocatorias de innovación y accesibilidad","Socios de hardware y pruebas piloto","Alianzas internacionales"]},{"id":"prayer","name":"Mi Casa de Oración","group":"Principal","icon":"✦","desc":"Templo virtual con espacios de oración, adoración, predicación y lectura.","dev":["Templo virtual 3D luminoso","Servidor virtual y espacios de encuentro","Oración, adoración, predicación y Biblia"],"support":["Alianzas ministeriales","Apoyo para infraestructura y producción","Difusión y colaboración internacional"]},{"id":"bible","name":"Mi Biblia Viva","group":"Ministerial","icon":"✧","desc":"Lectura y escucha bíblica móvil en español, con experiencia accesible.","dev":["Experiencia de lectura del Nuevo Testamento","Narración natural en español y continuidad diaria","Versión Android funcional y verificada"],"support":["Apoyo para voces y producción de audio","Pruebas de usabilidad","Distribución gratuita y alianzas"]},{"id":"mentor","name":"SJM Mentor IA · Secretario 360","group":"Central","icon":"◇","desc":"Asistente conversacional con memoria, seguimiento, voz y avisos útiles.","dev":["Conversación en español y recuperación de contexto","Memoria y comandos con permisos","Voz natural, reportes y avisos"],"support":["Motor de voz y recursos sin pagos obligatorios","Pruebas reales de integración","Integración técnica con CONTROL 360"]},{"id":"complex","name":"SJM Human Performance Complex","group":"Expansión","icon":"▦","desc":"Visión futura de un centro físico de rendimiento, tecnología y bienestar.","dev":["Diseño de espacios y servicios deportivos","Laboratorio de evaluación y biomecánica","Modelo por fases para una sede física"],"support":["Aliados de infraestructura y equipamiento","Patrocinio y financiación","Convenios con centros deportivos"]},{"id":"services","name":"SJM Servicios Autónomos Globales","group":"Servicios","icon":"◫","desc":"Servicios digitales con apoyo de IA y operaciones auditables.","dev":["Catálogo de servicios y entrega digital","Automatización supervisada de operaciones","Registro de evidencias y calidad"],"support":["Clientes y alianzas B2B","Herramientas gratuitas y soporte técnico","Pruebas comerciales sin inversión inicial"]},{"id":"work","name":"SJM Work Autónomo","group":"Servicios","icon":"⌘","desc":"Flujos de trabajo asistidos por agentes, tareas y expedientes sin duplicados.","dev":["Bandejas, reintentos y trazabilidad","Aislamiento de casos y control de permisos","Pruebas técnicas y despliegue progresivo"],"support":["Proveedores y recursos para pruebas","Alianzas de implementación","Casos reales remunerados"]},{"id":"income","name":"SJM Ingresos Digitales Automatizados","group":"Servicios","icon":"◈","desc":"Oportunidades de ingresos digitales legítimos y seguimiento comercial.","dev":["Clasificación de oportunidades viables","Preparación de propuestas y entregables","Seguimiento sin confundir búsqueda con contratación"],"support":["Clientes remotos y ventas B2B","Colaboraciones verificadas","Modelos sin pagos de inscripción"]},{"id":"lab7","name":"SJM Laboratorio 7 · Agencia Mundial","group":"Servicios","icon":"◴","desc":"Investigación de negocios digitales, mercados y experimentos comerciales.","dev":["Análisis de demanda, competencia y precios","Pruebas de prototipos y propuestas","Evaluación de riesgos y viabilidad"],"support":["Compradores y socios de ejecución","Validación comercial internacional","Infraestructura de bajo costo"]},{"id":"motion","name":"SJM Motion AI Studio","group":"Tecnología","icon":"◉","desc":"Herramientas visuales, análisis de movimiento y creación de recursos 3D.","dev":["Escenas y ejercicios 3D","Puntos articulares, ángulos y animaciones","Integración con evaluación de movimiento"],"support":["Recursos gráficos y computación","Pruebas con dispositivos disponibles","Colaboración en animación y biomecánica"]},{"id":"marketing","name":"SJM Marketing 360","group":"Servicios","icon":"✳","desc":"Identidad SJM, comunicación comercial y contenidos de proyectos.","dev":["Mensajes y materiales por proyecto","Portafolio comercial y difusión","Procesos de contenido verificables"],"support":["Alianzas de difusión y ventas","Canales orgánicos sin inversión obligatoria","Colaboración de marca"]},{"id":"academy","name":"SJM English Academy","group":"Expansión","icon":"◌","desc":"Idea educativa del ecosistema SJM, pendiente de definir y validar en detalle.","dev":["Definir alcance educativo y contenidos","Diseñar experiencia didáctica","Validar necesidad y prototipo"],"support":["Recursos gratuitos","Alianzas educativas","Pruebas de interés"]}];
 let projectFilter="Todos",projectQuery="",folderFilter=null,selectedProjectId=null;
 const templates=[
@@ -910,7 +1055,22 @@ function downloadText(name,text){const blob=new Blob([text],{type:"text/plain;ch
 function exportConversation(){const chat=active();if(!chat){info("Aún no hay conversación para exportar");return}const rows=chat.messages.map(m=>(m.role==="user"?"Tú":"COMTROL 360")+":\n"+String(m.text||"")).join("\n\n");downloadText("KAIRÓS-conversacion-"+new Date().toISOString().slice(0,10)+".txt",chat.title+"\n\n"+rows);info("Conversación exportada desde este navegador")}
 async function copyLast(){if(!lastAnswer){info("Todavía no hay respuesta para copiar");return}try{await navigator.clipboard.writeText(lastAnswer);info("Última respuesta copiada")}catch{info("El navegador no permitió copiar")}}
 
-function navBuild(){for(const [id,title,sym] of menu){const b=document.createElement("button");b.className="nav-item";b.dataset.view=id;const s=document.createElement("span");s.textContent=sym;const t=document.createTextNode(title);b.append(s,t);b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};$("nav").append(b)}sidebarProjects();renderFolders()}
+function navBuild(){
+ const root=$("nav");root.replaceChildren();
+ function navButton(id,title,sym,target){
+  const b=document.createElement("button");b.type="button";b.className="nav-item";b.dataset.view=id;
+  const s=document.createElement("span");s.textContent=sym;b.append(s,document.createTextNode(title));
+  b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};
+  target.append(b);
+ }
+ for(const [id,title,sym] of menu)navButton(id,title,sym,root);
+ const header=document.createElement("button");header.type="button";header.id="advancedToggle";header.className="advanced-toggle";
+ header.textContent="▸ Otras herramientas SJM";header.setAttribute("aria-expanded","false");root.append(header);
+ const advanced=document.createElement("div");advanced.id="advancedNav";advanced.className="hidden advanced-nav";root.append(advanced);
+ for(const [id,title,sym] of advancedMenu)navButton(id,title,sym,advanced);
+ header.onclick=()=>{const showing=advanced.classList.toggle("hidden")===false;header.textContent=(showing?"▾":"▸")+" Otras herramientas SJM";header.setAttribute("aria-expanded",String(showing))};
+ sidebarProjects();renderFolders();
+}
 function sidebarProjects(){const root=$("projectShortcuts"),fixed=$("pinnedProjects");root.replaceChildren();fixed.replaceChildren();const q=$("search")?.value?.toLocaleLowerCase("es").trim()||"";for(const p of projectCatalog){if(q&&!((p.name+" "+p.desc+" "+p.group).toLocaleLowerCase("es").includes(q)))continue;const b=document.createElement("button");b.className="project-shortcut";b.type="button";const mark=document.createElement("span");mark.textContent=p.icon;const name=document.createElement("span");name.textContent=p.name;b.append(mark,name);b.title=p.name;b.onclick=()=>openProject(p.id);root.append(b)}for(const id of organization.pinned){const p=projectCatalog.find(v=>v.id===id);if(!p||q&&!((p.name+" "+p.desc).toLocaleLowerCase("es").includes(q)))continue;const row=document.createElement("div");row.className="pinned-row";const open=document.createElement("button");open.className="pinned-open";open.type="button";const mark=document.createElement("span");mark.textContent="★";const name=document.createElement("span");name.textContent=p.name;open.append(mark,name);open.onclick=()=>openProject(p.id);const unpin=document.createElement("button");unpin.className="folder-action";unpin.type="button";unpin.textContent="×";unpin.title="Desfijar proyecto";unpin.setAttribute("aria-label","Desfijar "+p.name);unpin.onclick=()=>togglePin(p.id);row.append(open,unpin);fixed.append(row)}if(!fixed.children.length){const e=document.createElement("p");e.className="sidebar-hint";e.textContent=q?"Sin fijados coincidentes":"Abre un proyecto y pulsa ☆ Fijar.";fixed.append(e)}$("projectCount").textContent=String(projectCatalog.length)}
 function openProject(id){projectQuery="";projectFilter="Todos";folderFilter=null;selectedProjectId=id;show("projects");renderProjectDetail(id);closeDrawer()}
 function projectNotesKey(){return "kairos-project-notes-v1:"+((!preview&&session?.user?.id)||"preview")}
@@ -924,17 +1084,155 @@ function active(){return chats.find(c=>c.id===current)}
 function ensureChat(){if(active())return active();const c={id:Date.now()+"-"+Math.random().toString(36).slice(2),title:"Nueva conversación",messages:[],at:new Date().toISOString()};chats.unshift(c);current=c.id;save();return c}
 function historyRender(){const box=$("history");box.replaceChildren();const q=$("search").value.toLowerCase();let count=0;for(const c of chats){if(q&&!((c.title||"")+" "+c.messages.map(m=>m.text||"").join(" ")).toLowerCase().includes(q))continue;const b=document.createElement("button");b.className="hist-item"+(current===c.id?" active":"");b.textContent=c.title;b.title=c.title;b.onclick=()=>{current=c.id;historyRender();show("chat");messagesRender();closeDrawer()};box.append(b);count++}if(!count){const e=document.createElement("div");e.style.cssText="color:#b4d0df;padding:12px;font-size:12px";e.textContent="Sin conversaciones en este dispositivo";box.append(e)}}
 function newChat(){current=null;historyRender();show("chat");messagesRender()}
-function welcome(){const home=document.createElement("div");home.className="welcome";home.innerHTML='<div class="hero">K</div><h1>¿Qué hacemos hoy?</h1><p>Habla con COMTROL 360, abre tus proyectos y organiza SJM desde un solo lugar. Las consultas reales siguen protegidas y cada avance necesita evidencia.</p><div class="suggestions"><button class="suggestion" data-view="projects">▦ Abrir proyectos<small>14 frentes SJM organizados</small></button><button class="suggestion" data-view="control">◈ Centro de control<small>Estado y trazabilidad</small></button><button class="suggestion" data-prompt="COMTROL 360, dame un reporte general de CONTROL 360">▤ Reporte general<small>Consulta protegida al Mentor</small></button><button class="suggestion" data-prompt="COMTROL 360, revisa mis postulaciones">◎ Mis postulaciones<small>Etapas y comprobantes</small></button><button class="suggestion" data-prompt="COMTROL 360, identifica las fallas">◇ Diagnóstico de fallas<small>Sin inventar reparaciones</small></button><button class="suggestion" data-prompt="COMTROL 360, muéstrame qué está funcionando">◉ Capacidades verificadas<small>Solo lectura del sistema</small></button></div>';return home}
+function welcome(){
+ const home=document.createElement("div");home.className="welcome";
+ home.innerHTML='<div class="hero">C</div><h1>¿Qué vamos a resolver hoy?</h1><p>COMTROL 360 · Soluciones empresariales, proyectos, creación y trabajo desde una sola conversación.</p><div class="suggestions">'+
+ '<button class="suggestion" data-view="enterprise">▦ Soluciones Empresariales<small>Nómina, inventario, finanzas y más</small></button>'+
+ '<button class="suggestion" data-view="builder">⌘ Crear Web y Apps<small>Sitios, programas y prototipos</small></button>'+
+ '<button class="suggestion" data-view="tasks">◷ Tareas y Automatizaciones<small>Preparar y supervisar trabajo</small></button>'+
+ '<button class="suggestion" data-view="companies">▤ Mis Empresas y Proyectos<small>Portafolio y diagnóstico inicial</small></button>'+
+ '</div>';
+ return home;
+}
 function decorate(target,value){const re=/https:\/\/[^\s<>"']+/g;let p=0;for(const m of value.matchAll(re)){target.append(document.createTextNode(value.slice(p,m.index)));try{const u=new URL(m[0]);const link=document.createElement("a");link.href=u.href;link.rel="noopener noreferrer";link.target="_blank";link.textContent=m[0];target.append(link)}catch{target.append(document.createTextNode(m[0]))}p=m.index+m[0].length}target.append(document.createTextNode(value.slice(p)))}
 function bubble(m,pending=false){const wrap=document.createElement("div");wrap.className="message "+m.role+(pending?" pending":"");if(m.role==="assistant"){const a=document.createElement("div");a.className="avatar";a.textContent="C";a.setAttribute("aria-label","COMTROL 360");wrap.append(a)}const b=document.createElement("div");b.className="msg-body";const text=document.createElement("div");text.className="bubble";decorate(text,m.text);b.append(text);if(!pending){const note=document.createElement("div");note.className="note";note.textContent=m.role==="assistant"?(m.mode==="demo"?"COMTROL 360 · demostración sin IA":m.mode==="supabase_live"?"COMTROL 360 · lectura técnica de Supabase":"COMTROL 360 · Mentor protegido"):"Tu consulta";b.append(note);const actions=document.createElement("div");actions.className="tools";const copy=document.createElement("button");copy.className="toolbtn";copy.textContent="Copiar";copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.text);info("Texto copiado")}catch{info("No se pudo copiar")}};actions.append(copy);if(m.role==="user"){const edit=document.createElement("button");edit.className="toolbtn";edit.textContent="Editar";edit.onclick=()=>{$("prompt").value=m.text;grow();$("prompt").focus()};actions.append(edit)}else{const regen=document.createElement("button");regen.className="toolbtn";regen.textContent="Regenerar";regen.onclick=()=>{const c=active();const i=c?.messages.indexOf(m);const prev=c?.messages.slice(0,i).reverse().find(v=>v.role==="user");if(prev)sendMessage(prev.text)};actions.append(regen)}b.append(actions)}wrap.append(b);$("messages").append(wrap);$("messages").scrollTop=$("messages").scrollHeight;return wrap}
 function messagesRender(){const box=$("messages");box.replaceChildren();const c=active();if(!c||!c.messages.length)box.append(welcome());else for(const m of c.messages)bubble(m)}
-function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"COMTROL 360":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").children)b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
+function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"COMTROL 360":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").querySelectorAll("[data-view]"))b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
 function heading(root,id){const k=document.createElement("div");k.className="eyebrow";k.textContent="SJM HUMAN PERFORMANCE 360";const h=document.createElement("h1");h.textContent=infos[id][0];const p=document.createElement("p");p.className="intro";p.textContent=infos[id][1];root.append(k,h,p)}
 function tile(grid,title,description,status,action,handler){const c=document.createElement("article");c.className="tile";const h=document.createElement("h3");h.textContent=title;const tag=document.createElement("span");tag.className="pill "+(status==="Confirmado"?"ok":status==="Bloqueado"?"bad":status==="Requiere mi intervención"?"human":"");tag.textContent=preview?"Vista previa":status;const p=document.createElement("p");p.textContent=description;c.append(h,tag,p);if(action){const b=document.createElement("button");b.textContent=action;b.onclick=handler;c.append(b)}grid.append(c)}
 function askAbout(q){show("chat");$("prompt").value=q;grow();$("prompt").focus();info("Consulta preparada. Pulsa enviar para solicitar registros reales.")}
+
+/* Centros de servicio: navegación y preparación de solicitudes; no crean expedientes de clientes reales. */
+function companyDraftRequest(title,focus=""){
+ const content="COMTROL 360, necesito una solución de SJM Empresa 360 IA para: "+title+". "+
+  (focus||"Ayúdame a definir el alcance.")+
+  " Primero haz preguntas clave, explica opciones viables y prepara un plan con entregables, recursos, costo estimado cuando haya datos, controles y autorizaciones. No afirmes que ejecutaste procesos ni entregaste servicios sin evidencia.";
+ askAbout(content.slice(0,700));
+}
+function businessDivider(root,title,subtitle){
+ const wrap=document.createElement("div");wrap.className="business-section-label";
+ const h=document.createElement("h2");h.textContent=title;wrap.append(h);
+ if(subtitle){const p=document.createElement("p");p.textContent=subtitle;wrap.append(p)}
+ root.append(wrap);return wrap;
+}
+function businessNotice(root,text){
+ const p=document.createElement("p");p.className="business-safe-notice";p.textContent=text;root.append(p);return p;
+}
+function renderBusinessStarter(root){
+ const card=document.createElement("section");card.className="business-intake";card.id="businessIntake";
+ const title=document.createElement("h2");title.textContent="Comenzar diagnóstico empresarial";
+ const p=document.createElement("p");p.textContent="Cuéntale a COMTROL qué necesitas. Esta ficha prepara una consulta que podrás revisar antes de enviarla.";
+ const form=document.createElement("form");form.className="business-intake-grid";
+ const alias=document.createElement("label");alias.textContent="Nombre comercial o alias (opcional)";
+ const name=document.createElement("input");name.type="text";name.maxLength=70;name.placeholder="Ej.: Empresa de servicios";name.autocomplete="off";alias.append(name);
+ const sectorLabel=document.createElement("label");sectorLabel.textContent="Actividad de la empresa";
+ const sector=document.createElement("select");
+ for(const x of ["Seleccionar actividad","Comercio","Servicios","Industria","Deporte y bienestar","Tecnología","Educación","Salud","Agro y rural","Otra"]){const o=document.createElement("option");o.textContent=x;o.value=x==="Seleccionar actividad"?"":x;sector.append(o)}
+ sectorLabel.append(sector);
+ const needsLabel=document.createElement("label");needsLabel.className="business-wide";needsLabel.textContent="¿Qué necesita resolver?";const needs=document.createElement("textarea");needs.rows=3;needs.maxLength=360;needs.required=true;needs.placeholder="Ej.: organizar inventarios, controlar ventas y preparar el presupuesto mensual";needsLabel.append(needs);
+ const send=document.createElement("button");send.type="submit";send.textContent="Preparar diagnóstico en el chat";send.className="business-primary";
+ const clear=document.createElement("button");clear.type="reset";clear.textContent="Limpiar";clear.className="business-secondary";
+ const actions=document.createElement("div");actions.className="business-actions business-wide";actions.append(send,clear);
+ const privacy=document.createElement("p");privacy.className="business-privacy business-wide";privacy.textContent="No ingreses contraseñas, datos bancarios, documentos de identidad, nómina real ni información confidencial. La separación segura por empresa aún no está implementada. El contenido no se guarda en el servidor desde este formulario.";
+ form.append(alias,sectorLabel,needsLabel,actions,privacy);
+ form.onsubmit=e=>{
+  e.preventDefault();const problem=needs.value.trim();if(!problem){needs.focus();return}
+  const q="COMTROL 360, prepara un diagnóstico inicial para "+(name.value.trim()||"una empresa")+" del sector "+(sector.value||"por definir")+
+  ". Necesidad: "+problem+
+  ". Haz preguntas mínimas, clasifica prioridad, riesgos, información faltante, opciones y pasos verificables. No ejecutes operaciones ni supongas cifras o datos.";
+  askAbout(q.slice(0,700));
+ };
+ card.append(title,p,form);root.append(card);
+}
+function csvStarter(id){
+ const entry=enterpriseCsvTemplates[id];if(!entry)return;
+ downloadText(entry.file,"\uFEFF"+entry.header);
+ info("Plantilla CSV vacía generada en este dispositivo. No contiene datos de ninguna empresa.");
+}
+function renderEnterpriseCenter(root,grid){
+ root.classList.add("enterprise-center");grid.classList.add("business-module-grid");
+ const hero=document.createElement("div");hero.className="enterprise-hero";hero.innerHTML='<span class="enterprise-eyebrow">CENTRO DE SOLUCIONES EMPRESARIALES 360°</span><h2>Una solicitud. Distintas soluciones.</h2><p>Elige un área o describe el problema de tu empresa. COMTROL prepara el trabajo; los servicios reales se activan únicamente cuando están conectados, autorizados y probados.</p>';
+ root.insertBefore(hero,grid);
+ const begin=document.createElement("button");begin.type="button";begin.className="business-primary business-hero-button";begin.textContent="Comenzar diagnóstico";begin.onclick=()=>document.getElementById("businessIntake")?.scrollIntoView({behavior:"smooth",block:"center"});hero.append(begin);
+ for(const m of enterpriseModules){
+  const card=document.createElement("article");card.className="business-service";
+  const label=document.createElement("div");label.className="business-service-top";
+  const ico=document.createElement("span");ico.textContent=m.icon;ico.className="business-service-icon";
+  const badge=document.createElement("small");badge.className="business-status";badge.textContent="Por conectar / validar";
+  label.append(ico,badge);
+  const h=document.createElement("h3");h.textContent=m.title;
+  const p=document.createElement("p");p.textContent=m.summary;
+  const buttons=document.createElement("div");buttons.className="business-card-actions";
+  const ask=document.createElement("button");ask.type="button";ask.className="business-primary";ask.textContent="Solicitar solución";ask.onclick=()=>companyDraftRequest(m.title,m.focus);buttons.append(ask);
+  if(m.csv){const csv=document.createElement("button");csv.type="button";csv.className="business-secondary";csv.textContent="Plantilla CSV";csv.onclick=()=>csvStarter(m.csv);buttons.append(csv)}
+  card.append(label,h,p,buttons);grid.append(card);
+ }
+ renderBusinessStarter(root);
+ businessDivider(root,"Etapas de desarrollo","Crearemos primero funciones pequeñas y verificables, después conectaremos las operaciones empresariales.");
+ const phases=document.createElement("div");phases.className="enterprise-phases";
+ for(const item of [
+  ["Fase 1 · Base funcional","Chat, diagnóstico guiado, portafolio, plantillas, inventarios y planes iniciales."],
+  ["Fase 2 · Integraciones","CRM, tareas reales, creación tecnológica y conexiones por empresa."],
+  ["Fase 3 · Operación avanzada","Nómina, contabilidad, auditoría formal, agentes y flujos integrales bajo autorización."]
+ ]){const box=document.createElement("section");const h=document.createElement("h3");h.textContent=item[0];const p=document.createElement("p");p.textContent=item[1];box.append(h,p);phases.append(box)}
+ root.append(phases);
+ businessNotice(root,"Seguridad: los servicios de nómina, contabilidad, auditoría y cumplimiento requieren revisión humana. Todavía NO hay cuentas multiempresa ni aislamiento de datos por cliente; no introduzcas información real sensible.");
+}
+function renderServiceCenter(root,grid,id){
+ grid.classList.add("business-module-grid");
+ const areas=workCenters[id]||[];
+ for(const [name,desc] of areas){
+  const card=document.createElement("article");card.className="business-service";
+  const h=document.createElement("h3");h.textContent=name;
+  const p=document.createElement("p");p.textContent=desc;
+  const badge=document.createElement("small");badge.className="business-status";badge.textContent="Solicitud guiada · sin ejecución";
+  const b=document.createElement("button");b.type="button";b.className="business-primary";b.textContent="Preparar trabajo";
+  b.onclick=()=>companyDraftRequest(name,desc);
+  card.append(h,p,badge,b);grid.append(card);
+ }
+ businessNotice(root,"Estas secciones preparan solicitudes en el chat. Crear archivos finales, ejecutar código, renderizar multimedia o publicar aplicaciones requiere servicios conectados y pruebas; ningún botón finge esos resultados.");
+}
+function renderTasksCenter(root,grid){
+ grid.classList.add("business-module-grid");
+ const specs=[
+  ["Programar una tarea","Define qué hacer, con qué frecuencia, qué permisos se necesitan y cómo comprobar resultados."],
+  ["Seguimiento recurrente","Diseña alertas de fechas, respuestas, disponibilidad, expedientes o indicadores."],
+  ["Automatizar un proceso","Planifica pasos, responsables, integraciones, errores, reintentos y evidencias."],
+  ["Ver CONTROL 360","Accede al módulo técnico existente de orquestación y verificación."]
+ ];
+ for(const [title,desc] of specs){
+  const card=document.createElement("article");card.className="business-service";
+  const h=document.createElement("h3");h.textContent=title;
+  const p=document.createElement("p");p.textContent=desc;
+  const b=document.createElement("button");b.type="button";b.className="business-primary";b.textContent=title==="Ver CONTROL 360"?"Abrir supervisor":"Preparar solicitud";
+  b.onclick=title==="Ver CONTROL 360"?()=>show("automation"):()=>companyDraftRequest(title,desc);
+  card.append(h,p,b);grid.append(card);
+ }
+ businessNotice(root,"La preparación de una tarea no la programa. COMTROL necesita conectarse con el orquestador y confirmar el identificador de cada ejecución antes de mostrarla como activa.");
+}
+function renderCompaniesCenter(root,grid){
+ grid.classList.add("business-module-grid");
+ const cards=[
+  ["Mis proyectos SJM","Acceder al portafolio de proyectos existente, con carpetas y elementos fijados.","Abrir proyectos",()=>show("projects")],
+  ["Mi empresa · diagnóstico","Definir necesidades generales sin introducir datos sensibles.","Abrir diagnóstico",()=>show("enterprise")],
+  ["Empresas de clientes","El acceso de clientes y la separación de información requieren autenticación y permisos por empresa.","Aún no disponible",null],
+  ["Documentos y archivos","Abrir la biblioteca privada del usuario autenticado, sin compartirla con otras empresas.","Mis archivos",()=>show("files")]
+ ];
+ for(const [name,desc,action,callback] of cards){
+  const card=document.createElement("article");card.className="business-service";
+  const h=document.createElement("h3");h.textContent=name;const p=document.createElement("p");p.textContent=desc;
+  const b=document.createElement("button");b.type="button";b.textContent=action;b.className="business-primary";b.disabled=!callback;if(callback)b.onclick=callback;card.append(h,p,b);grid.append(card);
+ }
+ businessNotice(root,"La administración de distintas empresas todavía no está conectada. No se deben cargar nóminas, facturas, registros laborales ni datos de clientes reales hasta implementar aislamiento por empresa, roles, auditoría y validación legal.");
+}
+
 function moduleRender(id){const root=$("moduleBody");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
 const grid=document.createElement("div");grid.className="tile-grid";root.append(grid);
-if(id==="templates"){renderTemplates(root,grid)}else if(id==="control"){tile(grid,"Puente del cerebro","Conectado a la función protegida del Mentor. El estado se comprueba con autorización.",authorized?"Confirmado":"En proceso","Comprobar",checkStatus);tile(grid,"Estado operativo real","Consulta autorizada a la base existente: memoria operativa, navegador, Motorola y resumen de expedientes. Solo lectura.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Informe del día","Consulta del día; el filtro exacto desde las 00:00 todavía no está certificado por el servicio.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte del día y separa hechos comprobados"));tile(grid,"Informe general","Resumen disponible en el Mentor, no auditoría histórica total garantizada.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte general de CONTROL 360"));tile(grid,"Ejecuciones externas","No se ejecutan postulaciones, pagos ni navegación desde el cerebro de esta pantalla.","Bloqueado",null,null)}
+if(id==="enterprise"){renderEnterpriseCenter(root,grid)}
+else if(id==="builder"||id==="research"||id==="creative"){renderServiceCenter(root,grid,id)}
+else if(id==="tasks"){renderTasksCenter(root,grid)}
+else if(id==="companies"){renderCompaniesCenter(root,grid)}
+else if(id==="templates"){renderTemplates(root,grid)}else if(id==="control"){tile(grid,"Puente del cerebro","Conectado a la función protegida del Mentor. El estado se comprueba con autorización.",authorized?"Confirmado":"En proceso","Comprobar",checkStatus);tile(grid,"Estado operativo real","Consulta autorizada a la base existente: memoria operativa, navegador, Motorola y resumen de expedientes. Solo lectura.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Informe del día","Consulta del día; el filtro exacto desde las 00:00 todavía no está certificado por el servicio.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte del día y separa hechos comprobados"));tile(grid,"Informe general","Resumen disponible en el Mentor, no auditoría histórica total garantizada.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte general de CONTROL 360"));tile(grid,"Ejecuciones externas","No se ejecutan postulaciones, pagos ni navegación desde el cerebro de esta pantalla.","Bloqueado",null,null)}
 else if(id==="radars"){for(const [name,q] of regions)tile(grid,name,"Registros regionales por verificar. Una consulta no significa postulación enviada.","En proceso","Consultar región",()=>askAbout("COMTROL 360, dame un reporte de "+q+" con evidencia"))}
 else if(id==="applications"){tile(grid,"Etapas y comprobantes","Consulta ≠ postulación ≠ acuse ≠ respuesta ≠ entrevista ≠ aprobación ≠ contratación.","En proceso","Consultar",()=>askAbout("COMTROL 360, revisa mis postulaciones y los comprobantes"));tile(grid,"Pendientes personales","CAPTCHA, identidad, autorización y otras decisiones requieren intervención humana.","Requiere mi intervención","Consultar",()=>askAbout("COMTROL 360, qué postulaciones requieren intervención"));tile(grid,"Pruebas de envíos","No convertir consultas o búsquedas en candidaturas exitosas.","En proceso","Consultar",()=>askAbout("COMTROL 360, qué resultados de postulaciones están confirmados"))}
 else if(id==="projects"){renderPortfolio(root,grid)}
@@ -1359,7 +1657,7 @@ $("voiceOptions").onclick=()=>{
 $("voiceSelect").onchange=e=>{
  voiceCall.voiceUri=e.target.value;try{localStorage.setItem("comtrol-voice-uri-v1",voiceCall.voiceUri)}catch{}
 };
-$("menuFiles").onclick=()=>show("files");$("menuTemplates").onclick=()=>show("templates");$("menuFont").onclick=toggleFontSizePreference;$("menuSettings").onclick=()=>show("settings");
+$("menuFiles").onclick=()=>show("files");$("menuEnterprise").onclick=()=>show("enterprise");$("menuTemplates").onclick=()=>show("templates");$("menuFont").onclick=toggleFontSizePreference;$("menuSettings").onclick=()=>show("settings");
 $("chooseFiles").onclick=()=>openFilePicker("file");
 $("choosePhotos").onclick=()=>openFilePicker("photos");
 $("chooseCamera").onclick=()=>openFilePicker("camera");
