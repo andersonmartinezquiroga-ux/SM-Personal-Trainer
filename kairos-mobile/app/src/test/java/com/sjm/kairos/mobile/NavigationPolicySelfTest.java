@@ -8,6 +8,7 @@ public final class NavigationPolicySelfTest {
         expect(SjmNavigationPolicy.isAllowedUrl("https://sjm-control-360.floot.app/mentor"),"own mentor");
         expect(SjmNavigationPolicy.isAllowedUrl("https://sjm-control-360.floot.app/kairos"),"own kairos");
         expect(SjmNavigationPolicy.isAllowedApp("com.arlosoft.macrodroid"),"Macrodroid");
+        expect(SjmNavigationPolicy.isAllowedApp("com.google.android.youtube"),"YouTube launch allowed");
         expect(!SjmNavigationPolicy.isAllowedApp("com.android.settings"),"settings blocked");
         expect(!SjmNavigationPolicy.isAllowedUrl("http://sjm-control-360.floot.app/mentor"),"http blocked");
         expect(!SjmNavigationPolicy.isAllowedUrl("https://evil.com/mentor"),"other hosts blocked");
