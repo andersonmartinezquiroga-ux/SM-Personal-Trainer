@@ -327,8 +327,13 @@ public class KairosAccessibility extends AccessibilityService {
                 startForeground(101,notification,ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             } else startForeground(101,notification);
         } catch(Exception e) {
-            // El vínculo de Accesibilidad sigue activo aunque Android no autorice
-            // iniciar el servicio en primer plano; no mentir sobre persistencia.
+            // Un latido exitoso no demuestra que Android haya permitido el
+            // servicio en primer plano. Conservar evidencia local sin secretos.
+            CommandReceiptStore.markBridge(this,
+                "FOREGROUND_START_FAILED_"+e.getClass().getSimpleName());
+            CommandReceiptStore.mark(this,
+                "Servicio activo sin primer plano confirmado; Android: "
+                + e.getClass().getSimpleName());
         }
         CommandReceiptStore.mark(this, "Servicio KAIRÓS habilitado en Accesibilidad");
         watchConnectivity();
@@ -599,12 +604,16 @@ public class KairosAccessibility extends AccessibilityService {
         throw new SecurityException("Comando no autorizado");
     }
     @Override public void onAccessibilityEvent(AccessibilityEvent event) { /* No lee la pantalla. */ }
-    @Override public void onInterrupt() {}
+    @Override public void onInterrupt() {
+        CommandReceiptStore.markBridge(this,"ACCESSIBILITY_INTERRUPTED");
+    }
     @Override public boolean onUnbind(Intent intent) {
+        CommandReceiptStore.markBridge(this,"ACCESSIBILITY_UNBOUND");
         active=false;stopWatchingConnectivity();stopWatchingUnlock();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         return super.onUnbind(intent);
     }
     @Override public void onDestroy() {
+        CommandReceiptStore.markBridge(this,"ACCESSIBILITY_DESTROYED");
         active=false;stopWatchingConnectivity();stopWatchingUnlock();connectedService.clear();handler.removeCallbacks(tick);io.shutdownNow();
         super.onDestroy();
     }
