@@ -1656,7 +1656,7 @@ function renderInventoryPilot(root,grid){
   if(!authenticated()){showStatus("Solo una cuenta autorizada puede guardar productos.",true);return}
   if(items.length>=1000){showStatus("Límite piloto de artículos alcanzado. Requiere paginación.",true);return}
   const product=sku.value.trim(),title=name.value.trim(),minimum=Number(threshold.value);
-  if(!product||!title||!Number.isFinite(minimum)||minimum<0||minimum>1000000000||Math.round(minimum*1000)!==minimum*1000){showStatus("Revisa SKU, nombre y mínimo (máximo 3 decimales).",true);return}
+  if(!product||!title||!Number.isFinite(minimum)||minimum<0||minimum>1000000000||Math.abs(Math.round(minimum*1000)-minimum*1000)>0.0000001){showStatus("Revisa SKU, nombre y mínimo (máximo 3 decimales).",true);return}
   busy=true;create.disabled=true;move.disabled=true;
   showStatus("Guardando producto en la base protegida…");
   try{
@@ -1671,7 +1671,7 @@ function renderInventoryPilot(root,grid){
   e.preventDefault();if(busy)return;
   if(!authenticated()){showStatus("Solo una cuenta autorizada puede registrar movimientos.",true);return}
   const n=Number(qty.value);
-  if(!itemSelect.value||!Number.isFinite(n)||n<=0||n>1000000000||Math.round(n*1000)!==n*1000){showStatus("Elige producto y cantidad válida (máximo 3 decimales).",true);return}
+  if(!itemSelect.value||!Number.isFinite(n)||n<=0||n>1000000000||Math.abs(Math.round(n*1000)-n*1000)>0.0000001){showStatus("Elige producto y cantidad válida (máximo 3 decimales).",true);return}
   const payload={p_item_id:itemSelect.value,p_type:type.value,p_quantity:n,p_note:note.value.trim()};
   const signature=JSON.stringify(payload);
   if(signature!==lastPayload){lastPayload=signature;lastKey=crypto.randomUUID()}
