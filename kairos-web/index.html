@@ -1139,6 +1139,40 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  .crm-stage-action button{width:100%}
 }
 
+
+/* COMTROL · Espacios privados por empresa v2.8 */
+.company-workspace-pilot{margin:16px 0 25px;padding:22px;border:1px solid #6488a3;border-radius:18px;background:#1d2c3b;color:#eaf7ff}
+.company-workspace-pilot h2{font-size:25px;line-height:1.32;color:#f6fbff;margin:0 0 10px}
+.company-space-intro,.company-space-note{font-size:17px;color:#c8ddeb;line-height:1.59;margin:0 0 15px}
+.company-space-state{padding:12px 14px;font-size:16px;line-height:1.55;color:#d7edfb;background:#2a4356;border:1px solid #56788d;border-radius:11px;margin:12px 0}
+.company-space-error{background:#4d3330;color:#ffe3d6;border-color:#bf8c7d}
+.company-space-toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+.company-space-toolbar button{min-height:45px;font-size:17px}
+.company-space-forms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:15px 0 20px}
+.company-space-form{border:1px solid #55748a;background:#263b4c;border-radius:14px;padding:16px}
+.company-space-form h3{font-size:20px;color:#f3fbff;margin:0 0 14px;line-height:1.35}
+.company-space-fields{display:flex;flex-direction:column;gap:12px}
+.company-space-fields label{display:flex;flex-direction:column;gap:7px;font-size:17px;color:#ecf6ff;font-weight:640;line-height:1.43}
+.company-space-fields input,.company-space-fields textarea,.company-space-fields select{width:100%;font-size:17px;line-height:1.4;padding:11px 12px;border-radius:10px;background:#31495b;border:1px solid #779ab2;color:#fff;max-width:100%}
+.company-space-fields input::placeholder,.company-space-fields textarea::placeholder{color:#bad2e3}
+.company-space-fields button{min-height:47px;font-size:17px;margin-top:5px}
+.company-space-results{display:flex;flex-direction:column;gap:13px;margin:8px 0 15px}
+.company-space-results>p{font-size:17px;line-height:1.5;color:#c9dfeb}
+.company-space-card{border:1px solid #54768f;border-radius:14px;background:#273c4d;padding:17px}
+.company-space-card-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.company-space-card-info{display:flex;flex:1;flex-direction:column;gap:5px}
+.company-space-card-info h3{font-size:20px;color:#fff;margin:0}
+.company-space-card-info small{font-size:15px;color:#c9dcea;line-height:1.45}
+.company-space-badge{font-size:14px;color:#d4e8f7;border:1px solid #7297b1;background:#36586e;border-radius:20px;padding:5px 9px}
+.company-space-card>p{font-size:16px;line-height:1.5;color:#e0eef7}
+.company-space-card>small{font-size:15px;color:#bbd3e5}
+.company-space-card>button{font-size:16px;min-height:44px;margin-top:12px}
+.company-space-project{margin:10px 0;padding:12px;border-left:3px solid #88bddd;background:#2e4659;border-radius:9px}
+.company-space-project strong{font-size:18px;color:#fff}
+.company-space-project p{font-size:16px;line-height:1.5;color:#d9e9f4;margin:7px 0}
+.company-space-project small{font-size:14px;color:#bfdbed;line-height:1.5}
+@media(max-width:800px){.company-workspace-pilot{padding:17px 13px}.company-space-forms{grid-template-columns:1fr}.company-space-form{padding:14px 12px}.company-workspace-pilot h2{font-size:23px}}
+
 </style>
 </head>
 <body>
@@ -2081,13 +2115,149 @@ function renderTasksCenter(root,grid){
  }
  businessNotice(root,"La preparación de una tarea no la programa. COMTROL necesita conectarse con el orquestador y confirmar el identificador de cada ejecución antes de mostrarla como activa.");
 }
+
+/* COMTROL · Espacios privados por empresa v2.8
+   Organización separada y proyectos de prueba, todavía SIN invitaciones ni cartera multiempresa comercial. */
+function renderCompanyWorkspaces(root,grid){
+ const panel=document.createElement("section");panel.id="companyWorkspacePilot";panel.className="company-workspace-pilot";
+ const h=document.createElement("h2");h.textContent="Espacios privados por empresa";
+ const intro=document.createElement("p");intro.className="company-space-intro";
+ intro.textContent="Crea espacios de empresa y organiza proyectos propios. Los registros se guardan con permisos por organización, sin compartir información entre cuentas. Esta versión es un piloto; todavía no conecta inventarios, CRM, empleados ni archivos a cada empresa.";
+ panel.append(h,intro);
+ const notice=document.createElement("div");notice.className="company-space-state";
+ notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");
+ notice.textContent="Los espacios privados requieren iniciar sesión con tu cuenta autorizada; la vista previa no guarda datos.";
+ panel.append(notice);
+ const tabs=document.createElement("div");tabs.className="company-space-toolbar";
+ const refresh=document.createElement("button");refresh.type="button";refresh.className="business-secondary";refresh.textContent="Actualizar espacios";
+ tabs.append(refresh);panel.append(tabs);
+ const forms=document.createElement("div");forms.className="company-space-forms";
+ const createArea=document.createElement("section");createArea.className="company-space-form";
+ const aHead=document.createElement("h3");aHead.textContent="Crear espacio de empresa";createArea.append(aHead);
+ const aForm=document.createElement("form");aForm.className="company-space-fields";
+ const nameLabel=document.createElement("label");nameLabel.textContent="Nombre comercial o alias";
+ const name=document.createElement("input");name.type="text";name.maxLength=100;name.required=true;name.autocomplete="off";name.placeholder="Ej.: Empresa de zapatos (ficticia)";nameLabel.append(name);
+ const sectorLabel=document.createElement("label");sectorLabel.textContent="Sector o actividad";
+ const sector=document.createElement("input");sector.type="text";sector.maxLength=80;sector.required=true;sector.autocomplete="off";sector.value="Comercio";sectorLabel.append(sector);
+ const create=document.createElement("button");create.type="submit";create.className="business-primary";create.textContent="Guardar espacio";
+ aForm.append(nameLabel,sectorLabel,create);createArea.append(aForm);
+ const projectArea=document.createElement("section");projectArea.className="company-space-form";
+ const pHead=document.createElement("h3");pHead.textContent="Registrar proyecto en una empresa";projectArea.append(pHead);
+ const pForm=document.createElement("form");pForm.className="company-space-fields";
+ const orgLabel=document.createElement("label");orgLabel.textContent="Espacio empresarial";
+ const orgSelect=document.createElement("select");orgSelect.required=true;orgLabel.append(orgSelect);
+ const titleLabel=document.createElement("label");titleLabel.textContent="Nombre del proyecto";
+ const title=document.createElement("input");title.type="text";title.maxLength=140;title.required=true;title.autocomplete="off";title.placeholder="Ej.: Prueba de tienda de zapatos";titleLabel.append(title);
+ const descLabel=document.createElement("label");descLabel.textContent="Descripción breve (opcional)";
+ const description=document.createElement("textarea");description.rows=2;description.maxLength=700;
+ description.placeholder="Objetivo, alcance y próxima acción, sin datos sensibles";descLabel.append(description);
+ const save=document.createElement("button");save.type="submit";save.className="business-primary";save.textContent="Registrar proyecto";
+ pForm.append(orgLabel,titleLabel,descLabel,save);projectArea.append(pForm);
+ forms.append(createArea,projectArea);panel.append(forms);
+ const results=document.createElement("div");results.className="company-space-results";panel.append(results);
+ const warning=document.createElement("p");warning.className="company-space-note";
+ warning.textContent="La seguridad de espacios y proyectos se probó en la base de datos, pero aún falta validación de extremo a extremo en Motorola. No agregues información personal, nóminas ni datos comerciales críticos. Los módulos actuales de inventario y CRM siguen protegidos por cuenta, no asociados a estas empresas.";
+ panel.append(warning);grid.before(panel);
+ let organizations=[],projects=[],busy=false,partial=false;
+ const allowed=()=>!preview&&authorized&&!!session?.access_token&&!!sb;
+ const status=(message,failed=false)=>{notice.textContent=message;notice.classList.toggle("company-space-error",failed)};
+ const addText=(node,tag,value,className)=>{
+  const el=document.createElement(tag);el.textContent=String(value);
+  if(className)el.className=className;node.append(el);return el;
+ };
+ const dateString=x=>{try{return new Date(x).toLocaleDateString("es-CO",{timeZone:"America/Bogota"})}catch{return "Fecha no disponible"}};
+ function render(){
+  const selected=orgSelect.value;orgSelect.replaceChildren();results.replaceChildren();
+  const option=document.createElement("option");option.textContent="Selecciona una empresa";option.value="";orgSelect.append(option);
+  for(const org of organizations){
+   const opt=document.createElement("option");opt.value=org.id;opt.textContent=org.display_name;orgSelect.append(opt);
+  }
+  if(organizations.some(o=>o.id===selected))orgSelect.value=selected;
+  save.disabled=busy||!allowed()||!orgSelect.value;
+  if(!organizations.length)addText(results,"p","No hay espacios creados. Registra primero un alias de empresa ficticia.");
+  for(const org of organizations){
+   const card=document.createElement("section");card.className="company-space-card";
+   const top=document.createElement("div");top.className="company-space-card-head";
+   const info=document.createElement("div");info.className="company-space-card-info";
+   addText(info,"h3",org.display_name);addText(info,"small",org.sector+" · Privado · Creado: "+dateString(org.created_at));
+   const badge=addText(top,"span","Titular / espacio protegido","company-space-badge");
+   top.prepend(info);card.append(top);
+   const orgProjects=projects.filter(p=>p.org_id===org.id);
+   addText(card,"p",orgProjects.length+" proyectos registrados. Solo se muestran a usuarios autorizados.");
+   if(!orgProjects.length)addText(card,"small","Sin proyectos todavía. Usa el formulario superior.");
+   for(const project of orgProjects){
+    const item=document.createElement("div");item.className="company-space-project";
+    addText(item,"strong",project.title);
+    if(project.description)addText(item,"p",project.description);
+    addText(item,"small","Etapa: "+(project.stage==="idea"?"Idea":project.stage)+" · "+dateString(project.created_at));
+    card.append(item);
+   }
+   const action=document.createElement("button");action.type="button";action.className="business-secondary";action.textContent="Registrar proyecto aquí";
+   action.onclick=()=>{orgSelect.value=org.id;projectArea.scrollIntoView({behavior:"smooth",block:"center"});title.focus()};
+   card.append(action);results.append(card);
+  }
+ }
+ async function load(){
+  if(busy)return;
+  if(!allowed()){status("Solo disponible para el titular autenticado. La vista previa no tiene acceso.");return}
+  busy=true;refresh.disabled=true;create.disabled=true;save.disabled=true;status("Leyendo espacios y proyectos autorizados…");
+  try{
+   const [a,b]=await Promise.all([
+    sb.from("sjm_business_organizations_v1").select("id,display_name,sector,created_at").order("created_at",{ascending:false}).limit(1000),
+    sb.from("sjm_business_org_projects_v1").select("id,org_id,title,description,stage,created_at").order("created_at",{ascending:false}).limit(1000)
+   ]);
+   if(a.error)throw a.error;if(b.error)throw b.error;
+   organizations=a.data||[];projects=b.data||[];partial=organizations.length>=1000||projects.length>=1000;
+   render();
+   status(partial?"Se alcanzó el límite piloto de 1.000 registros. Requiere paginación antes de confiar en totales.":"Datos protegidos: "+organizations.length+" empresas · "+projects.length+" proyectos · "+new Date().toLocaleString("es-CO"),partial);
+  }catch(error){status("Error consultando espacios privados: "+String(error?.message||error).slice(0,190),true)}
+  finally{busy=false;refresh.disabled=false;create.disabled=!allowed();save.disabled=!allowed()||!orgSelect.value}
+ }
+ aForm.onsubmit=async event=>{
+  event.preventDefault();if(busy)return;
+  if(!allowed()){status("Debes iniciar sesión autorizada para crear un espacio.",true);return}
+  const value=name.value.trim(),industry=sector.value.trim();
+  if(value.length<2||value.length>100||industry.length<1||industry.length>80){status("Revisa el nombre y el sector.",true);return}
+  busy=true;create.disabled=true;save.disabled=true;refresh.disabled=true;status("Creando espacio privado con rol de titular…");
+  try{
+   const r=await sb.rpc("sjm_business_create_org_v1",{p_name:value,p_sector:industry});
+   if(r.error)throw r.error;
+   const created=r.data;name.value="";busy=false;
+   await load();
+   if(created&&organizations.some(o=>o.id===created)){orgSelect.value=created;save.disabled=false}
+   status("Espacio privado creado y visible únicamente con los permisos correspondientes.");
+  }catch(error){status("No se pudo crear el espacio: "+String(error?.message||error).slice(0,180),true)}
+  finally{busy=false;create.disabled=!allowed();refresh.disabled=false;save.disabled=!allowed()||!orgSelect.value}
+ };
+ pForm.onsubmit=async event=>{
+  event.preventDefault();if(busy)return;
+  if(!allowed()){status("Necesitas entrar con sesión autorizada.",true);return}
+  const orgId=orgSelect.value;
+  const t=title.value.trim(),d=description.value.trim();
+  if(!organizations.some(o=>o.id===orgId)||t.length<2||t.length>140||d.length>700){status("Selecciona empresa y revisa el nombre y la descripción.",true);return}
+  busy=true;save.disabled=true;create.disabled=true;refresh.disabled=true;status("Registrando proyecto en su espacio empresarial…");
+  try{
+   const r=await sb.from("sjm_business_org_projects_v1").insert({org_id:orgId,title:t,description:d}).select("id").single();
+   if(r.error)throw r.error;
+   title.value="";description.value="";busy=false;await load();
+   orgSelect.value=orgId;save.disabled=false;
+   status("Proyecto registrado en el espacio privado seleccionado.");
+  }catch(error){status("No se pudo guardar el proyecto: "+String(error?.message||error).slice(0,180),true)}
+  finally{busy=false;save.disabled=!allowed()||!orgSelect.value;create.disabled=!allowed();refresh.disabled=false}
+ };
+ orgSelect.onchange=()=>{save.disabled=!allowed()||!orgSelect.value};
+ refresh.onclick=()=>void load();
+ void load();
+}
+
 function renderCompaniesCenter(root,grid){
  grid.classList.add("business-module-grid");
+ renderCompanyWorkspaces(root,grid);
  const cards=[
   ["Mis proyectos SJM","Acceder al portafolio de proyectos existente, con carpetas y elementos fijados.","Abrir proyectos",()=>show("projects")],
   ["Mi empresa · diagnóstico","Definir necesidades generales sin introducir datos sensibles.","Abrir diagnóstico",()=>show("enterprise")],
   ["Avance real de COMTROL 360","Revisar capacidad, porcentajes orientativos y consulta protegida de CONTROL 360.","Ver avance",()=>show("control")],
-  ["Panel privado por empresa","Acceso independiente con información y seguimiento de cada cliente; requiere autenticación y separación de datos.","En construcción",null],
+  ["Espacios privados y proyectos","Crea espacios aislados por organización y registra proyectos de prueba. Todavía no integra inventarios, CRM ni invitaciones.","Ver espacios",()=>document.getElementById("companyWorkspacePilot")?.scrollIntoView({behavior:"smooth",block:"start"})],
   ["Empleados y roles","Administración de usuarios autorizados, funciones y aprobaciones por empresa.","Pendiente de seguridad",null],
   ["Historial y entregables","Seguimiento de solicitudes, evidencias, propuestas, entregas y autorizaciones por empresa.","Pendiente de integración",null],
   ["Documentos y archivos","Abrir la biblioteca privada del usuario autenticado, sin compartirla con otras empresas.","Mis archivos",()=>show("files")]
@@ -2097,7 +2267,7 @@ function renderCompaniesCenter(root,grid){
   const h=document.createElement("h3");h.textContent=name;const p=document.createElement("p");p.textContent=desc;
   const b=document.createElement("button");b.type="button";b.textContent=action;b.className="business-primary";b.disabled=!callback;if(callback)b.onclick=callback;card.append(h,p,b);grid.append(card);
  }
- businessNotice(root,"La administración de distintas empresas todavía no está conectada. No se deben cargar nóminas, facturas, registros laborales ni datos de clientes reales hasta implementar aislamiento por empresa, roles, auditoría y validación legal.");
+ businessNotice(root,"Espacios y proyectos de empresa: piloto persistente con aislamiento de organización. Los módulos de inventario y CRM aún están aislados por usuario y NO por empresa. Invitaciones, nóminas, facturas y clientes reales siguen pendientes de pruebas, roles y autorización.");
 }
 
 
