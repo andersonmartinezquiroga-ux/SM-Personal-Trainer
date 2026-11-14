@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -134,11 +135,9 @@ final class AppWorkflowEngine {
                 AccessibilityNodeInfo click=safeClickableAncestor(video);
                 try {
                     if(click!=null && click.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
-                        handler.postDelayed(()->{
-                            if(foreground()!=null)
-                                finish(true,"YOUTUBE_SEARCH_RESULT_CLICKED_FOREGROUND_CONFIRMED_PLAYBACK_UNVERIFIED");
-                            else finish(false,"YOUTUBE_SEARCH_RESULT_CLICKED_FOREGROUND_UNVERIFIED");
-                        },1500L);
+                        // Matching a search result is not proof that YouTube started
+                        // video playback. Observe its player and attempt Play safely.
+                        handler.postDelayed(()->verifyYoutubePlayback(request,0,0,false),1400L);
                         return;
                     }
                 }catch(RuntimeException ignored){}
@@ -149,6 +148,110 @@ final class AppWorkflowEngine {
             return;
         }
         handler.postDelayed(()->tapYouTubeResult(request,attempt+1),650L);
+    }
+
+    /**
+     * YouTube can first show a suggestion, rather than open a watch page.
+     * Continue through at most ONE additional matching result, never blindly
+     * click coordinates and never claim success without a visible player.
+     */
+    private void verifyYoutubePlayback(String request,int attempt,int furtherResultClicks,
+                                       boolean playAttempted){
+        if(finished)return;
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        AccessibilityNodeInfo root=foreground();
+        if(root!=null){
+            PlayerObservation observation=inspectYoutubePlayer(root);
+            AudioManager audio=service.getSystemService(AudioManager.class);
+            boolean musicActive=audio!=null && audio.isMusicActive() &&
+                audio.getStreamVolume(AudioManager.STREAM_MUSIC)>0;
+            if(observation.pauseControlVisible && musicActive){
+                finish(true,"YOUTUBE_PAUSE_CONTROL_AND_AUDIO_ACTIVE_TRACK_OWNER_UNVERIFIED");
+                return;
+            }
+            if(observation.playButton!=null && !playAttempted && attempt>=2){
+                AccessibilityNodeInfo click=safeClickableAncestor(observation.playButton);
+                try {
+                    if(click!=null && click.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
+                        handler.postDelayed(()->verifyYoutubePlayback(request,attempt+1,
+                            furtherResultClicks,true),800L);
+                        return;
+                    }
+                }catch(RuntimeException ignored){}
+            }
+            if(!observation.hasPlayerControl && furtherResultClicks<1 && attempt>=4){
+                AccessibilityNodeInfo result=findMatchingVideo(root,request);
+                AccessibilityNodeInfo click=result==null?null:safeClickableAncestor(result);
+                try {
+                    if(click!=null && click.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
+                        handler.postDelayed(()->verifyYoutubePlayback(request,attempt+1,
+                            furtherResultClicks+1,playAttempted),1200L);
+                        return;
+                    }
+                }catch(RuntimeException ignored){}
+            }
+        }
+        if(attempt>=20){
+            finish(false,root==null?"YOUTUBE_FOREGROUND_LOST_AFTER_RESULT":
+                "YOUTUBE_PLAYBACK_NOT_VERIFIED");
+            return;
+        }
+        handler.postDelayed(()->verifyYoutubePlayback(request,attempt+1,
+            furtherResultClicks,playAttempted),600L);
+    }
+
+    private static final class PlayerObservation {
+        AccessibilityNodeInfo playButton;
+        boolean pauseControlVisible;
+        boolean hasPlayerControl;
+    }
+
+    /** Only examine visible, enabled YouTube player buttons on this device. */
+    private PlayerObservation inspectYoutubePlayer(AccessibilityNodeInfo root){
+        PlayerObservation result=new PlayerObservation();
+        ArrayDeque<AccessibilityNodeInfo> pending=new ArrayDeque<>();
+        pending.add(root);
+        int examined=0;
+        while(!pending.isEmpty() && examined++<350){
+            AccessibilityNodeInfo node=pending.removeFirst();
+            if(node==null || !target.equals(String.valueOf(node.getPackageName())) ||
+               !node.isVisibleToUser())continue;
+            String id=String.valueOf(node.getViewIdResourceName()).toLowerCase(java.util.Locale.ROOT);
+            String description=String.valueOf(node.getContentDescription())
+                .toLowerCase(java.util.Locale.ROOT).trim();
+            String cls=String.valueOf(node.getClassName()).toLowerCase(java.util.Locale.ROOT);
+            boolean playerId=id.contains("player_control") || id.contains("play_pause") ||
+                id.contains("player_overlay");
+            boolean button=cls.contains("button") || cls.contains("imageview") || playerId;
+            if(button && node.isEnabled() && !node.isPassword()){
+                boolean paused=description.equals("reproducir") ||
+                    description.startsWith("reproducir vídeo") ||
+                    description.startsWith("reproducir video") ||
+                    description.startsWith("play video") ||
+                    description.equals("play") || description.startsWith("play video");
+                boolean playing=description.equals("pausar") ||
+                    description.startsWith("pausar vídeo") ||
+                    description.startsWith("pausar video") ||
+                    description.startsWith("pause video") ||
+                    description.equals("pause");
+                if(paused || playing){
+                    result.hasPlayerControl=true;
+                    if(playing)result.pauseControlVisible=true;
+                    if(paused && result.playButton==null)result.playButton=node;
+                }
+                // A generic player container does not prove playback;
+                // it only prevents another video-result click.
+                if(playerId)result.hasPlayerControl=true;
+            }
+            for(int i=0;i<node.getChildCount();i++){
+                AccessibilityNodeInfo child=node.getChild(i);
+                if(child!=null)pending.addLast(child);
+            }
+        }
+        return result;
     }
 
     private void openYoutubeVideo(String videoId){

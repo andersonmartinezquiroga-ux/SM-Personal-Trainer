@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.23' and int(code)>=26, (version,code)
+          assert version=='0.3.24' and int(code)>=27, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -56,7 +56,8 @@ jobs:
           assert 'capabilities.put("app_workflow")' in worker
           assert 'ACTION_IME_ENTER' in engine and 'findMatchingVideo' in engine
           assert 'openYoutubeVideo' in engine and 'YOUTUBE_VIDEO_LINK_OPENED' in engine
-          assert 'searchAndPlayYoutube' in engine and 'YOUTUBE_SEARCH_RESULT_CLICKED' in engine
+          assert 'searchAndPlayYoutube' in engine and 'YOUTUBE_PAUSE_CONTROL_AND_AUDIO_ACTIVE' in engine
+          assert 'YOUTUBE_PLAYBACK_NOT_VERIFIED' in engine and 'verifyYoutubePlayback' in engine
           assert 'appendQueryParameter("search_query"' in engine
           assert 'setPackage("com.google.android.youtube")' in engine
           print('VIDEO_SEARCH_0321_SOURCE_GATES PASS')
@@ -125,7 +126,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0323
+          name: KairosMobile-release-APK-V0324
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -136,12 +137,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.23-supabase'
+          tag='kairos-mobile-v0.3.24-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.23-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.24-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.23-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.23 · búsqueda dinámica de canciones'               --notes 'KAIRÓS 0.3.23: búsqueda dinámica de canción y artista en YouTube mediante enlace interno al buscador, y selección restringida a resultado coincidente. No necesita identificadores de video preparados. Seguridad y consentimiento preservados; reproducción todavía requiere verificación real. No declara finalización de tareas de negocio sin evidencia ni autonomía general. Mantiene vínculo y comprobación real de versión. VersionCode 26 y firma permanente; instalar encima de 0.3.22 sin desinstalar ni perder vinculación. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.24-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.24 · verificación de reproducción en YouTube'               --notes 'KAIRÓS 0.3.24: ya no declara completada una búsqueda al pulsar un resultado; intenta reproducir mediante botón Play de YouTube, controla una segunda pantalla de resultados y exige botón Pause visible y audio activo antes de dar un acuse positivo. Si no se comprueba, reporta fallo. No se leen ni envían textos de otras apps. No declara finalización de tareas de negocio sin evidencia ni autonomía general. Mantiene vínculo y comprobación real de versión. VersionCode 27 y firma permanente; instalar encima de 0.3.23 sin desinstalar ni perder vinculación. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
           fi
