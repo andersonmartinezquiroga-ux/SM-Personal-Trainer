@@ -189,3 +189,26 @@ Se implementó y publicó una sección **«Ventas y CRM · Piloto con datos prot
 **Prueba aún pendiente:** sesión auténtica en Motorola y verificación de pantalla, creación ficticia, cambios de etapa, historial CSV y persistencia. No declarar CRM listo para datos de clientes reales. El diseño sigue siendo **un usuario/titular**, no espacios protegidos por empresa.
 
 **Documentos:** `kairos-web/database/20261114_sjm_crm_pilot.sql` y `kairos-web/COMTROL_CRM_PILOTO_2026-11-14.md`. Mantener la evaluación orientativa global **37/100** hasta completar pruebas de uso. Próximo desarrollo prioritario: prueba móvil E2E, paginación real, modelo `organization_id` y control de permisos por empresa antes de CRM comercial real.
+
+
+## Tercera capacidad persistente — Espacios privados por empresa y proyectos (14 noviembre 2026)
+
+**Aplicación única conservada:** `kairos-web/index.html`, implementación `COMTROL · Espacios privados por empresa v2.8`, despliegue Vercel `dpl_BYUT8uc4An6ZjockEtQAciAf5ahr` READY, dominio de producción https://sjm-kairos-cerebro-web.vercel.app, comprobación HTTP 200, JavaScript válido. No hubo duplicación de aplicaciones.
+
+**Nueva función:** `Mis Empresas y Proyectos → Espacios privados por empresa`. El titular autenticado puede crear hasta 20 alias de empresa y asociar proyectos borrador con nombre, descripción y fase inicial, consultar esos espacios y registrar más proyectos. Se utilizan nombres ficticios y no se solicitan identificadores ni información personal de terceros. La vista previa no consulta ni guarda información privada.
+
+**Base de datos real** existente Supabase (misma cuenta y proyecto de CONTROL 360), migración `sjm_empresa360_org_workspace_and_project_rls_20261114`:
+- `public.sjm_business_organizations_v1`: espacios organizacionales.
+- `public.sjm_business_org_members_v1`: membresías y roles `owner/admin/viewer`; solo el creador queda como `owner`. NO hay invitaciones habilitadas.
+- `public.sjm_business_org_projects_v1`: proyectos registrados con `org_id`, permisos select por membresía e insert solo para miembros owner/admin.
+- `public.sjm_business_member_role_v1`: consulta protegida de rol asociada al usuario autenticado.
+- `public.sjm_business_create_org_v1`: creación transaccional de espacio y membresía `owner`; no se permite INSERT directo de organizaciones ni membresías por clientes web.
+- RLS habilitada en las tres tablas, lectura anónima revocada; no se puede invitar a un usuario desde el front-end.
+
+**Prueba técnica reversible realizada:** se creó empresa ficticia y su proyecto dentro de una transacción, se verificó rol `owner`, lectura propia, ausencia de lectura cruzada por otra identidad simulada y rechazo de inserción en la empresa ajena; `ROLLBACK` sin registros persistentes. Lectura posterior: **0 empresas, 0 membresías, 0 proyectos**, RLS habilitada en tres tablas, `anon` sin acceso, `authenticated` sin inserción directa de empresas ni invitaciones. Pruebas independientes de UI y sesión real en Motorola: **PENDIENTES**.
+
+**Limitación significativa:** el nuevo aislamiento de organización aplica a empresas y **proyectos de prueba**, pero los módulos anteriores de inventarios y CRM siguen aislados por `owner_id` (cuenta) y **NO tienen `org_id`**. No permitir información empresarial real de clientes ni presentar el producto como plataforma SaaS multiempresa hasta migrar datos, roles, archivos y permisos, con pruebas adversariales y entrega real en Motorola.
+
+**Siguientes puntos de trabajo prioritarios:** (1) prueba auténtica de creación de espacio y proyecto en Motorola; (2) asociar inventario y CRM a organizaciones verificadas manteniendo integridad y sin romper datos; (3) roles con invitaciones solo bajo aprobación y auditoría; (4) pagos, contratos, documentos y orquestación únicamente después de autorización y pruebas completas.
+
+Se mantiene la evaluación orientativa **37/100** hasta validar el piloto de punta a punta; nunca declarar autonomía o madurez mayores solo por una migración o pantalla.
