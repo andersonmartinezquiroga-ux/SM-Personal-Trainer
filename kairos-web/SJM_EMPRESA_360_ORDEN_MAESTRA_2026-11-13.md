@@ -174,3 +174,18 @@ Capacidades desarrolladas: crear productos identificados por SKU y umbral, regis
 **Pendiente crítico para cerrar esta fase:** entrar desde Motorola con sesión válida, crear SKU ficticio, realizar entrada, salida correcta, salida imposible, alerta, exportación y recarga, dejando comprobantes. Guía detallada: `kairos-web/COMTROL_INVENTARIO_PILOTO_2026-11-14.md`. SQL reproducible: `kairos-web/database/20261114_sjm_inventory_pilot.sql`. La empresa multiusuario/multi-tenant **no existe todavía**; solo aislamiento por usuario.
 
 **Porcentaje:** se mantiene la evaluación de 37/100 hasta que una prueba autenticada confirme el ciclo completo. El nuevo módulo no autoriza elevar porcentajes ni afirmar comercialización lista.
+
+
+## Segunda operación empresarial persistente — Ventas y CRM (14 noviembre 2026)
+
+Se implementó y publicó una sección **«Ventas y CRM · Piloto con datos protegidos»** en la aplicación única COMTROL 360, con botón «Abrir CRM operativo» en la tarjeta Ventas y CRM.
+
+**Operativo a nivel de código y base de datos:** crear una oportunidad con alias ficticio (sin nombres/contactos), descripción y monto estimado COP; avanzar entre seis estados; registrar cada transición con comprobante y clave de idempotencia; lectura de historial; resumen de oportunidades abiertas y valor estimado **excluyendo ganadas/perdidas**; descarga de dos CSV. No hay facturas, pagos, correos ni servicios contratados.
+
+**Backend creado en Supabase existente:** `public.sjm_business_crm_opportunities_v1`, `public.sjm_business_crm_stage_events_v1`, `public.sjm_crm_advance_stage_v1`, migración `sjm_empresa360_crm_owner_isolated_pilot_20261114`. RLS por `owner_id=auth.uid()`; anónimo sin lectura; `authenticated` sin UPDATE directo de oportunidades ni INSERT al historial; RPC autenticada y transaccional para cambios de etapa.
+
+**Pruebas:** transacción de QA con ROLLBACK validó creación ficticia, cambio de etapa, clave repetida, prohibición UPDATE y acceso de un segundo usuario. Verificación posterior: **cero oportunidades y cero eventos guardados**; pruebas de seguridad RLS y privilegios positivas. Versión final desplegada Vercel `dpl_7YUuCCcb3rgqUaJ1DQGTF2tCkpBm` estado READY; dominio público HTTP 200; código JS validado; se preservaron inventario, dictado, guía de creación de empresas, CONTROL y voz.
+
+**Prueba aún pendiente:** sesión auténtica en Motorola y verificación de pantalla, creación ficticia, cambios de etapa, historial CSV y persistencia. No declarar CRM listo para datos de clientes reales. El diseño sigue siendo **un usuario/titular**, no espacios protegidos por empresa.
+
+**Documentos:** `kairos-web/database/20261114_sjm_crm_pilot.sql` y `kairos-web/COMTROL_CRM_PILOTO_2026-11-14.md`. Mantener la evaluación orientativa global **37/100** hasta completar pruebas de uso. Próximo desarrollo prioritario: prueba móvil E2E, paginación real, modelo `organization_id` y control de permisos por empresa antes de CRM comercial real.
