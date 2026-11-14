@@ -388,6 +388,7 @@ public class KairosAccessibility extends AccessibilityService {
             if(now-lastRegistered>8*60_000L){
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
+                capabilities.put("app_workflow"); // Active only in this corrected APK.
                 JSONObject registration=new JSONObject()
                     .put("action","register").put("version",1)
                     .put("appVersion",getPackageManager().getPackageInfo(getPackageName(),0).versionName)

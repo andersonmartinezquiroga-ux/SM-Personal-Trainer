@@ -24,6 +24,9 @@ final class AppWorkflowEngine {
     private final JSONArray steps;
     private final Completion completion;
     private boolean finished;
+    private int foregroundRetries;
+    private int actionRetryStep=-1;
+    private int actionRetries;
 
     private AppWorkflowEngine(AccessibilityService svc, Handler h,
                               String pkg, JSONArray instructions, Completion callback) {
@@ -87,7 +90,16 @@ final class AppWorkflowEngine {
             finish(false,"WORKFLOW_OWNER_PAUSED");return;
         }
         AccessibilityNodeInfo root=foreground();
-        if(root==null){finish(false,"WORKFLOW_FOREGROUND_NOT_VERIFIED_STEP_"+index);return;}
+        if(root==null){
+            // Window handoff is asynchronous. Never interact with another foreground app.
+            if(foregroundRetries++ < (index==0 ? 10 : 5)){
+                handler.postDelayed(()->executeStep(index),650L);
+                return;
+            }
+            finish(false,"WORKFLOW_FOREGROUND_NOT_VERIFIED_STEP_"+index);
+            return;
+        }
+        foregroundRetries=0;
         if(index>=steps.length()){
             // Proven that the target package is still visible; not an app-specific outcome.
             finish(true,"WORKFLOW_ACTIONS_ACCEPTED_FOREGROUND_CONFIRMED_"+steps.length());
@@ -117,11 +129,11 @@ final class AppWorkflowEngine {
                 if(node!=null && node.isVisibleToUser() && node.isEnabled() &&
                    !node.isPassword() && target.equals(String.valueOf(node.getPackageName()))){
                     if("tap".equals(action)){
-                        String visibleText=String.valueOf(node.getText());
-                        String visibleDesc=String.valueOf(node.getContentDescription());
-                        if(!AppWorkflowPolicy.isSensitiveClick(visibleText) &&
-                           !AppWorkflowPolicy.isSensitiveClick(visibleDesc) && node.isClickable())
-                            accepted=node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        // In YouTube a labeled element can be a non-clickable child
+                        // of the real button. Ascend only within the same approved app.
+                        AccessibilityNodeInfo button=safeClickableAncestor(node);
+                        if(button!=null)
+                            accepted=button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     }else if(node.isEditable()){
                         Bundle arguments=new Bundle();
                         arguments.putCharSequence(
@@ -133,7 +145,19 @@ final class AppWorkflowEngine {
         }catch(RuntimeException e){
             accepted=false;
         }
-        if(!accepted){finish(false,"WORKFLOW_ACTION_REJECTED_STEP_"+index);return;}
+        if(!accepted){
+            // Controls can appear after the screen begins to render.
+            // Never repeat an action that was already accepted by Android.
+            if(actionRetryStep!=index){actionRetryStep=index;actionRetries=0;}
+            if(actionRetries++ < 5){
+                handler.postDelayed(()->executeStep(index),650L);
+                return;
+            }
+            finish(false,"WORKFLOW_ACTION_REJECTED_STEP_"+index);
+            return;
+        }
+        actionRetryStep=-1;
+        actionRetries=0;
         // Do not claim the business task succeeded; each action is acknowledged separately.
         if(index+1>=steps.length()){
             handler.postDelayed(()->{
@@ -144,6 +168,21 @@ final class AppWorkflowEngine {
         }else{
             handler.postDelayed(()->executeStep(index+1),delay);
         }
+    }
+
+    private AccessibilityNodeInfo safeClickableAncestor(AccessibilityNodeInfo node){
+        AccessibilityNodeInfo current=node;
+        for(int depth=0;current!=null && depth<4;depth++){
+            if(!target.equals(String.valueOf(current.getPackageName())) ||
+               !current.isVisibleToUser() || !current.isEnabled() || current.isPassword())
+                return null;
+            if(AppWorkflowPolicy.isSensitiveClick(String.valueOf(current.getText())) ||
+               AppWorkflowPolicy.isSensitiveClick(String.valueOf(current.getContentDescription())))
+                return null;
+            if(current.isClickable())return current;
+            current=current.getParent();
+        }
+        return null;
     }
 
     private static boolean equalsTarget(String prefix,String selector, AccessibilityNodeInfo node){
