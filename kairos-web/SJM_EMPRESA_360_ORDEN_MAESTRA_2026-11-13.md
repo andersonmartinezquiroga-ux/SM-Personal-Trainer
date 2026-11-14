@@ -212,3 +212,25 @@ Se implementó y publicó una sección **«Ventas y CRM · Piloto con datos prot
 **Siguientes puntos de trabajo prioritarios:** (1) prueba auténtica de creación de espacio y proyecto en Motorola; (2) asociar inventario y CRM a organizaciones verificadas manteniendo integridad y sin romper datos; (3) roles con invitaciones solo bajo aprobación y auditoría; (4) pagos, contratos, documentos y orquestación únicamente después de autorización y pruebas completas.
 
 Se mantiene la evaluación orientativa **37/100** hasta validar el piloto de punta a punta; nunca declarar autonomía o madurez mayores solo por una migración o pantalla.
+
+
+## Cerebro IA independiente y planificador local — 14 noviembre 2026
+
+**Objetivo fijo SJM:** el producto COMTROL 360 debe llegar a poder operar sin suscripción a ChatGPT, con interfaz sencilla de conversación y herramientas propias. Eso no significa prometer paridad actual con ChatGPT ni gratuidad asegurada de la inferencia; un modelo abierto puede necesitar nube, GPU o servidor.
+
+**Trabajos realizados sobre las aplicaciones y servicios existentes (sin crear otro proyecto):**
+1. Edge Function `sjm_brain_hybrid_v1` **versión 7** desplegada ACTIVE con verificación JWT y el mismo control de acceso del propietario. Se preservaron rutas `status` y `ask` y se añadió `ask_independent` para respuestas de un modelo externo independiente sin basarlas en la respuesta del Mentor. La ruta no ejecuta herramientas, pagos, postulaciones ni acciones externas; exige consentimiento expreso para enviar solo la pregunta.
+2. Adaptador con endpoint HTTPS fijado **en secretos del servidor**, no por el navegador. Rechaza endpoints directos de OpenAI/ChatGPT, direcciones locales inseguras y preguntas con patrones de credenciales. Verificar el proveedor real y su modelo antes de declarar independencia; un intermediario podría ocultar el origen. `status` informa `independent_model_configured`, `independent_model_name` y host del proveedor únicamente a usuario autorizado. `independent_self_test` contiene políticas sin consumo de IA.
+3. Interfaz `kairos-web/index.html` añadió selector `CONTROL · Supervisión` / `COMTROL · IA independiente`, consentimiento por cada pregunta, mensaje claro cuando no está configurado, y prueba de seguridad desde la propia pantalla. El modo de conversación por voz sigue usando Mentor (evita enviar automáticamente grabaciones ambientales al proveedor).
+4. Generador **local sin ChatGPT** en guía `Crear mi empresa`: a partir de los ocho pasos del usuario, produce plan estructurado Markdown de estrategia, mercado, finanzas sin cifras inventadas, legalidad, herramientas, lanzamiento y 30 días. Es una **plantilla programada**, NO un modelo generativo y NO verifica datos externos.
+5. Código de la función preservado en el repositorio `kairos-web/supabase/functions/sjm_brain_hybrid_v1/index.ts`. Manual de configuración, seguridad y pruebas en `kairos-web/COMTROL_CEREBRO_INDEPENDIENTE_2026-11-14.md`.
+
+**Evidencia técnica:**
+- Supabase: `sjm_brain_hybrid_v1` v7 ACTIVE, JWT=true, código fuente consultado después del despliegue.
+- Vercel: `dpl_4g2uJP8oVL6RCM9gnfhUE2EpFedM` READY, versión productiva HTTP 200, JavaScript sintácticamente válido y módulos previos conservados.
+- Generador local ensayado con empresa ficticia de zapatos: produjo resumen, mercado, localización, plan y avisos; ninguna llamada de red.
+- Prueba aislada de reglas del adaptador: 8/8 casos mediante simulador URL en V8; NO reemplaza prueba HTTP autenticada a la función Supabase ni inferencia.
+- **PENDIENTE CRÍTICO:** verificar un proveedor/modelo **realmente independiente y, si se elige, sin pagos obligatorios**, configurarlo en secretos del servidor y ejecutar una respuesta E2E con cuenta autorizada y consentimiento, sin exponer claves. No afirmar que el chatbot general ya usa un LLM independiente hasta completar esos pasos.
+- No se ha medido oficialmente el porcentaje. Conservar la referencia interna `37/100` antes de pruebas integrales, sin aumentarla por diseño o código no probado en dispositivo real.
+
+**Próximas prioridades:** escoger inferencia viable sin pago obligatorio o autoalojamiento con recursos SJM; configurar modelo y confirmar respuesta real; habilitar memoria conversacional en backend separada por usuario/organización; preservar autorización para herramientas; pruebas de Motorola y evaluación de seguridad multiempresa.
