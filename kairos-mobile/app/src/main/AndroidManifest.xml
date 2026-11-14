@@ -8,6 +8,11 @@
   <queries>
     <package android:name="com.android.chrome"/>
     <package android:name="com.google.android.youtube"/>
+    <package android:name="com.whatsapp"/>
+    <package android:name="com.microsoft.office.outlook"/>
+    <package android:name="com.google.android.apps.docs"/>
+    <package android:name="com.google.android.documentsui"/>
+    <package android:name="com.google.android.apps.nbu.files"/>
     <package android:name="com.google.android.gm"/>
     <package android:name="com.arlosoft.macrodroid"/>
   </queries>
