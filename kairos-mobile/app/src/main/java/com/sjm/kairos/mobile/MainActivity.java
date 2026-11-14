@@ -56,10 +56,10 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.18 · RESULTADOS VISIBLES",17));
+        layout.addView(text("VERSIÓN 0.3.19 · MOTOR DE ACCIONES",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
-        layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
+        layout.addView(text("Ejecutor privado para el Motorola. Motor de tareas en aplicaciones autorizadas: buscar, tocar, escribir, desplazarse y volver. Bloquea pagos, envíos, permisos, contraseñas y otras acciones sensibles.",16));
         status = text("Comprobando enlace local...",17); layout.addView(status);
         localProof = text("Última actividad: aún no comprobada",15);
         layout.addView(localProof);
@@ -189,7 +189,7 @@ public class MainActivity extends Activity {
             startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
         }));
         layout.addView(text("Dentro de Accesibilidad, busque KAIRÓS Móvil y actívelo. Es el único permiso imprescindible para recibir órdenes y solicitar apertura de aplicaciones.",15));
-        layout.addView(text("Esta fase de respaldo remoto permite avisos de prueba; otras órdenes se habilitarán únicamente tras verificación. La única pulsación permitida en esta versión es una prueba voluntaria sobre un botón de KAIRÓS; no se leen pantallas de otras apps.",14));
+        layout.addView(text("Motor genérico experimental: realiza pasos acotados en aplicaciones autorizadas y comprueba su pantalla, sin recopilar textos privados. No realiza pagos, envía mensajes ni declara éxito del objetivo final sin evidencia.",14));
         setContentView(scroll);
         refreshLocalState();
         if (Build.VERSION.SDK_INT >= 33 &&
