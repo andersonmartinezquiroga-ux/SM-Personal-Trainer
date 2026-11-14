@@ -124,7 +124,13 @@ final class AppWorkflowEngine {
                         ?AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
                         :AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
                 }
-            }else if("tap".equals(action)||"type".equals(action)){
+            }else if("tap_video".equals(action) && "com.google.android.youtube".equals(target)){
+                AccessibilityNodeInfo video=findMatchingVideo(root,value);
+                if(video!=null){
+                    AccessibilityNodeInfo button=safeClickableAncestor(video);
+                    if(button!=null)accepted=button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
+            }else if("tap".equals(action)||"type".equals(action)||"ime_search".equals(action)){
                 AccessibilityNodeInfo node=findOne(root,selector,false);
                 if(node!=null && node.isVisibleToUser() && node.isEnabled() &&
                    !node.isPassword() && target.equals(String.valueOf(node.getPackageName()))){
@@ -135,10 +141,19 @@ final class AppWorkflowEngine {
                         if(button!=null)
                             accepted=button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     }else if(node.isEditable()){
-                        Bundle arguments=new Bundle();
-                        arguments.putCharSequence(
-                          AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,value);
-                        accepted=node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments);
+                        if("type".equals(action)){
+                            Bundle arguments=new Bundle();
+                            arguments.putCharSequence(
+                              AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,value);
+                            accepted=node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments);
+                        }else if("ime_search".equals(action) &&
+                                 android.os.Build.VERSION.SDK_INT>=30){
+                            // Search through the focused editable field, not a brittle
+                            // screen coordinate or YouTube search button ID.
+                            if(!node.isFocused()) node.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                            accepted=node.performAction(
+                                AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.getId());
+                        }
                     }
                 }
             }
@@ -168,6 +183,38 @@ final class AppWorkflowEngine {
         }else{
             handler.postDelayed(()->executeStep(index+1),delay);
         }
+    }
+
+    /**
+     * Video title and artist must both occur in the SAME accessible result.
+     * Never pick the search text field or a generic result with only the song name.
+     * Does not export any screen content.
+     */
+    private AccessibilityNodeInfo findMatchingVideo(AccessibilityNodeInfo root,String query){
+        if(query==null)return null;
+        String[] words=query.toLowerCase(java.util.Locale.ROOT).split("\\|",-1);
+        if(words.length!=2||words[0].trim().length()<3||words[1].trim().length()<3)return null;
+        String song=words[0].trim(),artist=words[1].trim();
+        ArrayDeque<AccessibilityNodeInfo> queue=new ArrayDeque<>();
+        queue.add(root);
+        int count=0;
+        while(!queue.isEmpty()&&count++<350){
+            AccessibilityNodeInfo n=queue.removeFirst();
+            if(n==null||!target.equals(String.valueOf(n.getPackageName()))||
+               !n.isVisibleToUser())continue;
+            String label=(String.valueOf(n.getText())+" "+String.valueOf(n.getContentDescription()))
+                .toLowerCase(java.util.Locale.ROOT);
+            if(!n.isEditable()&&label.contains(song)&&label.contains(artist)&&
+               !AppWorkflowPolicy.isSensitiveClick(label)){
+                AccessibilityNodeInfo click=safeClickableAncestor(n);
+                if(click!=null)return n;
+            }
+            for(int i=0;i<n.getChildCount();i++){
+                AccessibilityNodeInfo child=n.getChild(i);
+                if(child!=null)queue.addLast(child);
+            }
+        }
+        return null;
     }
 
     private AccessibilityNodeInfo safeClickableAncestor(AccessibilityNodeInfo node){

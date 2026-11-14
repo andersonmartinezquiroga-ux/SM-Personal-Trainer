@@ -18,6 +18,12 @@ public final class AppWorkflowPolicySelfTest {
         check(!AppWorkflowPolicy.isAllowedStep("type","id:com.app:id/password","x"),"password blocked");
         check(!AppWorkflowPolicy.isAllowedStep("type","hint:Buscar",""),"blank typed text blocked");
         check(!AppWorkflowPolicy.isAllowedStep("tap","id:com.app:id/pay",null),"pay blocked");
+        check(AppWorkflowPolicy.isAllowedStep("ime_search","id:com.google.android.youtube:id/search_edit_text",""),"IME search allowed");
+        check(AppWorkflowPolicy.isAllowedStep("tap_video","","Hosanna|Marco Barrientos"),"matched video allowed");
+        check(!AppWorkflowPolicy.isAllowedStep("tap_video","","Hosanna"),"video requires song and artist");
+        check(!AppWorkflowPolicy.isAllowedStep("tap_video","","Hosanna|"),"video requires real artist");
+        check(!AppWorkflowPolicy.isAllowedStep("tap_video","","Comprar|pagar"),"sensitive video blocked");
+        check(!AppWorkflowPolicy.isAllowedStep("ime_search","",""),"IME needs a field");
         check(AppWorkflowPolicy.isAllowedStep("wait","","800"),"bounded wait");
         check(!AppWorkflowPolicy.isAllowedStep("wait","","80000"),"unbounded wait");
         System.out.println("KAIRÓS generic workflow policy 17/17 PASS");

@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.20' and int(code)>=23, (version,code)
+          assert version=='0.3.21' and int(code)>=24, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -54,6 +54,8 @@ jobs:
           worker=files[1].read_text()
           assert 'safeClickableAncestor' in engine and 'foregroundRetries' in engine and 'actionRetries' in engine
           assert 'capabilities.put("app_workflow")' in worker
+          assert 'ACTION_IME_ENTER' in engine and 'findMatchingVideo' in engine
+          print('VIDEO_SEARCH_0321_SOURCE_GATES PASS')
           print('WORKFLOW_0320_SOURCE_GATES PASS')
           assert 'VOICE_POLL_SAFE_ONLY' in files[1].read_text()
           assert 'VoiceActionPolicy.allowedDuringCommunication' in files[1].read_text()
@@ -119,7 +121,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0320
+          name: KairosMobile-release-APK-V0321
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -130,12 +132,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.20-supabase'
+          tag='kairos-mobile-v0.3.21-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.20-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.21-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.20-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.20 · control accesible reforzado'               --notes 'KAIRÓS 0.3.20: corrige la ejecución de botones accesibles cuando el elemento tiene un padre pulsable y espera hasta que cargue la pantalla. Mantiene todas las protecciones de acciones sensibles. No declara finalización de tareas de negocio sin evidencia ni autonomía general. Mantiene vínculo y comprobación real de versión. VersionCode 22 y firma permanente; instalar encima de 0.3.17 sin desinstalar ni perder vinculación. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.21-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.21 · búsqueda y selección de video'               --notes 'KAIRÓS 0.3.21: envía la búsqueda desde el campo de texto por ACTION_IME_ENTER y selecciona únicamente resultados que contengan canción y artista en el mismo control accesible, sin coordenadas ni exportación de pantalla. Mantiene límites, seguridad y evidencia de recepción. No declara finalización de tareas de negocio sin evidencia ni autonomía general. Mantiene vínculo y comprobación real de versión. VersionCode 24 y firma permanente; instalar encima de 0.3.20 sin desinstalar ni perder vinculación. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
           fi

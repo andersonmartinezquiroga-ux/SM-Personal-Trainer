@@ -50,6 +50,14 @@ public final class AppWorkflowPolicy {
             case "type":
                 return isValidSelector(selector) && value!=null &&
                     value.length()>=1 && value.length()<=400 && !value.contains("\u0000");
+            case "ime_search":
+                return isValidSelector(selector) && (value==null || value.isEmpty());
+            case "tap_video":
+                if(selector!=null&&!selector.isEmpty() || value==null ||
+                   value.length()<7 || value.length()>160 || value.contains("\u0000")) return false;
+                String[] parts=value.split("\\|",-1);
+                return parts.length==2 && parts[0].trim().length()>=3 &&
+                       parts[1].trim().length()>=3 && !isSensitiveClick(value);
             case "scroll_down": case "scroll_up":
                 return (selector==null || selector.isEmpty() || isValidSelector(selector))
                     && (value==null || value.isEmpty());
