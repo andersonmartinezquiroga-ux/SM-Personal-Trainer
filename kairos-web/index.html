@@ -1796,11 +1796,11 @@ function renderCrmPilot(root,grid){
  const changeButtons=[];
  function render(){
   stats.replaceChildren();list.replaceChildren();history.replaceChildren();changeButtons.length=0;
-  const estimate=records.reduce((sum,x)=>sum+Number(x.estimated_value||0),0);
+  const estimate=records.filter(x=>!["ganado","perdido"].includes(x.stage)).reduce((sum,x)=>sum+Number(x.estimated_value||0),0);
   for(const [name,value] of [
-   ["Oportunidades",records.length],
-   ["En seguimiento",records.filter(x=>!["ganado","perdido"].includes(x.stage)).length],
-   ["Valor potencial (no vendido)",fmtMoney(estimate)]
+   ["Oportunidades",partial?"Al menos "+records.length:records.length],
+   ["En seguimiento",partial?"Vista parcial":records.filter(x=>!["ganado","perdido"].includes(x.stage)).length],
+   ["Valor abierto estimado",partial?"Vista parcial":fmtMoney(estimate)]
   ]){
    const box=document.createElement("div");append(box,"strong",value);append(box,"span",name);stats.append(box);
   }
