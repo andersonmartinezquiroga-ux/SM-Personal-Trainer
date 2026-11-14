@@ -1610,6 +1610,89 @@ function startupExport(){
  lines.push("PENDIENTE: fuentes oficiales, jurisdicción, validación financiera, permisos y aprobación del titular.");
  return lines.join("\n");
 }
+
+/* Plan empresarial 100 % local · plantilla estructurada, sin API, sin ChatGPT.
+   No es IA generativa ni implica investigación del mercado o formalización real. */
+function startupIndependentPlan(){
+ const answers=startupDraft.answers;
+ const read=(step,index)=>String(answers[step]?.[index]||"").trim()||"[Por completar]";
+ const place=read(4,0),business=read(0,0),problem=read(0,1),client=read(1,0);
+ const lines=[
+ "# Plan empresarial inicial · SJM Empresa 360 IA",
+ "",
+ "Generado localmente: "+new Date().toLocaleDateString("es-CO")+".",
+ "**Origen:** plantilla elaborada en el navegador sin conectarse a modelos externos ni utilizar ChatGPT.",
+ "**Estado:** borrador estratégico; NO es una investigación de mercado, cotización, registro legal o proyección financiera verificada.",
+ "",
+ "## 1. Resumen ejecutivo preliminar",
+ "Actividad: "+business,
+ "Problema que pretende resolver: "+problem,
+ "Clientes potenciales: "+client,
+ "Propuesta inicial: comprobar con personas reales si la solución descrita atiende una necesidad y si estarían dispuestas a pagar por ella.",
+ "",
+ "## 2. Validación de mercado",
+ "Cliente objetivo declarado: "+client,
+ "Competidores y alternativas conocidas: "+read(1,1),
+ "Acciones de verificación: entrevistar a posibles compradores; observar tres alternativas; recopilar precios reales con fuente y fecha; probar la intención de compra.",
+ "Resultado por determinar: demanda, tamaño de mercado, nivel de competencia y precio viable.",
+ "",
+ "## 3. Modelo de negocio y operación",
+ "Oferta inicial: "+read(2,0),
+ "Captación y atención: "+read(2,1),
+ "Por determinar: proceso de venta, costos por entrega, proveedores autorizados, devoluciones y control de calidad.",
+ "",
+ "## 4. Presupuesto y viabilidad",
+ "Recursos iniciales declarados: "+read(3,0),
+ "Costos e ingresos documentados por el promotor: "+read(3,1),
+ "Cálculo a realizar cuando haya datos verificables: inversión total = gastos de arranque + capital de trabajo;",
+ "margen unitario = precio real de venta − costo variable comprobado;",
+ "punto de equilibrio = costos fijos / margen unitario positivo.",
+ "No asignar cifras inventadas. Identificar costos en COP u otra moneda según la jurisdicción.",
+ "",
+ "## 5. Formalización y obligaciones",
+ "Lugar de operación declarado: "+place,
+ "Permisos o requisitos identificados: "+read(4,1),
+ "Validar con autoridades oficiales el registro, impuestos, uso de suelo, seguridad, actividad económica, contratos y permisos aplicables.",
+ "Para Colombia, contrastar la documentación con la Cámara de Comercio y la DIAN; no dar por realizado ningún trámite.",
+ "",
+ "## 6. Identidad y tecnología",
+ "Marca y enfoque deseados: "+read(5,0),
+ "Herramientas requeridas: "+read(5,1),
+ "Prioridad: comenzar con la herramienta mínima que permita probar ventas; añadir inventario, CRM, página web u otras soluciones cuando exista necesidad comprobada.",
+ "",
+ "## 7. Primer lanzamiento",
+ "Primera oferta comercial propuesta: "+read(6,0),
+ "Prueba piloto prevista: "+read(6,1),
+ "Criterios sugeridos: resultado entregable, satisfacción de clientes piloto, costos reales, tiempo de entrega y evidencia de aceptación.",
+ "",
+ "## 8. Control y automatización",
+ "Indicadores elegidos: "+read(7,0),
+ "Procesos para futura automatización: "+read(7,1),
+ "Toda automatización externa requiere permisos, prueba controlada, comprobante y supervisión.",
+ "",
+ "## 9. Ruta de los próximos 30 días (referencia adaptable)",
+ "- Días 1–7: validar el problema, entrevistar clientes y registrar competencia y precios.",
+ "- Días 8–14: definir oferta mínima, proveedores, costos y requisitos legales.",
+ "- Días 15–21: construir muestra o prototipo y preparar canal de atención.",
+ "- Días 22–30: ejecutar una prueba piloto autorizada, registrar resultados y corregir.",
+ "",
+ "## 10. Control de información faltante",
+ ];
+ for(let i=0;i<startupSteps.length;i++){
+  for(let j=0;j<startupSteps[i][2].length;j++){
+   if(!String(answers[i]?.[j]||"").trim())lines.push("- [ ] "+startupSteps[i][0]+": "+startupSteps[i][2][j]);
+  }
+ }
+ lines.push(
+  "- [ ] Confirmar mercado y precios con fuentes actuales y fecha.",
+  "- [ ] Comprobar costos, impuestos, seguros y obligaciones aplicables.",
+  "- [ ] Definir responsables y cronograma de ejecución verificable.",
+  "",
+  "**Siguiente paso:** revisar, validar y aprobar este documento antes de actuar. Este archivo no representa trámites, ventas ni investigación efectivamente realizados."
+ );
+ return lines.join("\n");
+}
+
 function renderStartupWizard(root,grid){
  const wrap=document.createElement("section");wrap.id="startupWizard";wrap.className="startup-wizard";
  const heading=document.createElement("h2");heading.textContent="Crear mi empresa";
@@ -1621,8 +1704,9 @@ function renderStartupWizard(root,grid){
  const previous=document.createElement("button");previous.type="button";previous.className="business-secondary";previous.textContent="← Anterior";
  const next=document.createElement("button");next.type="button";next.className="business-secondary";next.textContent="Siguiente →";
  const download=document.createElement("button");download.type="button";download.className="business-secondary";download.textContent="Descargar borrador";
- const prepare=document.createElement("button");prepare.type="button";prepare.className="business-primary";prepare.textContent="Preparar plan en chat";
- actions.append(previous,next,download,prepare);
+ const localPlan=document.createElement("button");localPlan.type="button";localPlan.className="business-primary";localPlan.textContent="Generar plan base sin nube";
+ const prepare=document.createElement("button");prepare.type="button";prepare.className="business-secondary";prepare.textContent="Preparar plan en chat";
+ actions.append(previous,next,download,localPlan,prepare);
  const warning=document.createElement("p");warning.className="startup-warning";warning.textContent="Los datos de esta guía quedan en la memoria de la página mientras permanezca abierta, salvo que descargues el archivo. No introduce información en bases de datos ni formaliza empresas. Verifica normas y obligaciones en fuentes oficiales.";
  wrap.append(heading,summary,progress,form,actions,warning);grid.before(wrap);
  const render=()=>{
@@ -1644,6 +1728,7 @@ function renderStartupWizard(root,grid){
  previous.onclick=()=>{startupDraft.index=Math.max(0,startupDraft.index-1);render()};
  next.onclick=()=>{startupDraft.index=Math.min(7,startupDraft.index+1);render()};
  download.onclick=()=>{downloadText("SJM_Crear_Mi_Empresa_Borrador.md",startupExport());info("Borrador descargado. Ningún trámite fue enviado.")};
+ localPlan.onclick=()=>{downloadText("SJM_360_Plan_Empresarial_Inicial_Sin_ChatGPT.md",startupIndependentPlan());info("Plan inicial generado en tu navegador. No se envió información a ChatGPT ni a proveedores de IA.")};
  prepare.onclick=()=>{
   const details=startupSteps.map((s,i)=>startupDraft.answers[i].filter(Boolean).length?s[0]+": "+startupDraft.answers[i].filter(Boolean).join(" / "):"").filter(Boolean).join("; ");
   const prompt="COMTROL 360, ayúdame a crear una empresa desde cero. Etapa "+(startupDraft.index+1)+": "+startupSteps[startupDraft.index][0]+". Información provisional: "+(details||"Sin respuestas todavía")+". Haz un diagnóstico, pide datos faltantes, distingue supuestos de hechos, verifica el mercado y la legislación local, prepara plan por fases y presupuesto solo con cifras demostrables. No ejecutes registros legales, pagos ni compromisos sin autorización.";
@@ -2615,6 +2700,7 @@ const independent=standaloneSelected&&!forceMentor;
 if(independent&&!preview){
  if(!standaloneModelReady){info("El modelo independiente aún no está configurado. Selecciona CONTROL · Supervisión para consultar el Mentor.");return}
  if(!$("brainExternalConsent").checked){info("Para esta pregunta debes autorizar su envío al proveedor del modelo independiente.");return}
+ $("brainExternalConsent").checked=false;updateStandaloneControls();
 }
 if(preview){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(0,55);chat.messages.push({role:"user",text:q});const lower=q.toLocaleLowerCase("es");let dest="";
  if(/abrir|mostrar|ver|ir a/.test(lower)){if(/proyecto|portafolio/.test(lower))dest="projects";else if(/radar/.test(lower))dest="radars";else if(/motorola|android/.test(lower))dest="motorola";else if(/postulacion|postulaci[oó]n/.test(lower))dest="applications";else if(/auditor[ií]a/.test(lower))dest="audit";else if(/control|tablero/.test(lower))dest="control";}
@@ -2622,7 +2708,6 @@ if(preview){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(
  lastAnswer=dest?"Abro la sección de "+(infos[dest]?.[0]||"Mis proyectos")+". Esta es una navegación local, no una consulta al servidor.":subject?"Ficha del portafolio: "+subject.name+". "+subject.desc+" Puedes abrir el proyecto en el menú lateral para ver desarrollo y apoyos. No hay datos en vivo en esta vista previa.":"VISTA PREVIA: puedo mostrarte la estructura de SJM, proyectos, menús e historial local. Para responder con datos reales, supervisar el Motorola o ejecutar acciones se necesita una sesión autorizada del backend.";
  chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);c.messages.push({role:"user",text:q});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();const pending=bubble({role:"assistant",text:"Consultando el registro protegido…"},true);
 try{const r=await api(independent?{action:"ask_independent",question:q,allow_external_processing:true}:{action:"ask",question:q,allow_external_processing:false});
-if(independent){$("brainExternalConsent").checked=false;updateStandaloneControls()}
 pending.remove();lastAnswer=String(r.answer||"Sin respuesta");const msg={role:"assistant",text:lastAnswer,mode:r.mode||""};c.messages.push(msg);save();bubble(msg);$("mode").textContent=r.mode==="independent_model"?"COMTROL · IA independiente · sin acciones":r.mode==="cloud_grounded"?"IA en nube con consentimiento":"Mentor guiado · ninguna acción ejecutada";if(r.executedActions)info("Revisa evidencia de acciones reportadas antes de darlas por completadas")}
 catch(e){pending.remove();const m={role:"assistant",text:"Consulta no disponible: "+e.message+". No se ejecutó ninguna acción externa.",mode:"error"};c.messages.push(m);save();bubble(m);connection(false,"Error de consulta")}
 finally{busy=false;$("send").disabled=false;historyRender()}}
