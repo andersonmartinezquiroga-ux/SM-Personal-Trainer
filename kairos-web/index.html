@@ -1028,6 +1028,48 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 }
 @media(prefers-reduced-motion:reduce){.field-write-btn.dictation-on,#mic.dictation-on{animation:none}}
 
+
+/* COMTROL · tablero verificable e información empresarial v2.5 */
+.readiness-board{border:1px solid #6284a0;background:#1b2937;border-radius:18px;padding:22px 21px;margin:16px 0 20px}
+.readiness-board>h2{font-size:26px;color:#f0f9ff;margin:0 0 8px;line-height:1.32}
+.readiness-board>p{font-size:18px;color:#cbddec;line-height:1.62;margin:0 0 17px}
+.readiness-stat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.readiness-stat>div{padding:17px;background:#233a4d;border:1px solid #56778e;border-radius:14px;display:flex;flex-direction:column;gap:7px}
+.readiness-stat strong{font-size:17px;color:#daebf9;line-height:1.4}
+.readiness-stat small{font-size:15px;color:#bcd5e9;line-height:1.55}
+.readiness-amount{font-size:clamp(30px,4vw,39px);font-weight:820;line-height:1.2;color:#fff}
+.readiness-blocks b{font-size:24px;color:#edf9ff;line-height:1.3}
+.readiness-details{margin:13px 0}
+.readiness-details summary{min-height:43px;cursor:pointer;font-size:18px;color:#d7ebfa;font-weight:700;padding:10px 4px}
+.readiness-criteria{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:9px 0 10px}
+.readiness-line{padding:13px;background:#243747;border:1px solid #4a667e;border-radius:13px}
+.readiness-line>div{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.readiness-line strong{font-size:17px;color:#f1f7ff;line-height:1.33}
+.readiness-line b{font-size:17px;color:#bce3ff;white-space:nowrap}
+.readiness-line p{font-size:15px;color:#d0e0eb;line-height:1.51;margin:9px 0}
+.readiness-line small{font-size:14px;color:#b4cee0;line-height:1.53}
+.readiness-live{border-top:1px solid #476579;margin-top:15px;padding-top:19px}
+.readiness-live h3{color:#f4f9ff;font-size:22px;margin:0 0 8px}
+.readiness-live>p{font-size:16px;line-height:1.6;color:#c3d6e7;margin:0 0 12px}
+.readiness-actions{display:flex;flex-wrap:wrap;gap:9px}
+.readiness-actions button{font-size:17px;min-height:48px;padding:8px 12px}
+.readiness-live-result{padding:12px 14px;margin-top:13px;border:1px solid #425f76;border-radius:12px;background:#233442;color:#dbeaf5;font-size:16px;line-height:1.55}
+.readiness-result-items p{margin:4px 0 9px;line-height:1.55;overflow-wrap:anywhere}
+.readiness-result-items strong{color:#f5faff}
+.readiness-checktime{display:block;color:#b4d2e4;font-size:14px;line-height:1.55;margin-top:13px}
+.business-playbook{margin-top:12px;border-top:1px solid #445e75;padding-top:10px}
+.business-playbook summary{font-size:16px;line-height:1.5;font-weight:690;color:#c8e5f7;cursor:pointer;padding:4px 0}
+.business-playbook-body p{font-size:16px;line-height:1.55;color:#d5e3f0;margin:8px 0 0}
+.business-playbook-body strong{color:#f3f9ff}
+@media(max-width:800px){
+ .readiness-board{padding:17px 14px}
+ .readiness-stat{grid-template-columns:1fr}
+ .readiness-stat>div{padding:14px}
+ .readiness-criteria{grid-template-columns:1fr}
+ .readiness-actions button{flex:1 1 44%;font-size:16px}
+ .readiness-board>h2{font-size:24px}
+}
+
 </style>
 </head>
 <body>
@@ -1468,7 +1510,18 @@ function renderEnterpriseCenter(root,grid){
   const buttons=document.createElement("div");buttons.className="business-card-actions";
   const ask=document.createElement("button");ask.type="button";ask.className="business-primary";ask.textContent="Solicitar solución";ask.onclick=()=>companyDraftRequest(m.title,m.focus);buttons.append(ask);
   if(m.csv){const csv=document.createElement("button");csv.type="button";csv.className="business-secondary";csv.textContent="Plantilla CSV";csv.onclick=()=>csvStarter(m.csv);buttons.append(csv)}
-  card.append(label,h,p,buttons);grid.append(card);
+  card.append(label,h,p,buttons);
+  const reference=enterprisePlaybooks[m.id];
+  if(reference){
+   const details=document.createElement("details");details.className="business-playbook";
+   const summary=document.createElement("summary");summary.textContent="Ver información y entregables necesarios";
+   const list=document.createElement("div");list.className="business-playbook-body";
+   for(const [prefix,content] of [["Para comenzar",reference[0]],["Resultado esperado",reference[1]],["Validación necesaria",reference[2]]]){
+    const p=document.createElement("p");const heading=document.createElement("strong");heading.textContent=prefix+": ";p.append(heading,document.createTextNode(content));list.append(p);
+   }
+   details.append(summary,list);card.append(details);
+  }
+  grid.append(card);
  }
  const infraCard=document.createElement("article");infraCard.className="business-service";
  const infraTitle=document.createElement("h3");infraTitle.textContent="Infraestructura Tecnológica";
@@ -1605,6 +1658,7 @@ function renderCompaniesCenter(root,grid){
  const cards=[
   ["Mis proyectos SJM","Acceder al portafolio de proyectos existente, con carpetas y elementos fijados.","Abrir proyectos",()=>show("projects")],
   ["Mi empresa · diagnóstico","Definir necesidades generales sin introducir datos sensibles.","Abrir diagnóstico",()=>show("enterprise")],
+  ["Avance real de COMTROL 360","Revisar capacidad, porcentajes orientativos y consulta protegida de CONTROL 360.","Ver avance",()=>show("control")],
   ["Panel privado por empresa","Acceso independiente con información y seguimiento de cada cliente; requiere autenticación y separación de datos.","En construcción",null],
   ["Empleados y roles","Administración de usuarios autorizados, funciones y aprobaciones por empresa.","Pendiente de seguridad",null],
   ["Historial y entregables","Seguimiento de solicitudes, evidencias, propuestas, entregas y autorizaciones por empresa.","Pendiente de integración",null],
@@ -1618,8 +1672,127 @@ function renderCompaniesCenter(root,grid){
  businessNotice(root,"La administración de distintas empresas todavía no está conectada. No se deben cargar nóminas, facturas, registros laborales ni datos de clientes reales hasta implementar aislamiento por empresa, roles, auditoría y validación legal.");
 }
 
+
+/* COMTROL · tablero verificable e información empresarial v2.5
+   Estimación de producto independiente de las pruebas del backend.
+   Todas las consultas reales son autenticadas, autorizadas y de solo lectura. */
+const readinessCriteria=[
+ ["Interfaz y accesibilidad",10,9,"Menús, chat, voz beta y formularios publicados.","Prueba completa en Motorola y accesibilidad."],
+ ["Chat y cerebro IA",15,5,"Mentor protegido; respuesta generativa condicionada a configuración.","Probar razonamiento, memoria y enrutamiento real de modelos."],
+ ["Orquestación CONTROL 360",15,7,"Colas, programaciones y registros existentes; autonomía parcial.","Cierre de bloques 2 a 8 y reintentos integrales."],
+ ["Ejecutor web",10,5,"Hay tareas ejecutadas y fallas registradas.","Recuperación, adaptadores y pruebas autorizadas."],
+ ["Motorola y voz",10,4,"Recepción y acuses observados; Web Speech beta.","Entrega estable, permisos y prueba física de voz."],
+ ["Servicios empresariales",15,2,"Catálogos, guías y diagnósticos de solicitud.","Inventario y ventas reales con controles y entregables."],
+ ["Seguridad multiempresa",10,0,"No está habilitado el aislamiento seguro por cliente.","Organizaciones, RLS, roles, permisos y pruebas de acceso cruzado."],
+ ["Documentos profesionales",5,1,"Plantillas CSV locales y borradores descargables.","Generación real de Word, PDF, Excel y entregables."],
+ ["Memoria y trazabilidad",5,3,"Registros operativos y consulta protegida.","Memoria empresarial separada y comprobación histórica."],
+ ["Contratación y seguimiento",5,1,"Diagnóstico y modalidades de servicio en interfaz.","Cotización, aprobación, evidencias, entrega y facturación."]
+];
+function renderOperationalBoard(root,grid){
+ const board=document.createElement("section");board.className="readiness-board";
+ const h=document.createElement("h2");h.textContent="Avance real · COMTROL 360";
+ const desc=document.createElement("p");desc.textContent="Dos mediciones diferentes: madurez estimada del producto completo y evidencias operativas de CONTROL 360. Ninguna equivale a autonomía total.";
+ const stat=document.createElement("div");stat.className="readiness-stat";
+ const left=document.createElement("div");
+ const sub=document.createElement("strong");sub.textContent="Desarrollo global estimado";
+ const amount=document.createElement("span");amount.className="readiness-amount";
+ const scored=readinessCriteria.reduce((sum,x)=>sum+x[2],0);
+ const possible=readinessCriteria.reduce((sum,x)=>sum+x[1],0);
+ amount.textContent=scored+" / "+possible;
+ const caveat=document.createElement("small");caveat.textContent="Escala de ingeniería del 14 nov. 2026; no es una prueba de inteligencia ni una medición comparable con ChatGPT.";
+ left.append(sub,amount,caveat);
+ const right=document.createElement("div");right.className="readiness-blocks";
+ const blockTitle=document.createElement("strong");blockTitle.textContent="CONTROL 360 · auditoría de bloques";
+ const blockValue=document.createElement("b");blockValue.textContent="1 de 8 comprobado";
+ const blockNote=document.createElement("small");blockNote.textContent="Los siete restantes son parciales. Registro comprobado en Supabase el 14 nov. 2026. No es dato en vivo de esta tarjeta.";
+ right.append(blockTitle,blockValue,blockNote);
+ stat.append(left,right);board.append(h,desc,stat);
+ const details=document.createElement("details");details.className="readiness-details";
+ const title=document.createElement("summary");title.textContent="Ver puntuación por área y qué falta";
+ const table=document.createElement("div");table.className="readiness-criteria";
+ for(const [name,max,earned,evidence,missing] of readinessCriteria){
+  const line=document.createElement("section");line.className="readiness-line";
+  const row=document.createElement("div");
+  const label=document.createElement("strong");label.textContent=name;
+  const number=document.createElement("b");number.textContent=earned+"/"+max;
+  const proof=document.createElement("p");proof.textContent="Base: "+evidence;
+  const next=document.createElement("small");next.textContent="Falta: "+missing;
+  row.append(label,number);line.append(row,proof,next);table.append(line);
+ }
+ details.append(title,table);board.append(details);
+ const live=document.createElement("div");live.className="readiness-live";
+ const liveTitle=document.createElement("h3");liveTitle.textContent="Comprobación directa con CONTROL 360";
+ const liveDesc=document.createElement("p");
+ liveDesc.textContent="Solo lectura de servicios actuales; las cifras históricas no se presentan como estado del momento. La vista previa no tiene permisos privados.";
+ const actions=document.createElement("div");actions.className="readiness-actions";
+ const refresh=document.createElement("button");refresh.type="button";refresh.className="business-primary";refresh.textContent="Verificar ahora";
+ const full=document.createElement("button");full.type="button";full.className="business-secondary";full.textContent="Ver informe técnico";
+ full.onclick=()=>readLive("Qué falta terminar en Control 360?");
+ const android=document.createElement("button");android.type="button";android.className="business-secondary";android.textContent="Comprobar Motorola";
+ android.onclick=()=>readLive("Estado de conexión del Motorola");
+ actions.append(refresh,full,android);
+ const result=document.createElement("div");result.className="readiness-live-result";
+ result.setAttribute("role","status");result.setAttribute("aria-live","polite");
+ result.textContent=preview?"Vista previa: datos reales protegidos. Inicia sesión como titular para consultar.":"Pulsa «Verificar ahora» para consultar el estado protegido.";
+ live.append(liveTitle,liveDesc,actions,result);
+ refresh.onclick=async()=>{
+  if(preview||!authorized||!session?.access_token){result.textContent="Para consultar datos reales necesitas la sesión autorizada del titular.";return}
+  if(refresh.disabled)return;
+  refresh.disabled=true;refresh.textContent="Consultando…";result.replaceChildren();
+  const output=document.createElement("div");output.className="readiness-result-items";
+  const add=(label,value)=>{
+   const line=document.createElement("p");const strong=document.createElement("strong");strong.textContent=label+": ";
+   const span=document.createElement("span");span.textContent=String(value);line.append(strong,span);output.append(line);
+  };
+  try{
+   const responses=await Promise.allSettled([
+    api({action:"status"}),
+    api({action:"execute_read_only",instruction:"Qué falta terminar en Control 360?"},BASE+"/functions/v1/sjm_brain_plan_safe_v1")
+   ]);
+   let good=0;
+   if(responses[0].status==="fulfilled"){
+    const status=responses[0].value;good++;
+    add("Cerebro",status.deployed===true?"Servicio desplegado y acceso autorizado":"El servidor respondió; despliegue no acreditado");
+    add("Modelo en nube",status.cloud_model_configured===true?"Configurado; uso sujeto a consentimiento":"No se confirma configuración de modelo generativo");
+    add("Ejecución externa desde chat",status.live_execution_enabled===true?"Habilitada según servidor, pendiente de prueba":"No habilitada desde este cerebro");
+   }else add("Cerebro",String(responses[0].reason?.message||"Consulta no disponible").slice(0,180));
+   if(responses[1].status==="fulfilled"){
+    const snap=responses[1].value;
+    if(snap.readPerformed!==true||snap.readOnly!==true||Number(snap.executedActions)!==0)throw Error("No se acreditó solo lectura");
+    good++;
+    const data=snap.data||{},phone=data.mobile||{},browser=data.browser||{},alerts=data.alerts||{};
+    add("Motorola",phone.connected===true?"Conexión reportada en el servidor":phone.connected===false?"Sin conexión reportada":"Conexión no determinada");
+    add("Versión Android",phone.device?.appVersion||"No reportada");
+    add("Ejecutor web",browser.authorized===true?"Lectura protegida verificada":"Estado pendiente de validar");
+    add("Memoria operativa",data.operationalMemory?"Consulta con información persistente":"Sin memoria operativa confirmada");
+    add("Alertas",alerts.newMobileQueue!==undefined&&alerts.newMobileQueue!==null?String(alerts.newMobileQueue)+" registros en cola (no implican entrega)":"Sin cifra comprobada");
+    add("Acciones externas ejecutadas por esta consulta","0");
+   }else add("Datos operativos",String(responses[1].reason?.message||"No disponibles").slice(0,180));
+   const stamp=document.createElement("small");stamp.className="readiness-checktime";
+   stamp.textContent="Consulta realizada: "+new Date().toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+good+"/2 fuentes respondieron. No se emitieron órdenes.";
+   result.append(output,stamp);
+  }catch(error){
+   result.textContent="La comprobación falló: "+String(error?.message||error).slice(0,180)+". No se ejecutaron órdenes.";
+  }finally{refresh.disabled=false;refresh.textContent="Verificar ahora"}
+ };
+ board.append(live);grid.before(board);
+}
+const enterprisePlaybooks={
+ administracion:["Sector, número aproximado de áreas y procesos; objetivo y dificultades actuales.","Mapa de procesos, responsables, controles e indicadores.","Validación del propietario y tratamiento mínimo de datos."],
+ finanzas:["Periodos, categorías, cifras y comprobantes verificables.","Presupuesto, flujo de caja y escenarios con supuestos explícitos.","Revisión contable y aprobación humana; sin movimientos financieros."],
+ nomina:["Jurisdicción, cargos, horarios y normativa aplicable, sin datos personales en la vista previa.","Esquema de nómina, asistencia y lista de validaciones.","Abogado/contador competente, confidencialidad y autorización laboral."],
+ inventarios:["Catálogo de muestra, unidades, movimientos y reglas de reposición.","Kardex, existencias calculadas, alertas y CSV.","Movimientos comprobables; no inventar existencias."],
+ marketing:["Producto, cliente, canales, presupuesto y objetivo.","Plan de campaña, mensajes, calendario y métricas.","Aprobación de publicaciones y cumplimiento publicitario."],
+ ventas:["Etapas de venta, tipos de clientes, productos y permisos.","Proceso CRM, cotizaciones borrador y seguimiento.","Consentimientos y control de datos de clientes."],
+ auditorias:["Alcance, norma aplicable y documentos autorizados.","Lista de chequeo, hallazgos y recomendaciones.","No presentar como certificación ni auditoría legal concluida."],
+ estudios:["Región objetivo, sector, público y competencia.","Fuentes, estudio de mercado y análisis de viabilidad.","Distinguir investigación actual de hipótesis."],
+ proyectos:["Problema, propuesta, recursos, fechas y metas.","Plan de negocio, cronograma, presupuesto y propuesta.","Separar presupuesto estimado de fondos concedidos."],
+ automatizar:["Pasos actuales, disparadores, permisos, errores y datos permitidos.","Diagrama de flujo, pruebas, seguimiento y registro de eventos.","Autorizar acciones externas y comprobar sus acuses."]
+};
+
 function moduleRender(id){const root=$("moduleBody");root.classList.remove("enterprise-center");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
 const grid=document.createElement("div");grid.className="tile-grid";root.append(grid);
+if(id==="control")renderOperationalBoard(root,grid);
 if(id==="enterprise"){renderEnterpriseCenter(root,grid)}
 else if(id==="builder"||id==="infra"||id==="research"||id==="creative"){renderServiceCenter(root,grid,id);if(id==="infra"){renderInfrastructureDiagnosis(root);renderArchitectureBlueprint(root)}}
 else if(id==="tasks"){renderTasksCenter(root,grid)}
