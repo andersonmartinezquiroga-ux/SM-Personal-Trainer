@@ -16,7 +16,7 @@ public final class SjmNavigationPolicy {
         "/", "/mentor", "/kairos", "/estado", "/secretario", "/expedientes", "/sjm-panel-8"
     ));
     private static final Set<String> PACKAGES = new HashSet<>(Arrays.asList(
-        "com.android.chrome", "com.google.android.gm", "com.arlosoft.macrodroid"
+        "com.android.chrome", "com.google.android.youtube", "com.google.android.gm", "com.arlosoft.macrodroid"
     ));
     private SjmNavigationPolicy() { }
 
