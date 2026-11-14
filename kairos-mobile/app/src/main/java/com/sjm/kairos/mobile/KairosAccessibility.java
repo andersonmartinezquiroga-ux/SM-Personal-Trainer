@@ -161,30 +161,39 @@ public class KairosAccessibility extends AccessibilityService {
             return;
         }
         verifyingForeground=true;
-        if(!"back".equals(action)) {
-            try {
-                Intent own=getPackageManager().getLaunchIntentForPackage(LOCAL_TEST_PACKAGE);
-                if(own==null)throw new IllegalStateException("OWN_APP_LAUNCH_UNAVAILABLE");
-                own.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    |Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(own);
-            }catch(RuntimeException e){
-                verifyingForeground=false;
-                storeAndConfirm(key,commandId,"failed",
-                    "OWN_APP_FOREGROUND_LAUNCH_DENIED: "+e.getClass().getSimpleName());
-                return;
-            }
+        try {
+            // Only the owner-authorized KAIRÓS package may become foreground.
+            Intent own=getPackageManager().getLaunchIntentForPackage(LOCAL_TEST_PACKAGE);
+            if(own==null)throw new IllegalStateException("OWN_APP_LAUNCH_UNAVAILABLE");
+            own.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                |Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(own);
+        }catch(RuntimeException e){
+            verifyingForeground=false;
+            storeAndConfirm(key,commandId,"failed",
+                "OWN_APP_FOREGROUND_LAUNCH_DENIED: "+e.getClass().getSimpleName());
+            return;
         }
-        // Android may need time to display the activity after reopening it.
         handler.postDelayed(()->{
             if(!active || !verifyingForeground)return;
             try {
-                if(!"back".equals(action)) {
+                if("back".equals(action)) {
+                    // BACK is confined to the explicitly created private KAIRÓS test screen.
+                    AccessibilityNodeInfo root=getRootInActiveWindow();
+                    if(root==null || !LocalInteractionPolicy.isOwnPackage(
+                        String.valueOf(root.getPackageName()))) {
+                        verifyingForeground=false;
+                        storeAndConfirm(key,commandId,"failed","OWN_APP_FOREGROUND_REQUIRED");
+                        return;
+                    }
+                    Intent safeScreen=new Intent(this,SafeBackTestActivity.class);
+                    safeScreen.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(safeScreen);
+                    handler.postDelayed(()->runRemoteOwnTestStep(key,commandId,command,action),650L);
+                }else {
                     prepareOwnTargetVisibility(action);
                     handler.postDelayed(()->runRemoteOwnTestStep(key,commandId,command,action),450L);
-                }else {
-                    runRemoteOwnTestStep(key,commandId,command,action);
                 }
             }catch(RuntimeException e) {
                 verifyingForeground=false;
@@ -414,9 +423,9 @@ public class KairosAccessibility extends AccessibilityService {
             }
             CommandReceiptStore.markBridge(this,
                 "POLL_OFFERED_"+command.optString("type","unknown")+"_"+commandId.substring(0,8));
-            // Durante llamadas: nunca abrir apps, enlaces, ni tocar pantallas.
-            // Sólo se permiten notificaciones en el canal silencioso.
-            if(hasActiveCommunication() && !"notify".equals(command.optString("type",""))){
+            // During voice, external app/url actions remain deferred. An approved
+            // own-KAIRÓS local test can run; it may foreground only our APK.
+            if(hasActiveCommunication() && !VoiceActionPolicy.allowedDuringCommunication(command.optString("type",""))){
                 CommandReceiptStore.markBridge(this,"VOICE_BUSY_DEFERRED_"+commandId.substring(0,8));
                 CommandReceiptStore.mark(this,"Acción de pantalla pospuesta hasta terminar voz");
                 return;
