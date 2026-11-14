@@ -161,3 +161,16 @@ Release de aplicación única: `kairos-web/index.html`, versión de tablero **v2
 7. **Comercialización** únicamente después de casos reales probados y cálculo de costos.
 
 **No certificar 100 %, no presentar simulación como resultado y no duplicar proyectos ni tareas programadas existentes.**
+
+
+## Primera operación empresarial persistente — Inventarios (14 noviembre 2026)
+
+Se implementó y publicó en la **aplicación existente** un piloto propietario de inventarios. Está en `Soluciones Empresariales → Inventarios y Compras → Abrir inventario operativo`. Usa **las dos tablas nuevas de Supabase** `public.sjm_business_inventory_items_v1` y `public.sjm_business_inventory_movements_v1`, más la función transaccional `public.sjm_inventory_register_movement_v1`.
+
+Capacidades desarrolladas: crear productos identificados por SKU y umbral, registrar entradas y salidas, rechazar stock negativo, impedir repetición de solicitudes mediante clave única, calcular existencias desde movimientos, mostrar alertas y descargar CSV de existencias/comprobantes. No modifica inventario en modo vista previa, ni genera productos automáticamente.
+
+**Evidencia técnica de publicación:** despliegue de Vercel `dpl_7UEgmZ8oMAd2srMWcbQRsgEDasQc` en estado READY, URL de producción HTTP 200, JavaScript sintácticamente válido. Migraciones Supabase `sjm_empresa360_inventory_pilot_owner_isolated_20261114` y `sjm_empresa360_inventory_idempotent_owner_rpc_v2` correctamente aplicadas. RLS activada en ambas tablas, `anon` sin SELECT, `authenticated` sin INSERT directo al kardex y RPC autorizada. Al realizar la comprobación había **0 productos y 0 movimientos**: es honesto **no declarar prueba de uso real**.
+
+**Pendiente crítico para cerrar esta fase:** entrar desde Motorola con sesión válida, crear SKU ficticio, realizar entrada, salida correcta, salida imposible, alerta, exportación y recarga, dejando comprobantes. Guía detallada: `kairos-web/COMTROL_INVENTARIO_PILOTO_2026-11-14.md`. SQL reproducible: `kairos-web/database/20261114_sjm_inventory_pilot.sql`. La empresa multiusuario/multi-tenant **no existe todavía**; solo aislamiento por usuario.
+
+**Porcentaje:** se mantiene la evaluación de 37/100 hasta que una prueba autenticada confirme el ciclo completo. El nuevo módulo no autoriza elevar porcentajes ni afirmar comercialización lista.
