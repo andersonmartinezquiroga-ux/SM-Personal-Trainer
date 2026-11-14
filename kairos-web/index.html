@@ -976,6 +976,27 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .business-architecture-grid small{font-size:14px;color:#bbd7e9;line-height:1.45}
 @media(max-width:800px){.business-architecture-grid{grid-template-columns:1fr}.business-architecture-plan{padding:17px}}
 
+
+/* Crear mi empresa · guía de 8 pasos v2.3 */
+.startup-wizard{background:#203143;color:#eef7ff;padding:22px;border-radius:18px;border:1px solid #6c91ad;margin:0 0 23px}
+.startup-wizard h2{font-size:26px;line-height:1.3;margin:0 0 7px;color:#fff}
+.startup-wizard>p{font-size:17px;line-height:1.59;color:#d1e2ef;margin:0 0 16px}
+.startup-progress{display:flex;align-items:center;gap:12px;font-size:16px;color:#d4eaff;margin:0 0 18px}
+.startup-progress strong{white-space:nowrap}
+.startup-track{flex:1;height:10px;background:#4c6174;border-radius:999px;overflow:hidden}
+.startup-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#6cb0de,#c5e8ff)}
+.startup-form{display:flex;flex-direction:column;gap:11px}
+.startup-form h3{font-size:22px;line-height:1.35;color:#fff;margin:0}
+.startup-form>p{font-size:17px;line-height:1.56;color:#d7e7f3;margin:0}
+.startup-form label{display:flex;flex-direction:column;gap:7px;color:#f0f8ff;font-size:18px;line-height:1.43;font-weight:650}
+.startup-form textarea{min-height:75px;max-width:100%;resize:vertical;padding:10px 12px;color:#fff;background:#2b4052;border:1px solid #7798b1;border-radius:11px;font-size:18px;line-height:1.55}
+.startup-form textarea::placeholder{color:#b8cddd}
+.startup-form .startup-goal{margin:6px 0 0;font-size:17px;color:#bfe4ff;border-left:3px solid #8ac1e7;padding:9px 12px;background:#2d4357}
+.startup-actions{display:flex;flex-wrap:wrap;gap:8px;margin:17px 0 13px}
+.startup-actions button{font-size:17px;min-height:49px;padding:9px 13px}
+.startup-warning{font-size:15px!important;color:#bbd3e6!important;margin:11px 0 0!important}
+@media(max-width:800px){.startup-wizard{padding:18px 15px}.startup-actions button{flex:1 1 43%;font-size:16px}.startup-wizard h2{font-size:24px}}
+
 </style>
 </head>
 <body>
@@ -1172,7 +1193,7 @@ const workCenters={
   ["Traducción y Comunicación","Preparar traducciones y materiales profesionales multilingües."]
  ]
 };
-const projectCatalog=[{"id":"control","name":"KAIRÓS 360 · SJM CONTROL 360","group":"Central","icon":"◈","desc":"Cerebro IA, orquestación, ejecutor web, supervisión y verificación de autonomía.","dev":["Cerebro híbrido y Mentor con consultas protegidas","Control Android y avisos en Motorola","Orquestación, auditoría, permisos y pruebas integrales"],"support":["Infraestructura gratuita y continuidad","Alianzas técnicas para ejecución y voz","Validación de funcionamiento en el dispositivo real"]},{"id":"performance","name":"SJM Human Performance 360","group":"Principal","icon":"◉","desc":"Plataforma integral de entrenamiento, evaluación del movimiento y seguimiento.","dev":["Motion 360: cámara, IA y sensores IMU","Performance 360, Nutrition Pro y biblioteca de ejercicios","Visualización 3D, pruebas de campo y prototipos"],"support":["Financiación no reembolsable y concursos","Donación definitiva de computador y componentes","Alianzas deportivas, tecnológicas y pilotos"]},{"id":"translator","name":"SJM Universal Translator","group":"Principal","icon":"◎","desc":"Traducción bidireccional con accesibilidad y dispositivos portátiles.","dev":["Aplicación móvil con voz y subtítulos","Auricular privado y módulo de solapa","Pruebas de latencia y accesibilidad"],"support":["Convocatorias de innovación y accesibilidad","Socios de hardware y pruebas piloto","Alianzas internacionales"]},{"id":"prayer","name":"Mi Casa de Oración","group":"Principal","icon":"✦","desc":"Templo virtual con espacios de oración, adoración, predicación y lectura.","dev":["Templo virtual 3D luminoso","Servidor virtual y espacios de encuentro","Oración, adoración, predicación y Biblia"],"support":["Alianzas ministeriales","Apoyo para infraestructura y producción","Difusión y colaboración internacional"]},{"id":"bible","name":"Mi Biblia Viva","group":"Ministerial","icon":"✧","desc":"Lectura y escucha bíblica móvil en español, con experiencia accesible.","dev":["Experiencia de lectura del Nuevo Testamento","Narración natural en español y continuidad diaria","Versión Android funcional y verificada"],"support":["Apoyo para voces y producción de audio","Pruebas de usabilidad","Distribución gratuita y alianzas"]},{"id":"mentor","name":"SJM Mentor IA · Secretario 360","group":"Central","icon":"◇","desc":"Asistente conversacional con memoria, seguimiento, voz y avisos útiles.","dev":["Conversación en español y recuperación de contexto","Memoria y comandos con permisos","Voz natural, reportes y avisos"],"support":["Motor de voz y recursos sin pagos obligatorios","Pruebas reales de integración","Integración técnica con CONTROL 360"]},{"id":"complex","name":"SJM Human Performance Complex","group":"Expansión","icon":"▦","desc":"Visión futura de un centro físico de rendimiento, tecnología y bienestar.","dev":["Diseño de espacios y servicios deportivos","Laboratorio de evaluación y biomecánica","Modelo por fases para una sede física"],"support":["Aliados de infraestructura y equipamiento","Patrocinio y financiación","Convenios con centros deportivos"]},{"id":"services","name":"SJM Servicios Autónomos Globales","group":"Servicios","icon":"◫","desc":"Servicios digitales con apoyo de IA y operaciones auditables.","dev":["Catálogo de servicios y entrega digital","Automatización supervisada de operaciones","Registro de evidencias y calidad"],"support":["Clientes y alianzas B2B","Herramientas gratuitas y soporte técnico","Pruebas comerciales sin inversión inicial"]},{"id":"work","name":"SJM Work Autónomo","group":"Servicios","icon":"⌘","desc":"Flujos de trabajo asistidos por agentes, tareas y expedientes sin duplicados.","dev":["Bandejas, reintentos y trazabilidad","Aislamiento de casos y control de permisos","Pruebas técnicas y despliegue progresivo"],"support":["Proveedores y recursos para pruebas","Alianzas de implementación","Casos reales remunerados"]},{"id":"income","name":"SJM Ingresos Digitales Automatizados","group":"Servicios","icon":"◈","desc":"Oportunidades de ingresos digitales legítimos y seguimiento comercial.","dev":["Clasificación de oportunidades viables","Preparación de propuestas y entregables","Seguimiento sin confundir búsqueda con contratación"],"support":["Clientes remotos y ventas B2B","Colaboraciones verificadas","Modelos sin pagos de inscripción"]},{"id":"lab7","name":"SJM Laboratorio 7 · Agencia Mundial","group":"Servicios","icon":"◴","desc":"Investigación de negocios digitales, mercados y experimentos comerciales.","dev":["Análisis de demanda, competencia y precios","Pruebas de prototipos y propuestas","Evaluación de riesgos y viabilidad"],"support":["Compradores y socios de ejecución","Validación comercial internacional","Infraestructura de bajo costo"]},{"id":"motion","name":"SJM Motion AI Studio","group":"Tecnología","icon":"◉","desc":"Herramientas visuales, análisis de movimiento y creación de recursos 3D.","dev":["Escenas y ejercicios 3D","Puntos articulares, ángulos y animaciones","Integración con evaluación de movimiento"],"support":["Recursos gráficos y computación","Pruebas con dispositivos disponibles","Colaboración en animación y biomecánica"]},{"id":"marketing","name":"SJM Marketing 360","group":"Servicios","icon":"✳","desc":"Identidad SJM, comunicación comercial y contenidos de proyectos.","dev":["Mensajes y materiales por proyecto","Portafolio comercial y difusión","Procesos de contenido verificables"],"support":["Alianzas de difusión y ventas","Canales orgánicos sin inversión obligatoria","Colaboración de marca"]},{"id":"academy","name":"SJM English Academy","group":"Expansión","icon":"◌","desc":"Idea educativa del ecosistema SJM, pendiente de definir y validar en detalle.","dev":["Definir alcance educativo y contenidos","Diseñar experiencia didáctica","Validar necesidad y prototipo"],"support":["Recursos gratuitos","Alianzas educativas","Pruebas de interés"]}];
+const projectCatalog=[{"id":"control","name":"KAIRÓS 360 · SJM CONTROL 360","group":"Central","icon":"◈","desc":"Cerebro IA, orquestación, ejecutor web, supervisión y verificación de autonomía.","dev":["Cerebro híbrido y Mentor con consultas protegidas","Control Android y avisos en Motorola","Orquestación, auditoría, permisos y pruebas integrales"],"support":["Infraestructura gratuita y continuidad","Alianzas técnicas para ejecución y voz","Validación de funcionamiento en el dispositivo real"]},{"id":"performance","name":"SJM Human Performance 360","group":"Principal","icon":"◉","desc":"Plataforma integral de entrenamiento, evaluación del movimiento y seguimiento.","dev":["Motion 360: cámara, IA y sensores IMU","Performance 360, Nutrition Pro y biblioteca de ejercicios","Visualización 3D, pruebas de campo y prototipos"],"support":["Financiación no reembolsable y concursos","Donación definitiva de computador y componentes","Alianzas deportivas, tecnológicas y pilotos"]},{"id":"translator","name":"SJM Universal Translator","group":"Principal","icon":"◎","desc":"Traducción bidireccional con accesibilidad y dispositivos portátiles.","dev":["Aplicación móvil con voz y subtítulos","Auricular privado y módulo de solapa","Pruebas de latencia y accesibilidad"],"support":["Convocatorias de innovación y accesibilidad","Socios de hardware y pruebas piloto","Alianzas internacionales"]},{"id":"prayer","name":"Mi Casa de Oración","group":"Principal","icon":"✦","desc":"Templo virtual con espacios de oración, adoración, predicación y lectura.","dev":["Templo virtual 3D luminoso","Servidor virtual y espacios de encuentro","Oración, adoración, predicación y Biblia"],"support":["Alianzas ministeriales","Apoyo para infraestructura y producción","Difusión y colaboración internacional"]},{"id":"empresa360","name":"SJM Empresa 360 IA · COMTROL 360","group":"Principal","icon":"▦","desc":"Cuarto proyecto principal SJM: plataforma de soluciones empresariales, creación de empresas, herramientas IA y automatización. Usa el motor CONTROL 360, sin duplicarlo.","dev":["Guía Crear mi empresa: idea, mercado, finanzas y formalización","Servicios empresariales, creación tecnológica e infraestructura","IA intercambiable, orquestación verificable y espacios multiempresa protegidos"],"support":["Pilotos comerciales voluntarios y comprobantes","Financiación no reembolsable y alianzas B2B","Recursos de IA y nube accesibles sin pagos obligatorios"]},{"id":"bible","name":"Mi Biblia Viva","group":"Ministerial","icon":"✧","desc":"Lectura y escucha bíblica móvil en español, con experiencia accesible.","dev":["Experiencia de lectura del Nuevo Testamento","Narración natural en español y continuidad diaria","Versión Android funcional y verificada"],"support":["Apoyo para voces y producción de audio","Pruebas de usabilidad","Distribución gratuita y alianzas"]},{"id":"mentor","name":"SJM Mentor IA · Secretario 360","group":"Central","icon":"◇","desc":"Asistente conversacional con memoria, seguimiento, voz y avisos útiles.","dev":["Conversación en español y recuperación de contexto","Memoria y comandos con permisos","Voz natural, reportes y avisos"],"support":["Motor de voz y recursos sin pagos obligatorios","Pruebas reales de integración","Integración técnica con CONTROL 360"]},{"id":"complex","name":"SJM Human Performance Complex","group":"Expansión","icon":"▦","desc":"Visión futura de un centro físico de rendimiento, tecnología y bienestar.","dev":["Diseño de espacios y servicios deportivos","Laboratorio de evaluación y biomecánica","Modelo por fases para una sede física"],"support":["Aliados de infraestructura y equipamiento","Patrocinio y financiación","Convenios con centros deportivos"]},{"id":"services","name":"SJM Servicios Autónomos Globales","group":"Servicios","icon":"◫","desc":"Servicios digitales con apoyo de IA y operaciones auditables.","dev":["Catálogo de servicios y entrega digital","Automatización supervisada de operaciones","Registro de evidencias y calidad"],"support":["Clientes y alianzas B2B","Herramientas gratuitas y soporte técnico","Pruebas comerciales sin inversión inicial"]},{"id":"work","name":"SJM Work Autónomo","group":"Servicios","icon":"⌘","desc":"Flujos de trabajo asistidos por agentes, tareas y expedientes sin duplicados.","dev":["Bandejas, reintentos y trazabilidad","Aislamiento de casos y control de permisos","Pruebas técnicas y despliegue progresivo"],"support":["Proveedores y recursos para pruebas","Alianzas de implementación","Casos reales remunerados"]},{"id":"income","name":"SJM Ingresos Digitales Automatizados","group":"Servicios","icon":"◈","desc":"Oportunidades de ingresos digitales legítimos y seguimiento comercial.","dev":["Clasificación de oportunidades viables","Preparación de propuestas y entregables","Seguimiento sin confundir búsqueda con contratación"],"support":["Clientes remotos y ventas B2B","Colaboraciones verificadas","Modelos sin pagos de inscripción"]},{"id":"lab7","name":"SJM Laboratorio 7 · Agencia Mundial","group":"Servicios","icon":"◴","desc":"Investigación de negocios digitales, mercados y experimentos comerciales.","dev":["Análisis de demanda, competencia y precios","Pruebas de prototipos y propuestas","Evaluación de riesgos y viabilidad"],"support":["Compradores y socios de ejecución","Validación comercial internacional","Infraestructura de bajo costo"]},{"id":"motion","name":"SJM Motion AI Studio","group":"Tecnología","icon":"◉","desc":"Herramientas visuales, análisis de movimiento y creación de recursos 3D.","dev":["Escenas y ejercicios 3D","Puntos articulares, ángulos y animaciones","Integración con evaluación de movimiento"],"support":["Recursos gráficos y computación","Pruebas con dispositivos disponibles","Colaboración en animación y biomecánica"]},{"id":"marketing","name":"SJM Marketing 360","group":"Servicios","icon":"✳","desc":"Identidad SJM, comunicación comercial y contenidos de proyectos.","dev":["Mensajes y materiales por proyecto","Portafolio comercial y difusión","Procesos de contenido verificables"],"support":["Alianzas de difusión y ventas","Canales orgánicos sin inversión obligatoria","Colaboración de marca"]},{"id":"academy","name":"SJM English Academy","group":"Expansión","icon":"◌","desc":"Idea educativa del ecosistema SJM, pendiente de definir y validar en detalle.","dev":["Definir alcance educativo y contenidos","Diseñar experiencia didáctica","Validar necesidad y prototipo"],"support":["Recursos gratuitos","Alianzas educativas","Pruebas de interés"]}];
 let projectFilter="Todos",projectQuery="",folderFilter=null,selectedProjectId=null;
 const templates=[
  {id:"balance",name:"Balance de avances",description:"Lo logrado, lo pendiente, los bloqueos y la próxima acción.",prompt:"COMTROL 360, prepara un balance de {proyecto}. Divide en hechos comprobados, tareas en proceso, bloqueos y próximos pasos. No inventes resultados ni ejecuciones."},
@@ -1334,10 +1355,76 @@ function csvStarter(id){
  downloadText(entry.file,"\uFEFF"+entry.header);
  info("Plantilla CSV vacía generada en este dispositivo. No contiene datos de ninguna empresa.");
 }
+
+/* Crear mi empresa · guía de 8 pasos v2.3 · no ejecuta trámites */
+const startupSteps=[
+ ["Idea de negocio","Definir el problema y la propuesta de valor.",["¿Qué empresa quieres crear?","¿Qué problema resolverás y para quién?"],"Propuesta de valor y supuestos"],
+ ["Estudio de mercado","Investigar clientes, demanda, competencia y precios con fuentes.",["¿Quién compraría tu producto o servicio?","¿Qué competidores o alternativas conoces?"],"Plan para validar mercado"],
+ ["Modelo de negocio","Definir productos, clientes, canales, operación e ingresos.",["¿Qué venderás y cómo lo entregarás?","¿Cómo conseguirás y atenderás clientes?"],"Modelo comercial inicial"],
+ ["Plan financiero","Distinguir costos verificados de estimaciones.",["¿Qué recursos tienes disponibles?","¿Qué costos o ingresos conoces con evidencia?"],"Presupuesto y flujo de caja por validar"],
+ ["Formalización legal","Comprobar pasos oficiales según lugar y sector.",["¿En qué país y ciudad operarás?","¿Qué licencias, registros o requisitos conoces?"],"Lista de trámites a verificar con fuentes oficiales"],
+ ["Marca y tecnología","Diseñar presencia digital, herramientas y organización.",["¿Qué identidad quieres para el negocio?","¿Qué herramientas, web, app o sistemas necesitas?"],"Plan digital y tecnológico"],
+ ["Lanzamiento","Definir primer servicio comprobable y clientes piloto.",["¿Qué ofrecerás primero?","¿Cómo realizarás una prueba comercial?"],"Plan de lanzamiento"],
+ ["Operación y crecimiento","Medir resultados, riesgos y tareas automatizables.",["¿Qué indicadores de éxito usarás?","¿Qué procesos quisieras automatizar después?"],"Panel y plan de seguimiento"]
+];
+const startupDraft={index:0,answers:startupSteps.map(()=>["",""])};
+function startupExport(){
+ const lines=["# Borrador para crear una empresa · SJM Empresa 360 IA","","Documento preparatorio. No constituye ni registra legalmente una empresa.",""];
+ startupSteps.forEach((s,i)=>{
+  lines.push("## "+(i+1)+". "+s[0],s[1]);
+  s[2].forEach((question,j)=>lines.push("- "+question+"\n  "+(startupDraft.answers[i][j]||"[Por definir]")));
+  lines.push("Resultado esperado: "+s[3],"");
+ });
+ lines.push("PENDIENTE: fuentes oficiales, jurisdicción, validación financiera, permisos y aprobación del titular.");
+ return lines.join("\n");
+}
+function renderStartupWizard(root,grid){
+ const wrap=document.createElement("section");wrap.id="startupWizard";wrap.className="startup-wizard";
+ const heading=document.createElement("h2");heading.textContent="Crear mi empresa";
+ const summary=document.createElement("p");summary.textContent="Guía práctica desde cero: idea, mercado, modelo, finanzas, legalidad, tecnología, lanzamiento y crecimiento. No pide datos sensibles.";
+ const progress=document.createElement("div");progress.className="startup-progress";progress.setAttribute("role","progressbar");
+ progress.setAttribute("aria-valuemin","1");progress.setAttribute("aria-valuemax","8");
+ const form=document.createElement("div");form.className="startup-form";
+ const actions=document.createElement("div");actions.className="startup-actions";
+ const previous=document.createElement("button");previous.type="button";previous.className="business-secondary";previous.textContent="← Anterior";
+ const next=document.createElement("button");next.type="button";next.className="business-secondary";next.textContent="Siguiente →";
+ const download=document.createElement("button");download.type="button";download.className="business-secondary";download.textContent="Descargar borrador";
+ const prepare=document.createElement("button");prepare.type="button";prepare.className="business-primary";prepare.textContent="Preparar plan en chat";
+ actions.append(previous,next,download,prepare);
+ const warning=document.createElement("p");warning.className="startup-warning";warning.textContent="Los datos de esta guía quedan en la memoria de la página mientras permanezca abierta, salvo que descargues el archivo. No introduce información en bases de datos ni formaliza empresas. Verifica normas y obligaciones en fuentes oficiales.";
+ wrap.append(heading,summary,progress,form,actions,warning);grid.before(wrap);
+ const render=()=>{
+  const i=startupDraft.index,s=startupSteps[i];form.replaceChildren();progress.replaceChildren();
+  progress.setAttribute("aria-valuenow",String(i+1));progress.setAttribute("aria-valuetext","Etapa "+(i+1)+" de 8");
+  const label=document.createElement("strong");label.textContent="Etapa "+(i+1)+" de 8";
+  const track=document.createElement("div");track.className="startup-track";const fill=document.createElement("div");fill.className="startup-fill";fill.style.width=((i+1)*12.5)+"%";track.append(fill);progress.append(label,track);
+  const name=document.createElement("h3");name.textContent=s[0];
+  const desc=document.createElement("p");desc.textContent=s[1];form.append(name,desc);
+  s[2].forEach((q,j)=>{
+   const label=document.createElement("label");label.textContent=q;
+   const input=document.createElement("textarea");input.rows=2;input.maxLength=480;input.value=startupDraft.answers[i][j];input.placeholder="Puedes dejarlo pendiente";
+   input.addEventListener("input",()=>{startupDraft.answers[i][j]=input.value.slice(0,480)});
+   label.append(input);form.append(label);
+  });
+  const goal=document.createElement("p");goal.className="startup-goal";goal.textContent="Entregable esperado: "+s[3];form.append(goal);
+  previous.disabled=i===0;next.disabled=i===7;
+ };
+ previous.onclick=()=>{startupDraft.index=Math.max(0,startupDraft.index-1);render()};
+ next.onclick=()=>{startupDraft.index=Math.min(7,startupDraft.index+1);render()};
+ download.onclick=()=>{downloadText("SJM_Crear_Mi_Empresa_Borrador.md",startupExport());info("Borrador descargado. Ningún trámite fue enviado.")};
+ prepare.onclick=()=>{
+  const details=startupSteps.map((s,i)=>startupDraft.answers[i].filter(Boolean).length?s[0]+": "+startupDraft.answers[i].filter(Boolean).join(" / "):"").filter(Boolean).join("; ");
+  const prompt="COMTROL 360, ayúdame a crear una empresa desde cero. Etapa "+(startupDraft.index+1)+": "+startupSteps[startupDraft.index][0]+". Información provisional: "+(details||"Sin respuestas todavía")+". Haz un diagnóstico, pide datos faltantes, distingue supuestos de hechos, verifica el mercado y la legislación local, prepara plan por fases y presupuesto solo con cifras demostrables. No ejecutes registros legales, pagos ni compromisos sin autorización.";
+  askAbout(prompt.slice(0,1900));
+ };
+ render();
+}
+
 function renderEnterpriseCenter(root,grid){
  root.classList.add("enterprise-center");grid.classList.add("business-module-grid");
  const hero=document.createElement("div");hero.className="enterprise-hero";hero.innerHTML='<span class="enterprise-eyebrow">CENTRO DE SOLUCIONES EMPRESARIALES 360°</span><h2>Una solicitud. Distintas soluciones.</h2><p>Elige un área o describe el problema de tu empresa. COMTROL prepara el trabajo; los servicios reales se activan únicamente cuando están conectados, autorizados y probados.</p>';
  root.insertBefore(hero,grid);
+ renderStartupWizard(root,grid);
  const begin=document.createElement("button");begin.type="button";begin.className="business-primary business-hero-button";begin.textContent="Comenzar diagnóstico";begin.onclick=()=>document.getElementById("businessIntake")?.scrollIntoView({behavior:"smooth",block:"center"});hero.append(begin);
  for(const m of enterpriseModules){
   const card=document.createElement("article");card.className="business-service";
