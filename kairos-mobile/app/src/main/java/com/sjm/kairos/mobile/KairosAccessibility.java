@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KairosAccessibility extends AccessibilityService {
     private static final String SERVICE_CHANNEL="kairos_service_1";
     private static final String ALERT_CHANNEL="kairos_alert_1";
+    private static final String SILENT_ALERT_CHANNEL="kairos_voice_silent_1";
     private static volatile WeakReference<KairosAccessibility> connectedService =
         new WeakReference<>(null);
     private static final String LOCAL_TEST_PACKAGE = "com.sjm.kairos.mobile";
@@ -317,6 +318,9 @@ public class KairosAccessibility extends AccessibilityService {
             "Estado de KAIRÓS",NotificationManager.IMPORTANCE_LOW));
         manager.createNotificationChannel(new NotificationChannel(ALERT_CHANNEL,
             "Avisos de KAIRÓS",NotificationManager.IMPORTANCE_HIGH));
+        // Mientras hay una llamada o conversación de voz, entregar avisos sin tono.
+        manager.createNotificationChannel(new NotificationChannel(SILENT_ALERT_CHANNEL,
+            "Avisos silenciosos durante conversaciones",NotificationManager.IMPORTANCE_LOW));
         Notification notification=new Notification.Builder(this,SERVICE_CHANNEL)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("KAIRÓS Móvil activo")
@@ -383,12 +387,11 @@ public class KairosAccessibility extends AccessibilityService {
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
                 lastRegistered=now;
             }
-            // El sondeo puede reservar una orden en el servidor. Nunca reservarla
-            // durante una llamada/clase por voz: podria expirar antes del ACK.
-            if(hasActiveCommunication()) {
-                CommandReceiptStore.markBridge(this,"VOICE_BUSY_BEFORE_POLL");
-                return;
-            }
+            // No detener TODO el enlace durante sesiones de voz: las notificaciones
+            // pueden recibirse sin interrumpir la conversación. Las acciones que
+            // cambian de pantalla siguen prohibidas mientras esté activa.
+            if(hasActiveCommunication())
+                CommandReceiptStore.markBridge(this,"VOICE_POLL_SAFE_ONLY");
             stage="POLL";
             JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key);
             if(!pending.optBoolean("ok",false)) {
@@ -411,11 +414,11 @@ public class KairosAccessibility extends AccessibilityService {
             }
             CommandReceiptStore.markBridge(this,
                 "POLL_OFFERED_"+command.optString("type","unknown")+"_"+commandId.substring(0,8));
-            // Antes del ACK, posponer CUALQUIER acción externa durante
-            // comunicación activa; Android la procesará en un próximo sondeo.
-            if(hasActiveCommunication()){
-                CommandReceiptStore.markBridge(this,"VOICE_BUSY_AFTER_OFFER_"+commandId.substring(0,8));
-                CommandReceiptStore.mark(this,"Orden pospuesta hasta terminar la comunicación");
+            // Durante llamadas: nunca abrir apps, enlaces, ni tocar pantallas.
+            // Sólo se permiten notificaciones en el canal silencioso.
+            if(hasActiveCommunication() && !"notify".equals(command.optString("type",""))){
+                CommandReceiptStore.markBridge(this,"VOICE_BUSY_DEFERRED_"+commandId.substring(0,8));
+                CommandReceiptStore.mark(this,"Acción de pantalla pospuesta hasta terminar voz");
                 return;
             }
             stage="ACK_RECEIVED_"+commandId.substring(0,8);
@@ -550,14 +553,14 @@ public class KairosAccessibility extends AccessibilityService {
             NotificationManager notificationManager=getSystemService(NotificationManager.class);
             if (notificationManager == null || !notificationManager.areNotificationsEnabled())
                 throw new IllegalStateException("Notificaciones deshabilitadas en Android");
-            android.media.AudioManager audioManager=getSystemService(android.media.AudioManager.class);
-            if (audioManager != null &&
-                (audioManager.getMode() == android.media.AudioManager.MODE_IN_CALL ||
-                 audioManager.getMode() == android.media.AudioManager.MODE_IN_COMMUNICATION))
-                throw new IllegalStateException("Aviso suspendido durante comunicación activa");
+            // Las alertas durante voz son visibles pero no hacen sonido ni
+            // interrumpen al usuario. Las órdenes de navegación siguen diferidas.
+            boolean silentDuringVoice=hasActiveCommunication();
+            if(silentDuringVoice)
+                CommandReceiptStore.markBridge(this,"VOICE_NOTIFY_SILENT");
             String message=payload.optString("message","");
             if(message.length()<3 || message.length()>280)throw new SecurityException("Texto no permitido");
-            Notification n=new Notification.Builder(this,ALERT_CHANNEL)
+            Notification n=new Notification.Builder(this,silentDuringVoice?SILENT_ALERT_CHANNEL:ALERT_CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle("KAIRÓS 360 · Aviso")
                 .setContentText(message)
