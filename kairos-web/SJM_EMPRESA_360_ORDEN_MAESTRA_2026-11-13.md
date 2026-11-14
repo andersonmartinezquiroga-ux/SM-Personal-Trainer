@@ -80,3 +80,34 @@ Cada tarjeta describe la necesidad y permite preparar un borrador de solicitud e
 El front-end actual conserva acceso principal a una cuenta específica del ecosistema SJM; **no es aún un SaaS multiempresa**. El código de vista previa es solo una demostración. No introducir datos bancarios, personales, laborales, contables ni clientes reales en la vista previa. Todas las operaciones sensibles deben ser revisables y autorizadas. Ningún botón que únicamente redacta un prompt puede presentarse como la ejecución de ese servicio.
 
 No declarar autonomía total sin pruebas reales en Motorola y comprobantes.
+
+
+## Ampliación — infraestructura, panel empresarial y experiencia comercial (13 noviembre 2026)
+
+La aplicación única sigue alojada en `kairos-web/index.html` y publicada en https://sjm-kairos-cerebro-web.vercel.app. Se añadieron al front-end existente:
+
+- **Infraestructura tecnológica:** menú para arquitectura, servidores, nube, alojamiento, redes, integraciones, seguridad, copias, despliegues y costos, con diagnóstico técnico guiado y plantilla CSV vacía. Es un **borrador**, nunca ejecución en servidores.
+- **Contratación:** modalidades servicio puntual, paquete empresarial, servicio integral y suscripción a evaluar; el formulario prepara un diagnóstico y propuesta inicial, sin inventar presupuesto ni registrar aprobaciones.
+- **Ciclo comercial:** elegir servicio → diagnóstico → propuesta y presupuesto → aprobación → ejecución y entrega → seguimiento. Las primeras fases solo generan solicitudes y el resto está pendiente de integración.
+- **Panel por empresa:** entradas de panel, usuarios y roles, historial, entregables y archivos figuran como pendientes. El panel comercial multiempresa aún no existe como producto seguro.
+- **Arquitectura de referencia:** motor IA intercambiable, conectores de herramientas, orquestación verificable, aislamiento por empresa, controles de seguridad y continuidad, y límites de costos. Es diseño de evolución, no funciones integradas y certificadas.
+- **Integridad:** se conservaron chat, voz beta, portafolio SJM, plantillas, acceso existente, orquestación técnica y estilo oscuro con fuentes legibles.
+
+### Estado explícito de esta ampliación
+
+| Estado | Función |
+|---|---|
+| ✅ Publicado y comprobado por HTML/JS | Menú infraestructura, formulario de diagnóstico técnico, rutas comerciales, fichas de panel por empresa y arquitectura descriptiva. Producción responde HTTP 200 y el JavaScript se analizó sin errores sintácticos. |
+| 🔵 En desarrollo | Primera entrega empresarial comprobable conectada a datos reales y a un proceso autorizado. Test de recorrido completo en Motorola aún pendiente. |
+| 🟡 Pendiente de integración | Motor multimodelo, APIs empresariales, precios, contratos, facturación y motor real para automatizaciones en la UI. |
+| 🔴 Restringido hasta aislamiento y autorización | Cuentas externas, empleados y clientes, nóminas, datos sensibles y cambios reales de infraestructura; requieren tenants, RLS, RBAC, auditoría, respaldos y pruebas de aislamiento. |
+
+### Orden de implementación de backend comercial
+
+1. Modelo de empresa/organización y usuario con permisos por rol, `organization_id` en tablas, políticas RLS, archivos separados y pruebas automáticas contra accesos cruzados.
+2. Solicitud empresarial persistente: servicio, modalidad, alcance, consentimiento, estado y registro de cambios.
+3. Diagnóstico técnico/comercial con información no sensible, presupuesto trazable y aprobación verificable antes de ejecutar.
+4. Ejecución conectada al orquestador original CONTROL 360 (sin duplicar): id de tarea, permisos, reintentos, evidencias, estado real, factura solo si fue autorizada.
+5. Primer piloto con datos ficticios y luego empresa voluntaria bajo acuerdos y autorización; empezar por inventarios o marketing, antes de nómina y contabilidad.
+
+Nunca presentar la interfaz como SaaS ya protegido ni como trabajo empresarial ejecutado.
