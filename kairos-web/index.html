@@ -1104,6 +1104,41 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .inventory-low{color:#ffcc99!important}
 @media(max-width:800px){.inventory-pilot{padding:17px 13px}.inventory-pilot>summary{font-size:21px}.inventory-forms{grid-template-columns:1fr}.inventory-toolbar button{flex:1 1 43%}.inventory-line{gap:8px}.inventory-line-main strong{font-size:17px}.inventory-quantity strong{font-size:17px}.inventory-formbox{padding:15px 12px}}
 
+
+/* CRM persistente de oportunidades v2.7 · mismo lenguaje visual de inventarios */
+.crm-pilot{border:1px solid #6486a2;border-radius:18px;padding:20px 21px;margin:15px 0 25px;background:#1d2d3d;color:#edf8ff}
+.crm-pilot>summary{font-size:23px;font-weight:790;line-height:1.42;color:#f2faff;cursor:pointer;padding:5px 0}
+.crm-pilot>summary:focus-visible{outline:3px solid #b3dffc;outline-offset:3px}
+.crm-intro{font-size:17px;color:#d2e2ef;line-height:1.62;margin:14px 0}
+.crm-create{background:#253849;border:1px solid #526e85;border-radius:14px;padding:18px;margin:19px 0}
+.crm-create h3{font-size:21px;color:#f2f9ff;margin:0 0 15px}
+.crm-form{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.crm-form label{display:flex;flex-direction:column;gap:8px;font-size:17px;color:#e1f0fb;font-weight:640;line-height:1.48}
+.crm-form label:nth-child(3),.crm-form>button{grid-column:1/-1}
+.crm-form input,.crm-stage-action select{min-height:46px;font:inherit;font-size:17px;color:#fff;background:#304a5d;border:1px solid #769bb6;border-radius:10px;padding:10px 12px;max-width:100%}
+.crm-form input::placeholder{color:#bfd2df}
+.crm-form>button{min-height:47px;font-size:17px}
+.crm-list,.crm-history{display:flex;flex-direction:column;gap:9px}
+.crm-list>p,.crm-history>p{font-size:17px;color:#c7ddec}
+.crm-opportunity{padding:16px;border:1px solid #536f85;border-radius:14px;background:#26394b}
+.crm-opportunity-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px}
+.crm-opportunity-info{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.crm-opportunity-info strong{font-size:18px;line-height:1.4;color:#f7fbff;overflow-wrap:anywhere}
+.crm-opportunity-info small{font-size:16px;line-height:1.4;color:#c3d9e9;overflow-wrap:anywhere}
+.crm-stage{font-size:15px;font-weight:680;border:1px solid #81a6c0;border-radius:99px;padding:5px 10px;background:#39566d;color:#fff}
+.crm-stage-action{display:flex;align-items:flex-end;gap:9px;margin-top:15px;flex-wrap:wrap}
+.crm-stage-action label{font-size:16px;font-weight:670;color:#d5e7f5;display:flex;flex-direction:column;gap:8px;flex:1;min-width:150px}
+.crm-stage-action button{font-size:16px;min-height:45px;padding:8px 13px}
+.crm-stage-action button:disabled{opacity:.5}
+.crm-event{border:1px solid #4b6479;background:#25384a;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:5px}
+.crm-event strong{font-size:17px;line-height:1.4;color:#f4faff}
+.crm-event small{font-size:14px;line-height:1.5;color:#bed6e7;overflow-wrap:anywhere}
+@media(max-width:800px){
+ .crm-pilot{padding:17px 13px}.crm-pilot>summary{font-size:21px}
+ .crm-create{padding:15px 12px}.crm-form{grid-template-columns:1fr}
+ .crm-stage-action button{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -1705,12 +1740,179 @@ function renderInventoryPilot(root,grid){
  panel.addEventListener("toggle",()=>{if(panel.open&&!items.length)void load()});
 }
 
+
+/* CRM persistente de oportunidades v2.7 · piloto con alias sin datos personales */
+const crmStages=[
+ ["nuevo","Nuevo"],["contactado","Contactado"],["propuesta","Propuesta"],
+ ["negociacion","Negociación"],["ganado","Ganado"],["perdido","Perdido"]
+];
+function renderCrmPilot(root,grid){
+ const panel=document.createElement("details");panel.id="crmPilot";panel.className="crm-pilot";
+ const head=document.createElement("summary");head.textContent="Ventas y CRM · Piloto con datos protegidos";panel.append(head);
+ const intro=document.createElement("p");intro.textContent="Organiza oportunidades ficticias, registra el avance comercial y descarga un historial verificable. No gestiona contactos reales, envía mensajes ni representa facturación. Solo disponible con sesión autorizada.";
+ intro.className="crm-intro";panel.append(intro);
+ const status=document.createElement("div");status.className="inventory-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+ status.textContent="Abre este módulo para consultar la base de datos protegida.";panel.append(status);
+ const toolbar=document.createElement("div");toolbar.className="inventory-toolbar";
+ const refresh=document.createElement("button");refresh.type="button";refresh.className="business-secondary";refresh.textContent="Actualizar";
+ const exportCsv=document.createElement("button");exportCsv.type="button";exportCsv.className="business-secondary";exportCsv.textContent="Exportar oportunidades CSV";
+ const exportEvents=document.createElement("button");exportEvents.type="button";exportEvents.className="business-secondary";exportEvents.textContent="Exportar historial CSV";
+ toolbar.append(refresh,exportCsv,exportEvents);panel.append(toolbar);
+ const stats=document.createElement("div");stats.className="inventory-stats";panel.append(stats);
+ const createSection=document.createElement("section");createSection.className="crm-create";
+ const title=document.createElement("h3");title.textContent="Añadir oportunidad de prueba";createSection.append(title);
+ const form=document.createElement("form");form.className="crm-form";
+ const aliasLabel=document.createElement("label");aliasLabel.textContent="Alias de la empresa (sin datos personales)";
+ const alias=document.createElement("input");alias.type="text";alias.required=true;alias.maxLength=90;alias.autocomplete="off";alias.placeholder="Empresa ficticia de zapatos";aliasLabel.append(alias);
+ const opLabel=document.createElement("label");opLabel.textContent="Nombre de la oportunidad";
+ const opportunity=document.createElement("input");opportunity.type="text";opportunity.required=true;opportunity.maxLength=140;opportunity.autocomplete="off";opportunity.placeholder="Pedido piloto de calzado";opLabel.append(opportunity);
+ const moneyLabel=document.createElement("label");moneyLabel.textContent="Valor comercial estimado (COP, opcional)";
+ const amount=document.createElement("input");amount.type="number";amount.step="0.01";amount.min="0";amount.max="1000000000000";amount.value="0";moneyLabel.append(amount);
+ const submit=document.createElement("button");submit.type="submit";submit.className="business-primary";submit.textContent="Guardar oportunidad";
+ form.append(aliasLabel,opLabel,moneyLabel,submit);createSection.append(form);panel.append(createSection);
+ const listTitle=document.createElement("h3");listTitle.className="inventory-subtitle";listTitle.textContent="Oportunidades y seguimiento";
+ const list=document.createElement("div");list.className="crm-list";panel.append(listTitle,list);
+ const eventTitle=document.createElement("h3");eventTitle.className="inventory-subtitle";eventTitle.textContent="Historial comprobable";
+ const history=document.createElement("div");history.className="crm-history";panel.append(eventTitle,history);
+ const safety=document.createElement("p");safety.className="inventory-disclaimer";
+ safety.textContent="Piloto individual: no introduzcas nombres completos, teléfonos, correos, información personal ni clientes reales. Valores son estimaciones, no ventas realizadas; no se genera factura, presupuesto aprobado ni contratación.";
+ panel.append(safety);grid.before(panel);
+ const fmtMoney=v=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(v||0));
+ const stamp=v=>new Date(v).toLocaleString("es-CO",{timeZone:"America/Bogota"});
+ const append=(root,tag,text,className)=>{
+  const el=document.createElement(tag);el.textContent=String(text);if(className)el.className=className;root.append(el);return el;
+ };
+ const states=new Map();
+ let records=[],events=[],busy=false,partial=false;
+ const enabled=()=>!preview&&authorized&&!!session?.access_token&&!!sb;
+ const setStatus=(message,error=false)=>{status.textContent=message;status.classList.toggle("inventory-error",error)};
+ const csvCell=v=>{
+  let x=String(v??"");
+  if(/^\s*[=+\-@]/.test(x))x="'"+x;
+  return '"'+x.replaceAll('"','""')+'"';
+ };
+ const csv=rows=>"\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n")+"\r\n";
+ const stageName=s=>crmStages.find(([id])=>id===s)?.[1]||"No especificado";
+ const changeButtons=[];
+ function render(){
+  stats.replaceChildren();list.replaceChildren();history.replaceChildren();changeButtons.length=0;
+  const estimate=records.reduce((sum,x)=>sum+Number(x.estimated_value||0),0);
+  for(const [name,value] of [
+   ["Oportunidades",records.length],
+   ["En seguimiento",records.filter(x=>!["ganado","perdido"].includes(x.stage)).length],
+   ["Valor potencial (no vendido)",fmtMoney(estimate)]
+  ]){
+   const box=document.createElement("div");append(box,"strong",value);append(box,"span",name);stats.append(box);
+  }
+  if(!records.length)append(list,"p","No hay oportunidades. Registra una empresa ficticia para comenzar.");
+  for(const record of records){
+   const card=document.createElement("article");card.className="crm-opportunity";
+   const heading=document.createElement("div");heading.className="crm-opportunity-head";
+   const info=document.createElement("div");info.className="crm-opportunity-info";
+   append(info,"strong",record.opportunity);append(info,"small",record.company_alias+" · "+fmtMoney(record.estimated_value)+" estimados");
+   const current=append(heading,"span",stageName(record.stage),"crm-stage");
+   heading.prepend(info);card.append(heading);
+   const actions=document.createElement("div");actions.className="crm-stage-action";
+   const label=document.createElement("label");label.textContent="Cambiar etapa";
+   const select=document.createElement("select");select.setAttribute("aria-label","Etapa de "+record.opportunity);
+   for(const [id,name] of crmStages){const opt=document.createElement("option");opt.value=id;opt.textContent=name;select.append(opt)}
+   select.value=record.stage;label.append(select);
+   const change=document.createElement("button");change.type="button";change.className="business-secondary";change.textContent="Guardar etapa";
+   change.disabled=true;select.onchange=()=>{change.disabled=select.value===record.stage||busy};
+   change.onclick=async()=>{
+    if(busy||!enabled()||select.value===record.stage)return;
+    const value=select.value;
+    const signature=record.id+"|"+value;
+    if(states.get(record.id)?.signature!==signature)states.set(record.id,{signature,key:crypto.randomUUID()});
+    const request=states.get(record.id);
+    busy=true;change.disabled=true;submit.disabled=true;refresh.disabled=true;
+    setStatus("Registrando cambio de etapa y comprobante…");
+    try{
+     const response=await sb.rpc("sjm_crm_advance_stage_v1",{
+      p_opportunity_id:record.id,p_stage:value,p_note:"Cambio confirmado desde COMTROL 360",p_request_key:request.key
+     });
+     if(response.error)throw response.error;
+     if(response.data?.ok!==true)throw Error("Sin confirmación del servidor");
+     states.delete(record.id);busy=false;
+     await load();
+     setStatus(response.data.duplicatePrevented===true?"Solicitud repetida reconocida; no se duplicó el cambio.":"Etapa registrada con comprobante en Supabase.");
+    }catch(error){
+     setStatus("Cambio no confirmado: "+String(error?.message||error).slice(0,175)+". Intenta nuevamente con los mismos datos.",true);
+    }finally{busy=false;submit.disabled=!enabled();refresh.disabled=false;change.disabled=select.value===record.stage}
+   };
+   actions.append(label,change);card.append(actions);list.append(card);changeButtons.push(change);
+  }
+  if(!events.length)append(history,"p","Todavía no hay cambios de etapa.");
+  const byId=new Map(records.map(x=>[x.id,x.opportunity]));
+  for(const ev of events.slice(0,30)){
+   const row=document.createElement("div");row.className="crm-event";
+   append(row,"strong",(byId.get(ev.opportunity_id)||"Oportunidad")+" · "+stageName(ev.from_stage)+" → "+stageName(ev.to_stage));
+   append(row,"small",stamp(ev.created_at)+" · Comprobante: "+ev.id);
+   history.append(row);
+  }
+ }
+ async function load(){
+  if(busy)return;
+  if(!enabled()){setStatus("La vista previa no puede consultar ni modificar datos. Inicia sesión autorizada.");return}
+  busy=true;refresh.disabled=true;submit.disabled=true;changeButtons.forEach(x=>x.disabled=true);
+  setStatus("Consultando oportunidades e historial en Supabase…");
+  try{
+   const [a,b]=await Promise.all([
+    sb.from("sjm_business_crm_opportunities_v1").select("id,company_alias,opportunity,estimated_value,stage,created_at,updated_at").order("created_at",{ascending:false}).limit(1000),
+    sb.from("sjm_business_crm_stage_events_v1").select("id,opportunity_id,from_stage,to_stage,note,created_at").order("created_at",{ascending:false}).limit(1000)
+   ]);
+   if(a.error)throw a.error;if(b.error)throw b.error;
+   records=a.data||[];events=b.data||[];
+   partial=records.length>=1000||events.length>=1000;render();
+   if(partial)setStatus("Límite de 1.000 registros alcanzado: datos potencialmente incompletos. Exportación bloqueada hasta paginar.",true);
+   else setStatus("Consulta protegida completa para el tamaño actual: "+records.length+" oportunidades · "+events.length+" cambios. "+stamp(new Date().toISOString()));
+  }catch(error){setStatus("Error consultando CRM: "+String(error?.message||error).slice(0,170),true)}
+  finally{busy=false;refresh.disabled=false;submit.disabled=!enabled()}
+ }
+ form.onsubmit=async e=>{
+  e.preventDefault();if(busy)return;
+  if(!enabled()){setStatus("Necesitas entrar con tu sesión autorizada.",true);return}
+  if(records.length>=1000){setStatus("Límite de pantalla alcanzado. Se necesita paginación.",true);return}
+  const aliasText=alias.value.trim(),nameText=opportunity.value.trim(),value=Number(amount.value||0);
+  if(!aliasText||!nameText||!Number.isFinite(value)||value<0||value>1000000000000||Math.abs(value*100-Math.round(value*100))>.0000001){
+   setStatus("Revisa alias, oportunidad y valor estimado (hasta dos decimales).",true);return;
+  }
+  busy=true;submit.disabled=true;refresh.disabled=true;setStatus("Guardando oportunidad con permisos del titular…");
+  try{
+   const response=await sb.from("sjm_business_crm_opportunities_v1").insert({
+    company_alias:aliasText,opportunity:nameText,estimated_value:value
+   }).select("id").single();
+   if(response.error)throw response.error;
+   form.reset();amount.value="0";busy=false;await load();
+   setStatus("Oportunidad registrada. Puedes cambiar su etapa y exportar el historial.");
+  }catch(error){setStatus("No se pudo registrar: "+String(error?.message||error).slice(0,160),true)}
+  finally{busy=false;submit.disabled=!enabled();refresh.disabled=false}
+ };
+ refresh.onclick=()=>void load();
+ exportCsv.onclick=()=>{
+  if(!enabled()||!records.length){setStatus("Carga oportunidades autorizadas antes de exportar.",true);return}
+  if(partial){setStatus("Exportación bloqueada porque los resultados están incompletos.",true);return}
+  const rows=[["Fecha","Alias comercial","Oportunidad","Valor estimado COP","Etapa","ID"]];
+  for(const x of records)rows.push([x.created_at,x.company_alias,x.opportunity,x.estimated_value,stageName(x.stage),x.id]);
+  downloadText("SJM_360_CRM_Oportunidades.csv",csv(rows));setStatus("Oportunidades exportadas a CSV. No constituyen ventas facturadas.");
+ };
+ exportEvents.onclick=()=>{
+  if(!enabled()||!events.length){setStatus("Todavía no hay historial para exportar.",true);return}
+  if(partial){setStatus("Exportación bloqueada porque los resultados están incompletos.",true);return}
+  const rows=[["Fecha","ID oportunidad","Etapa anterior","Nueva etapa","Nota","ID comprobante"]];
+  for(const x of events)rows.push([x.created_at,x.opportunity_id,stageName(x.from_stage),stageName(x.to_stage),x.note,x.id]);
+  downloadText("SJM_360_CRM_Historial.csv",csv(rows));setStatus("Historial CSV generado con identificadores de comprobante.");
+ };
+ panel.addEventListener("toggle",()=>{if(panel.open&&!records.length)void load()});
+}
+
 function renderEnterpriseCenter(root,grid){
  root.classList.add("enterprise-center");grid.classList.add("business-module-grid");
  const hero=document.createElement("div");hero.className="enterprise-hero";hero.innerHTML='<span class="enterprise-eyebrow">CENTRO DE SOLUCIONES EMPRESARIALES 360°</span><h2>Una solicitud. Distintas soluciones.</h2><p>Elige un área o describe el problema de tu empresa. COMTROL prepara el trabajo; los servicios reales se activan únicamente cuando están conectados, autorizados y probados.</p>';
  root.insertBefore(hero,grid);
  renderStartupWizard(root,grid);
  renderInventoryPilot(root,grid);
+ renderCrmPilot(root,grid);
  const begin=document.createElement("button");begin.type="button";begin.className="business-primary business-hero-button";begin.textContent="Comenzar diagnóstico";begin.onclick=()=>document.getElementById("businessIntake")?.scrollIntoView({behavior:"smooth",block:"center"});hero.append(begin);
  for(const m of enterpriseModules){
   const card=document.createElement("article");card.className="business-service";
@@ -1722,6 +1924,13 @@ function renderEnterpriseCenter(root,grid){
   const p=document.createElement("p");p.textContent=m.summary;
   const buttons=document.createElement("div");buttons.className="business-card-actions";
   const ask=document.createElement("button");ask.type="button";ask.className="business-primary";ask.textContent="Solicitar solución";ask.onclick=()=>companyDraftRequest(m.title,m.focus);buttons.append(ask);
+  if(m.id==="ventas"){
+    const openCrm=document.createElement("button");openCrm.type="button";openCrm.className="business-primary";
+    openCrm.textContent="Abrir CRM operativo";
+    openCrm.onclick=()=>{const panel=document.getElementById("crmPilot");if(panel){panel.open=true;panel.scrollIntoView({behavior:"smooth",block:"start"})}};
+    buttons.append(openCrm);
+    badge.textContent="Piloto CRM · requiere sesión";
+  }
   if(m.id==="inventarios"){
     const openPilot=document.createElement("button");openPilot.type="button";openPilot.className="business-primary";openPilot.textContent="Abrir inventario operativo";
     openPilot.onclick=()=>{const target=document.getElementById("inventoryPilot");if(target){target.open=true;target.scrollIntoView({behavior:"smooth",block:"start"})}};
