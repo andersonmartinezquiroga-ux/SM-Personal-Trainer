@@ -32,7 +32,8 @@ jobs:
       - name: Pruebas de navegación segura
         run: |
           mkdir -p build/policy-test
-          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.LastResultTextSelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.LocalInteractionPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.NavigationPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.ForegroundProofPolicySelfTest
@@ -87,7 +88,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0313
+          name: KairosMobile-release-APK-V0314
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -98,12 +99,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.13-supabase'
+          tag='kairos-mobile-v0.3.14-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.13-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.14-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.13-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.13 · diagnóstico de entrega y acuse de órdenes'               --notes 'KAIRÓS 0.3.13: diagnóstico local de sondeo, oferta y acuse para órdenes Android. Distingue respuesta vacía, oferta recibida, acuse fallido y recepción aceptada sin exponer contraseñas. Mantiene permisos y límites de 0.3.12; no declara autonomía. Misma firma y versiónCode superior: instalar encima sin desinstalar.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.14-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.14 · resultado local visible bajo el botón'               --notes 'KAIRÓS 0.3.14: muestra bajo Ver último resultado el comprobante local y el estado del sondeo sin repetir órdenes. Conservar límites 0.3.13: no navega, no envía postulaciones ni mensajes y no declara autonomía. Mantiene permisos y límites de 0.3.12; no declara autonomía. VersiónCode 17 y misma firma permanente: comprobar certificado antes de instalar sobre 0.3.12.'               --prerelease
           fi

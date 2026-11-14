@@ -32,6 +32,7 @@ public class MainActivity extends Activity {
     private Button linkButton;
     private TextView localProof;
     private TextView bridgeFeedback;
+    private TextView lastResultFeedback;
     private Button bridgeButton;
 
     private TextView text(String value, int size) {
@@ -55,7 +56,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.13 · PRUEBAS REMOTAS CON APERTURA PROPIA",17));
+        layout.addView(text("VERSIÓN 0.3.14 · RESULTADOS VISIBLES",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -80,7 +81,9 @@ public class MainActivity extends Activity {
         layout.addView(bridgeButton);
         bridgeFeedback = text("ESTADO DEL PUENTE: toque COMPROBAR para ver el resultado AQUÍ.",17);
         layout.addView(bridgeFeedback);
-        layout.addView(button("Ver último resultado de KAIRÓS", v -> refreshLocalState()));
+        layout.addView(button("Ver último resultado de KAIRÓS", v -> showLastResultNearButton()));
+        lastResultFeedback = text("Aquí aparecerá el último resultado justo debajo del botón. No envía órdenes nuevas.",17);
+        layout.addView(lastResultFeedback);
         layout.addView(text("PRUEBA REAL · Pulsación de un botón propio",19));
         layout.addView(text("La prueba verifica Accesibilidad sin entrar en Gmail, bancos ni otras aplicaciones. Primero active KAIRÓS en Accesibilidad.",14));
         TextView tapFeedback = text("Prueba de pulsación pendiente",17);
@@ -254,7 +257,7 @@ public class MainActivity extends Activity {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
                 JSONObject request=new JSONObject().put("action","register")
-                    .put("version",1).put("appVersion","0.3.13").put("capabilities",scopes);
+                    .put("version",1).put("appVersion","0.3.14").put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
                     throw new IllegalStateException("El servidor no confirmó la vinculación");
@@ -279,6 +282,23 @@ public class MainActivity extends Activity {
                 });
             }
         });
+    }
+    /** Presenta la evidencia visible al lado del botón sin repetir órdenes ni consultar datos privados. */
+    private void showLastResultNearButton() {
+        if (lastResultFeedback == null) return;
+        refreshLocalState();
+        String checkedAt = java.text.DateFormat
+            .getTimeInstance(java.text.DateFormat.MEDIUM)
+            .format(new java.util.Date());
+        String message = LastResultText.compose(
+            checkedAt,
+            CommandReceiptStore.status(this),
+            CommandReceiptStore.bridgeStatus(this),
+            CommandReceiptStore.getPending(this) != null,
+            CommandReceiptStore.isPaused(this)
+        );
+        lastResultFeedback.setText(message);
+        lastResultFeedback.announceForAccessibility(message);
     }
     private void refreshLocalState() {
         if (status == null || localProof == null) return;
