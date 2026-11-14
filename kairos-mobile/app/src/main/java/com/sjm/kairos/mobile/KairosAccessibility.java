@@ -452,7 +452,7 @@ public class KairosAccessibility extends AccessibilityService {
                             return;
                         }
                         verifyingForeground=true;
-                        verifyChromeForeground(key,commandId,expected,0);
+                        verifyAppForeground(key,commandId,expected,0);
                         return;
                     }
                     storeAndConfirm(key,commandId,"completed",result);
@@ -477,7 +477,7 @@ public class KairosAccessibility extends AccessibilityService {
                 "CONTROL 360: etapa "+stage+" falló ("+e.getClass().getSimpleName()+")");
         }
     }
-    /** Confirma únicamente que el paquete de Chrome está visible.
+    /** Confirma únicamente que el paquete solicitado está visible.
      * Jamás lee texto, contraseñas, formularios ni contenido de otras apps. */
     private void verifyChromeForeground(String key,String commandId,String expected,int attempt) {
         handler.postDelayed(()->{
@@ -493,7 +493,7 @@ public class KairosAccessibility extends AccessibilityService {
             if(ForegroundProofPolicy.matches(expected,visible)) {
                 verifyingForeground=false;
                 storeAndConfirm(key,commandId,"completed",
-                    "CHROME_FOREGROUND_CONFIRMED: paquete Chrome visible por Accesibilidad");
+                    "APP_FOREGROUND_CONFIRMED: paquete "+expected+" visible por Accesibilidad");
                 return;
             }
             if(attempt<8) {
@@ -501,7 +501,7 @@ public class KairosAccessibility extends AccessibilityService {
             } else {
                 verifyingForeground=false;
                 storeAndConfirm(key,commandId,"failed",
-                    "CHROME_FOREGROUND_NOT_CONFIRMED: ventana no verificada");
+                    "APP_FOREGROUND_NOT_CONFIRMED: "+expected+" no visible");
             }
         },attempt==0?950L:650L);
     }
