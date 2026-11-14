@@ -443,6 +443,20 @@ public class KairosAccessibility extends AccessibilityService {
                         startRemoteOwnAppTest(key,commandId,command);
                         return;
                     }
+                    if("app_workflow".equals(command.optString("type",""))) {
+                        JSONObject body=command.optJSONObject("payload");
+                        String target=body==null?"":body.optString("package","");
+                        if(!AppWorkflowEngine.validate(body) || !SjmNavigationPolicy.isAllowedApp(target)) {
+                            storeAndConfirm(key,commandId,"failed","WORKFLOW_NOT_AUTHORIZED");
+                            return;
+                        }
+                        verifyingForeground=true;
+                        AppWorkflowEngine.start(this,handler,body,(ok,receipt)->{
+                            verifyingForeground=false;
+                            storeAndConfirm(key,commandId,ok?"completed":"failed",receipt);
+                        });
+                        return;
+                    }
                     String result=executeCommand(command);
                     if("open_app".equals(command.optString("type",""))) {
                         JSONObject body=command.optJSONObject("payload");
