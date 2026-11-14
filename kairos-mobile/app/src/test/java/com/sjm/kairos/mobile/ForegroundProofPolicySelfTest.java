@@ -13,6 +13,9 @@ public final class ForegroundProofPolicySelfTest {
         check(!ForegroundProofPolicy.matches("com.android.chrome",""),"missing window blocked");
         check(!ForegroundProofPolicy.matches("com.android.chrome",null),"null window blocked");
         check(!ForegroundProofPolicy.matches("com.google.android.gm","com.google.android.gm"),"gmail test not allowed");
+        check(ForegroundProofPolicy.isAllowedExpected("com.google.android.youtube"),"youtube expected allowed");
+        check(ForegroundProofPolicy.matches("com.google.android.youtube","com.google.android.youtube"),"youtube foreground verified");
+        check(!ForegroundProofPolicy.matches("com.google.android.youtube","com.android.chrome"),"youtube not chrome");
         check(!ForegroundProofPolicy.matches(null,"com.android.chrome"),"null expected blocked");
         check(!ForegroundProofPolicy.matches("com.android.chrome.fake","com.android.chrome"),"lookalike blocked");
         System.out.println("KAIRÓS foreground policy: 9 checks OK");
