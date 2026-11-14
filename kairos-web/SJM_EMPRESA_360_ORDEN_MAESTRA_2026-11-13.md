@@ -111,3 +111,53 @@ La aplicación única sigue alojada en `kairos-web/index.html` y publicada en ht
 5. Primer piloto con datos ficticios y luego empresa voluntaria bajo acuerdos y autorización; empezar por inventarios o marketing, antes de nómina y contabilidad.
 
 Nunca presentar la interfaz como SaaS ya protegido ni como trabajo empresarial ejecutado.
+
+
+## Auditoría de madurez e integración COMTROL 360 — 14-nov-2026
+
+Release de aplicación única: `kairos-web/index.html`, versión de tablero **v2.5**, commit `7184731dd67feb09da0224846fa8bdc1fafaeb21`, despliegue productivo en https://sjm-kairos-cerebro-web.vercel.app. Prueba técnica: respuesta HTTP 200, script válido, piezas anteriores de voz, chat, guía «Crear mi empresa» y controles de dictado preservadas. **Aún no hay prueba de usuario en Motorola para este panel.**
+
+### Lo incorporado
+
+1. **Tablero de madurez** dentro del módulo técnico CONTROL 360, sin otro proyecto ni menú lateral extra. Evaluación interna basada en diez áreas ponderadas, con la evidencia base, próximo bloqueo y aporte de cada área. Es una **estimación orientativa** y no un porcentaje objetivo de inteligencia o autonomía.
+2. **Comprobación protegida bajo sesión** que consulta dos servicios ya existentes: `sjm_brain_hybrid_v1` (estado del cerebro) y `sjm_brain_plan_safe_v1` con `execute_read_only` (resumen Motorola, ejecutor, memoria y alertas). Verifica `readPerformed=true`, `readOnly=true`, `executedActions=0`. No ejecuta órdenes ni expone registros privados en la vista previa.
+3. **Diez fichas de conocimiento por área empresarial**, en los módulos ya existentes: información mínima para comenzar, entregable esperado y validación/autorización. No constituyen una solución empresarial automatizada sin sus motores.
+4. En «Mis Empresas y Proyectos» un acceso al progreso técnico de COMTROL, conservando el apartado de seguridad multiempresa pendiente.
+
+### Evaluación de madurez, 37/100 puntos posibles
+
+| Componente | Puntos | Fundamento de evaluación |
+|---|---:|---|
+| Interfaz y accesibilidad | 9/10 | Publicada y con voz beta; faltan pruebas de uso en Motorola. |
+| Chat y cerebro IA | 5/15 | Mentor protegido; modelos generativos bajo configuración, sin equiparar a ChatGPT. |
+| Orquestación CONTROL 360 | 7/15 | Colas, cron y registros, autonomía integral parcial. |
+| Ejecutor web | 5/10 | Trabajos internos y errores verificables; pendiente resiliencia/acciones reales autorizadas. |
+| Motorola y voz | 4/10 | Acuses parciales; todavía no prueba de operación constante ni voz natural en segundo plano. |
+| Servicios empresariales | 2/15 | Catálogos/guías; ERP y CRM reales sin conectar. |
+| Seguridad multiempresa | 0/10 | Sin aislamiento completo de clientes, roles ni RLS probadas por empresa. |
+| Entregables profesionales | 1/5 | CSV y borradores locales, faltan Word/PDF/PPTX integrados. |
+| Memoria y trazabilidad | 3/5 | Memoria operativa y registros existentes, sin memoria empresarial separada. |
+| Contratación y seguimiento | 1/5 | Formulario de diagnóstico; aprobaciones/entregas facturables no integradas. |
+| **TOTAL** | **37/100** | Estimación interna, no prueba integral. |
+
+### Datos técnicos consultados el 14-nov-2026
+
+- `sjm_ops.delivery_plan`: 1 de 8 fases figura `comprobado` (fase 1), siete `parcial`.
+- `sjm_ops.block1_subpoint_progress_v1`: los diez subpuntos del Bloque 1 figuran `verified`. No generalizar ese resultado a los ocho bloques.
+- `sjm_ops.browser_jobs`: 183 registros, 146 en estado `done` y 37 `failed`. Son trabajos de inspección/prueba, NO postulaciones reales.
+- `public.sjm_kairos_phone_jobs_v1`: 80 registros, 49 `completed`, 31 `failed`. Son órdenes de prueba; falta confiabilidad continua.
+- `sjm_ops.mentor_workflows`: 1 `completed`, 5 `blocked`; no se puede afirmar orquestación completa del Mentor.
+- `sjm_ops.kairos_phone_health_v1`: conexión reportada `online` a las 09:29 hora de Colombia; un heartbeat puntual no certifica continuidad.
+- Datos cambiantes: evitar conservar estas cifras como si fueran estado del momento. Consultarlas de nuevo mediante fuentes protegidas.
+
+### Prioridad de desarrollo real (sin inversión obligatoria)
+
+1. **Prueba móvil de la nueva pantalla** en navegador Chrome Android con sesión autorizada y evidencia visible.
+2. **Diagnóstico del ciclo completo** de una orden (enviar → recibir → ejecutar → ACK → registro), sin ordenar operaciones sensibles.
+3. **Primer servicio empresarial real con seguridad**: piloto de inventarios con modelos de datos y roles, movimientos auditables, CSV e informes. Solo con datos sintéticos hasta verificar aislamiento de clientes.
+4. **Motor de creación de entregables** Word/PDF/Excel y archivos del usuario con controles y evidencia.
+5. **Cerebro multimodelo + herramientas** con selección explícita, evaluación, costos y permisos.
+6. **Identidad empresarial**: modelo por organización con RLS, pruebas de filtración cruzada, registros y consentimientos antes de clientes externos.
+7. **Comercialización** únicamente después de casos reales probados y cálculo de costos.
+
+**No certificar 100 %, no presentar simulación como resultado y no duplicar proyectos ni tareas programadas existentes.**
