@@ -479,7 +479,7 @@ public class KairosAccessibility extends AccessibilityService {
     }
     /** Confirma únicamente que el paquete solicitado está visible.
      * Jamás lee texto, contraseñas, formularios ni contenido de otras apps. */
-    private void verifyChromeForeground(String key,String commandId,String expected,int attempt) {
+    private void verifyAppForeground(String key,String commandId,String expected,int attempt) {
         handler.postDelayed(()->{
             if(!active || !verifyingForeground) return;
             String visible="";
@@ -497,7 +497,7 @@ public class KairosAccessibility extends AccessibilityService {
                 return;
             }
             if(attempt<8) {
-                verifyChromeForeground(key,commandId,expected,attempt+1);
+                verifyAppForeground(key,commandId,expected,attempt+1);
             } else {
                 verifyingForeground=false;
                 storeAndConfirm(key,commandId,"failed",
