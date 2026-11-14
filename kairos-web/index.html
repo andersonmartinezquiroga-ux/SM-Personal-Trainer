@@ -951,6 +951,19 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 }
 @media(max-width:390px){.welcome .suggestions{grid-template-columns:1fr}}
 
+
+/* SJM Empresa 360 · Infraestructura y flujo comercial v2.1 */
+.business-journey{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:11px;list-style:none;padding:0;margin:12px 0 22px;counter-reset:step}
+.business-journey li{min-width:0;background:#1f2d3b;border:1px solid #49687f;border-radius:14px;padding:16px 15px;counter-increment:step;position:relative}
+.business-journey li:before{content:counter(step);display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#345775;color:#f1faff;font-size:17px;font-weight:800;margin-bottom:9px}
+.business-journey li strong{display:block;color:#f5fbff;font-size:19px;line-height:1.42}
+.business-journey li p{margin:7px 0 0;font-size:16px;line-height:1.58;color:#cbdceb}
+.infra-intake{scroll-margin-top:18px}
+#nav .nav-item.nav-important[data-view="infra"]{background:#25394b;border-color:#4b6a80}
+#nav .nav-item.nav-important[data-view="infra"].active{background:#304b63;border-color:#83b0d0}
+@media(max-width:800px){.business-journey{grid-template-columns:1fr 1fr;gap:9px}.business-journey li{padding:13px}.business-journey li strong{font-size:18px}.business-journey li p{font-size:15px}}
+@media(max-width:380px){.business-journey{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -981,6 +994,7 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 <button type="button" data-topview="chat">◈ &nbsp; Conversación</button>
 <button type="button" data-topview="enterprise">▦ &nbsp; Soluciones Empresariales</button>
 <button type="button" data-topview="builder">⌘ &nbsp; Crear Web y Apps</button>
+<button type="button" data-topview="infra">▥ &nbsp; Infraestructura Tecnológica</button>
 <button type="button" data-topview="research">◉ &nbsp; Investigación y Proyectos</button>
 <button type="button" data-topview="creative">✧ &nbsp; Diseño y Contenido</button>
 <button type="button" data-topview="tasks">◷ &nbsp; Automatizaciones y Tareas</button>
@@ -1060,6 +1074,7 @@ const menu=[
 ["chat","COMTROL 360","◈"],
 ["enterprise","Soluciones Empresariales","▦"],
 ["builder","Crear Web y Apps","⌘"],
+["infra","Infraestructura Tecnológica","▥"],
 ["research","Investigación y Proyectos","◉"],
 ["creative","Diseño y Contenido","✧"],
 ["tasks","Automatizaciones y Tareas","◷"],
@@ -1082,6 +1097,7 @@ const advancedMenu=[
 const infos={
 enterprise:["SJM EMPRESA 360 IA","Soluciones empresariales organizadas por área. Elige qué necesitas, prepara una solicitud y autoriza cada acción importante."],
 builder:["Crear Aplicaciones y Páginas Web","Diseña y prepara sitios web, aplicaciones, prototipos, código y herramientas con ayuda de COMTROL 360."],
+infra:["Infraestructura Tecnológica","Diagnósticos y propuestas para arquitecturas, nube, servidores, redes, integraciones, seguridad, respaldos y despliegues. No cambia sistemas en producción."],
 research:["Investigación y Proyectos","Estudios de mercado, planes de negocio, comparaciones, riesgos y propuestas."],
 creative:["Diseño y Contenido","Documentos, presentaciones, informes, piezas visuales y recursos de comunicación."],
 tasks:["Automatizaciones y Tareas","Prepara rutinas y solicitudes de trabajo. La programación autónoma requiere conectarla al orquestador existente."],
@@ -1108,6 +1124,17 @@ const enterpriseCsvTemplates={
  crm:{file:"plantilla_crm_sjm.csv",header:"cliente_o_empresa,contacto,canal,necesidad,oportunidad,etapa,proxima_accion,fecha_seguimiento,observaciones\n"}
 };
 const workCenters={
+ infra:[
+  ["Arquitectura y Escalabilidad","Diseñar componentes, capacidad, disponibilidad y alternativas de crecimiento para una empresa."],
+  ["Servidores y Nube","Comparar alojamiento, máquinas virtuales, servicios administrados, regiones, disponibilidad y costos estimados."],
+  ["Alojamiento y Dominios","Preparar opciones de hosting, certificados, DNS, publicación y mantenimiento."],
+  ["Redes y Conectividad","Diagnosticar necesidades de red, conectividad, accesos y segmentación sin acceder a dispositivos privados."],
+  ["Integraciones y APIs","Diseñar conexiones entre sistemas, intercambio de datos, permisos y trazabilidad."],
+  ["Seguridad y Accesos","Preparar evaluación de riesgos, roles, autenticación, cifrado y controles de datos."],
+  ["Respaldos y Recuperación","Diseñar políticas de copias de seguridad, restauración, retención y pruebas."],
+  ["Despliegues y Observabilidad","Planificar CI/CD, monitoreo, logs, alertas y recuperación de fallos."],
+  ["Costos e Infraestructura","Comparar arquitecturas, recursos y modelos de costos según datos verificables."]
+ ],
  builder:[
   ["Páginas Web","Preparar el diseño, estructura, contenido, funcionalidades y plan de publicación de una página web."],
   ["Aplicaciones Web y Móviles","Definir requisitos, pantallas, datos, permisos y arquitectura para una aplicación."],
@@ -1197,7 +1224,7 @@ function navBuild(){
    const marker=document.createElement("span");marker.className="nav-enterprise-arrow";marker.textContent="›";
    b.append(s,body,marker);
    b.setAttribute("aria-label","Abrir Soluciones Empresariales 360, acceso principal");
-  }else{b.append(s,document.createTextNode(title));if(target===root&&["builder","tasks","research"].includes(id))b.classList.add("nav-important")}
+  }else{b.append(s,document.createTextNode(title));if(target===root&&["builder","tasks","research","infra"].includes(id))b.classList.add("nav-important")}
   b.onclick=()=>{if(id==="projects"){folderFilter=null;projectFilter="Todos";projectQuery=""}show(id)};
   target.append(b);
  }
@@ -1240,7 +1267,7 @@ function decorate(target,value){const re=/https:\/\/[^\s<>"']+/g;let p=0;for(con
 function bubble(m,pending=false){const wrap=document.createElement("div");wrap.className="message "+m.role+(pending?" pending":"");if(m.role==="assistant"){const a=document.createElement("div");a.className="avatar";a.textContent="C";a.setAttribute("aria-label","COMTROL 360");wrap.append(a)}const b=document.createElement("div");b.className="msg-body";const text=document.createElement("div");text.className="bubble";decorate(text,m.text);b.append(text);if(!pending){const note=document.createElement("div");note.className="note";note.textContent=m.role==="assistant"?(m.mode==="demo"?"COMTROL 360 · demostración sin IA":m.mode==="supabase_live"?"COMTROL 360 · lectura técnica de Supabase":"COMTROL 360 · Mentor protegido"):"Tu consulta";b.append(note);const actions=document.createElement("div");actions.className="tools";const copy=document.createElement("button");copy.className="toolbtn";copy.textContent="Copiar";copy.onclick=async()=>{try{await navigator.clipboard.writeText(m.text);info("Texto copiado")}catch{info("No se pudo copiar")}};actions.append(copy);if(m.role==="user"){const edit=document.createElement("button");edit.className="toolbtn";edit.textContent="Editar";edit.onclick=()=>{$("prompt").value=m.text;grow();$("prompt").focus()};actions.append(edit)}else{const regen=document.createElement("button");regen.className="toolbtn";regen.textContent="Regenerar";regen.onclick=()=>{const c=active();const i=c?.messages.indexOf(m);const prev=c?.messages.slice(0,i).reverse().find(v=>v.role==="user");if(prev)sendMessage(prev.text)};actions.append(regen)}b.append(actions)}wrap.append(b);$("messages").append(wrap);$("messages").scrollTop=$("messages").scrollHeight;return wrap}
 function messagesRender(){const box=$("messages");box.replaceChildren();const c=active();if(!c||!c.messages.length)box.append(welcome());else for(const m of c.messages)bubble(m)}
 function show(id){closePanels();view=id;$("chat").classList.toggle("hidden",id!=="chat");$("module").classList.toggle("hidden",id==="chat");$("pageTitle").textContent=id==="chat"?"COMTROL 360":infos[id][0];$("pageSub").textContent=id==="chat"?"Conversación privada y supervisión":"Consulta y verificación de operaciones";for(const b of $("nav").querySelectorAll("[data-view]"))b.classList.toggle("active",b.dataset.view===id);if(id!=="chat")moduleRender(id);closeDrawer()}
-function heading(root,id){const k=document.createElement("div");k.className="eyebrow";k.textContent="SJM HUMAN PERFORMANCE 360";const h=document.createElement("h1");h.textContent=infos[id][0];const p=document.createElement("p");p.className="intro";p.textContent=infos[id][1];root.append(k,h,p)}
+function heading(root,id){const k=document.createElement("div");k.className="eyebrow";k.textContent=["enterprise","builder","infra","research","creative","tasks","companies"].includes(id)?"COMTROL 360 · SJM EMPRESA 360 IA":"SJM HUMAN PERFORMANCE 360";const h=document.createElement("h1");h.textContent=infos[id][0];const p=document.createElement("p");p.className="intro";p.textContent=infos[id][1];root.append(k,h,p)}
 function tile(grid,title,description,status,action,handler){const c=document.createElement("article");c.className="tile";const h=document.createElement("h3");h.textContent=title;const tag=document.createElement("span");tag.className="pill "+(status==="Confirmado"?"ok":status==="Bloqueado"?"bad":status==="Requiere mi intervención"?"human":"");tag.textContent=preview?"Vista previa":status;const p=document.createElement("p");p.textContent=description;c.append(h,tag,p);if(action){const b=document.createElement("button");b.textContent=action;b.onclick=handler;c.append(b)}grid.append(c)}
 function askAbout(q){show("chat");$("prompt").value=q;grow();$("prompt").focus();info("Consulta preparada. Pulsa enviar para solicitar registros reales.")}
 
@@ -1262,8 +1289,8 @@ function businessNotice(root,text){
 }
 function renderBusinessStarter(root){
  const card=document.createElement("section");card.className="business-intake";card.id="businessIntake";
- const title=document.createElement("h2");title.textContent="Comenzar diagnóstico empresarial";
- const p=document.createElement("p");p.textContent="Cuéntale a COMTROL qué necesitas. Esta ficha prepara una consulta que podrás revisar antes de enviarla.";
+ const title=document.createElement("h2");title.textContent="Solicitar una solución empresarial";
+ const p=document.createElement("p");p.textContent="Selecciona la modalidad y explica qué necesitas. COMTROL preparará un diagnóstico y una propuesta inicial para revisar, no un contrato ni una cotización aprobada.";
  const form=document.createElement("form");form.className="business-intake-grid";
  const alias=document.createElement("label");alias.textContent="Nombre comercial o alias (opcional)";
  const name=document.createElement("input");name.type="text";name.maxLength=70;name.placeholder="Ej.: Empresa de servicios";name.autocomplete="off";alias.append(name);
@@ -1271,17 +1298,21 @@ function renderBusinessStarter(root){
  const sector=document.createElement("select");
  for(const x of ["Seleccionar actividad","Comercio","Servicios","Industria","Deporte y bienestar","Tecnología","Educación","Salud","Agro y rural","Otra"]){const o=document.createElement("option");o.textContent=x;o.value=x==="Seleccionar actividad"?"":x;sector.append(o)}
  sectorLabel.append(sector);
+ const modalityLabel=document.createElement("label");modalityLabel.textContent="Modalidad de servicio";
+ const modality=document.createElement("select");
+ for(const x of ["Servicio puntual","Paquete empresarial","Servicio integral","Suscripción a evaluar"]){const o=document.createElement("option");o.value=x;o.textContent=x;modality.append(o)}modalityLabel.append(modality);
  const needsLabel=document.createElement("label");needsLabel.className="business-wide";needsLabel.textContent="¿Qué necesita resolver?";const needs=document.createElement("textarea");needs.rows=3;needs.maxLength=360;needs.required=true;needs.placeholder="Ej.: organizar inventarios, controlar ventas y preparar el presupuesto mensual";needsLabel.append(needs);
- const send=document.createElement("button");send.type="submit";send.textContent="Preparar diagnóstico en el chat";send.className="business-primary";
+ const send=document.createElement("button");send.type="submit";send.textContent="Preparar diagnóstico y propuesta";send.className="business-primary";
  const clear=document.createElement("button");clear.type="reset";clear.textContent="Limpiar";clear.className="business-secondary";
  const actions=document.createElement("div");actions.className="business-actions business-wide";actions.append(send,clear);
  const privacy=document.createElement("p");privacy.className="business-privacy business-wide";privacy.textContent="No ingreses contraseñas, datos bancarios, documentos de identidad, nómina real ni información confidencial. La separación segura por empresa aún no está implementada. El contenido no se guarda en el servidor desde este formulario.";
- form.append(alias,sectorLabel,needsLabel,actions,privacy);
+ form.append(alias,sectorLabel,modalityLabel,needsLabel,actions,privacy);
  form.onsubmit=e=>{
   e.preventDefault();const problem=needs.value.trim();if(!problem){needs.focus();return}
-  const q="COMTROL 360, prepara un diagnóstico inicial para "+(name.value.trim()||"una empresa")+" del sector "+(sector.value||"por definir")+
+  const q="COMTROL 360, prepara diagnóstico y propuesta preliminar para "+(name.value.trim()||"una empresa")+
+  ", sector "+(sector.value||"por definir")+", modalidad "+modality.value+
   ". Necesidad: "+problem+
-  ". Haz preguntas mínimas, clasifica prioridad, riesgos, información faltante, opciones y pasos verificables. No ejecutes operaciones ni supongas cifras o datos.";
+  ". Solicita información faltante, define alcance, entregables, riesgos, presupuesto SOLO si hay costos verificados, permisos, aprobación humana y pasos de seguimiento. No ejecutes ni inventes precios.";
   askAbout(q.slice(0,700));
  };
  card.append(title,p,form);root.append(card);
@@ -1309,7 +1340,14 @@ function renderEnterpriseCenter(root,grid){
   if(m.csv){const csv=document.createElement("button");csv.type="button";csv.className="business-secondary";csv.textContent="Plantilla CSV";csv.onclick=()=>csvStarter(m.csv);buttons.append(csv)}
   card.append(label,h,p,buttons);grid.append(card);
  }
+ const infraCard=document.createElement("article");infraCard.className="business-service";
+ const infraTitle=document.createElement("h3");infraTitle.textContent="Infraestructura Tecnológica";
+ const infraDesc=document.createElement("p");infraDesc.textContent="Servidores, nube, alojamiento, redes, seguridad, respaldos e integraciones.";
+ const infraBadge=document.createElement("small");infraBadge.className="business-status";infraBadge.textContent="Diagnóstico guiado";
+ const infraButton=document.createElement("button");infraButton.className="business-primary";infraButton.textContent="Ver infraestructura";infraButton.onclick=()=>show("infra");
+ infraCard.append(infraTitle,infraDesc,infraBadge,infraButton);grid.append(infraCard);
  renderBusinessStarter(root);
+ renderCommercialJourney(root);
  businessDivider(root,"Etapas de desarrollo","Crearemos primero funciones pequeñas y verificables, después conectaremos las operaciones empresariales.");
  const phases=document.createElement("div");phases.className="enterprise-phases";
  for(const item of [
@@ -1320,6 +1358,62 @@ function renderEnterpriseCenter(root,grid){
  root.append(phases);
  businessNotice(root,"Seguridad: los servicios de nómina, contabilidad, auditoría y cumplimiento requieren revisión humana. Todavía NO hay cuentas multiempresa ni aislamiento de datos por cliente; no introduzcas información real sensible.");
 }
+
+/* SJM Empresa 360 · Infraestructura y flujo comercial v2.1.
+   Diagnósticos y presupuestos son BORRADORES, nunca despliegues ni cotizaciones confirmadas. */
+function renderInfrastructureDiagnosis(root){
+ const section=document.createElement("section");section.className="business-intake infra-intake";
+ const title=document.createElement("h2");title.textContent="Diagnóstico de infraestructura";
+ const desc=document.createElement("p");desc.textContent="Describe necesidades generales: COMTROL puede preparar una propuesta técnica para revisión. No ingreses IP privadas, contraseñas, claves API, configuraciones internas ni datos de clientes.";
+ const form=document.createElement("form");form.className="business-intake-grid";
+ const kind=document.createElement("label");kind.textContent="Área principal";
+ const select=document.createElement("select");
+ for(const v of ["Arquitectura y sistemas","Servidor o nube","Alojamiento web","Redes y conectividad","Seguridad","Copias y recuperación","Integraciones","Monitoreo y despliegue","Optimización de costos"]){
+  const o=document.createElement("option");o.value=v;o.textContent=v;select.append(o);
+ }kind.append(select);
+ const scale=document.createElement("label");scale.textContent="Tamaño aproximado";
+ const size=document.createElement("select");
+ for(const v of ["Por definir","1–5 personas","6–20 personas","21–100 personas","Más de 100 personas"]){const o=document.createElement("option");o.value=v;o.textContent=v;size.append(o)}scale.append(size);
+ const needLabel=document.createElement("label");needLabel.className="business-wide";needLabel.textContent="Necesidad o problema (sin información sensible)";
+ const need=document.createElement("textarea");need.required=true;need.maxLength=310;need.rows=3;
+ need.placeholder="Ejemplo: queremos almacenar información, tener respaldos y que cinco empleados puedan acceder con permisos.";
+ needLabel.append(need);
+ const actions=document.createElement("div");actions.className="business-actions business-wide";
+ const b=document.createElement("button");b.type="submit";b.textContent="Preparar diagnóstico técnico";b.className="business-primary";
+ const csv=document.createElement("button");csv.type="button";csv.className="business-secondary";csv.textContent="Plantilla técnica CSV";
+ csv.onclick=()=>{downloadText("plantilla_infraestructura_sjm.csv","\uFEFFarea,necesidad,usuarios_estimados,infraestructura_actual_sin_secretos,riesgo,prioridad,costo_estimado_pendiente_de_verificar,proxima_revision\n");info("Plantilla técnica vacía descargada; ningún dato se envió.")};
+ actions.append(b,csv);
+ const privacy=document.createElement("p");privacy.className="business-privacy business-wide";
+ privacy.textContent="La infraestructura no será modificada desde este formulario. Antes de ejecutar cambios reales deberán comprobarse permisos, riesgos, costos, respaldos y autorizaciones.";
+ form.append(kind,scale,needLabel,actions,privacy);
+ form.onsubmit=e=>{
+  e.preventDefault();if(!need.value.trim()){need.focus();return}
+  const q="COMTROL 360, prepara un DIAGNÓSTICO de infraestructura empresarial. Área: "+select.value+
+    ". Tamaño: "+size.value+". Necesidad: "+need.value.trim()+
+    ". Pide datos faltantes, diseña opciones, seguridad, respaldos, costos por verificar, riesgos, pruebas y autorización antes de desplegar. No ejecutes cambios.";
+  askAbout(q.slice(0,700));
+ };
+ section.append(title,desc,form);root.append(section);
+ businessNotice(root,"Servicio de infraestructura en fase de diseño: no hay acceso automático a servidores, redes, DNS, facturación de nube ni bases privadas. Una propuesta no equivale a una implementación.");
+}
+function renderCommercialJourney(root){
+ businessDivider(root,"Cómo contratar una solución","El recorrido comercial está organizado; las aprobaciones, pagos y entregas reales se conectarán por fases.");
+ const list=document.createElement("ol");list.className="business-journey";
+ const phases=[
+ ["Elegir servicio","Disponible en interfaz: selecciona una de las soluciones."],
+ ["Diagnóstico","Formulario guiado que prepara una consulta; la IA responderá según el acceso disponible."],
+ ["Propuesta y presupuesto","Borrador de alcance y estimación condicionada a costos comprobados."],
+ ["Aprobar el trabajo","Pendiente: aprobación segura de alcance, condiciones y presupuesto."],
+ ["Desarrollar y entregar","Pendiente: ejecución y entregables comprobados por herramientas conectadas."],
+ ["Seguimiento y soporte","Pendiente: registros, notificaciones y reportes por empresa."]
+ ];
+ for(const [title,description] of phases){
+  const item=document.createElement("li");const h=document.createElement("strong");h.textContent=title;
+  const p=document.createElement("p");p.textContent=description;item.append(h,p);list.append(item);
+ }
+ root.append(list);
+}
+
 function renderServiceCenter(root,grid,id){
  grid.classList.add("business-module-grid");
  const areas=workCenters[id]||[];
@@ -1337,6 +1431,7 @@ function renderServiceCenter(root,grid,id){
 function renderTasksCenter(root,grid){
  grid.classList.add("business-module-grid");
  const specs=[
+  ["Agentes especializados","Diseñar agentes para investigación, gestión, desarrollo, control y seguimiento con permisos delimitados."],
   ["Programar una tarea","Define qué hacer, con qué frecuencia, qué permisos se necesitan y cómo comprobar resultados."],
   ["Seguimiento recurrente","Diseña alertas de fechas, respuestas, disponibilidad, expedientes o indicadores."],
   ["Automatizar un proceso","Planifica pasos, responsables, integraciones, errores, reintentos y evidencias."],
@@ -1357,7 +1452,9 @@ function renderCompaniesCenter(root,grid){
  const cards=[
   ["Mis proyectos SJM","Acceder al portafolio de proyectos existente, con carpetas y elementos fijados.","Abrir proyectos",()=>show("projects")],
   ["Mi empresa · diagnóstico","Definir necesidades generales sin introducir datos sensibles.","Abrir diagnóstico",()=>show("enterprise")],
-  ["Empresas de clientes","El acceso de clientes y la separación de información requieren autenticación y permisos por empresa.","Aún no disponible",null],
+  ["Panel privado por empresa","Acceso independiente con información y seguimiento de cada cliente; requiere autenticación y separación de datos.","En construcción",null],
+  ["Empleados y roles","Administración de usuarios autorizados, funciones y aprobaciones por empresa.","Pendiente de seguridad",null],
+  ["Historial y entregables","Seguimiento de solicitudes, evidencias, propuestas, entregas y autorizaciones por empresa.","Pendiente de integración",null],
   ["Documentos y archivos","Abrir la biblioteca privada del usuario autenticado, sin compartirla con otras empresas.","Mis archivos",()=>show("files")]
  ];
  for(const [name,desc,action,callback] of cards){
@@ -1371,7 +1468,7 @@ function renderCompaniesCenter(root,grid){
 function moduleRender(id){const root=$("moduleBody");root.classList.remove("enterprise-center");root.replaceChildren();heading(root,id);if(id==="control"){const flow=document.createElement("div");flow.className="lifecycle";for(const t of ["Buscar","Evaluar","Preparar","Ejecutar","Comprobar","Registrar","Vigilar","Notificar"]){const s=document.createElement("div");s.className="step";s.textContent=t;flow.append(s)}root.append(flow)}
 const grid=document.createElement("div");grid.className="tile-grid";root.append(grid);
 if(id==="enterprise"){renderEnterpriseCenter(root,grid)}
-else if(id==="builder"||id==="research"||id==="creative"){renderServiceCenter(root,grid,id)}
+else if(id==="builder"||id==="infra"||id==="research"||id==="creative"){renderServiceCenter(root,grid,id);if(id==="infra")renderInfrastructureDiagnosis(root)}
 else if(id==="tasks"){renderTasksCenter(root,grid)}
 else if(id==="companies"){renderCompaniesCenter(root,grid)}
 else if(id==="templates"){renderTemplates(root,grid)}else if(id==="control"){tile(grid,"Puente del cerebro","Conectado a la función protegida del Mentor. El estado se comprueba con autorización.",authorized?"Confirmado":"En proceso","Comprobar",checkStatus);tile(grid,"Estado operativo real","Consulta autorizada a la base existente: memoria operativa, navegador, Motorola y resumen de expedientes. Solo lectura.","En proceso","Consultar datos reales",()=>readLive("Qué falta terminar en Control 360?"));tile(grid,"Informe del día","Consulta del día; el filtro exacto desde las 00:00 todavía no está certificado por el servicio.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte del día y separa hechos comprobados"));tile(grid,"Informe general","Resumen disponible en el Mentor, no auditoría histórica total garantizada.","En proceso","Consultar",()=>askAbout("COMTROL 360, dame un reporte general de CONTROL 360"));tile(grid,"Ejecuciones externas","No se ejecutan postulaciones, pagos ni navegación desde el cerebro de esta pantalla.","Bloqueado",null,null)}
