@@ -1070,6 +1070,40 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  .readiness-board>h2{font-size:24px}
 }
 
+
+/* Inventario piloto seguro y persistente v2.6 */
+.inventory-pilot{margin:22px 0 26px;border-radius:18px;border:1px solid #668eaa;background:#1c2c3c;padding:19px 21px;color:#eff8ff}
+.inventory-pilot>summary{cursor:pointer;font-size:23px;font-weight:790;line-height:1.4;color:#f3faff;padding:5px 0}
+.inventory-pilot>summary:focus-visible{outline:3px solid #b2e0ff;outline-offset:4px}
+.inventory-intro,.inventory-disclaimer{font-size:17px;line-height:1.6;color:#cfe2f0;margin:15px 0}
+.inventory-status{font-size:16px;line-height:1.55;color:#d6e9f8;border:1px solid #526e85;background:#263b4e;padding:12px 14px;border-radius:11px;margin:13px 0}
+.inventory-error{border-color:#ca927c;color:#ffe3d8;background:#53372f}
+.inventory-toolbar,.inventory-stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px}
+.inventory-toolbar button{min-height:46px;font-size:16px}
+.inventory-stats>div{display:flex;flex-direction:column;gap:4px;min-width:104px;flex:1;background:#2b4355;border:1px solid #55768e;border-radius:13px;padding:11px 14px}
+.inventory-stats strong{font-size:25px;color:#fff}
+.inventory-stats span{font-size:15px;color:#c8dce9}
+.inventory-forms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.inventory-formbox{background:#253849;border:1px solid #4f728a;border-radius:14px;padding:17px}
+.inventory-formbox h3,.inventory-subtitle{font-size:21px;color:#f3fbff;margin:0 0 16px;line-height:1.35}
+.inventory-entry{display:flex;flex-direction:column;gap:12px}
+.inventory-entry label{display:flex;flex-direction:column;gap:7px;font-size:17px;color:#deedfa;font-weight:640;line-height:1.44}
+.inventory-entry input,.inventory-entry select{max-width:100%;min-height:43px;padding:10px 12px;border-radius:10px;border:1px solid #7391a8;background:#2e4659;color:#fff;font-family:inherit;font-size:17px}
+.inventory-entry input::placeholder{color:#b9cedd}
+.inventory-entry button{min-height:48px;font-size:17px;margin-top:6px}
+.inventory-subtitle{margin:22px 0 11px}
+.inventory-list{display:flex;flex-direction:column;gap:8px}
+.inventory-list>p{font-size:17px;color:#bcd5e6}
+.inventory-line{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px;background:#26394b;border:1px solid #4b6a82;border-radius:12px}
+.inventory-line-main{display:flex;flex:1;flex-direction:column;gap:5px;min-width:0}
+.inventory-line-main strong{font-size:18px;color:#f3f9ff;line-height:1.34;overflow-wrap:anywhere}
+.inventory-line-main small{font-size:15px;color:#c0d7e9;line-height:1.45;overflow-wrap:anywhere}
+.inventory-quantity{display:flex;flex:none;align-items:flex-end;flex-direction:column;gap:4px;text-align:right;color:#e7f5ff}
+.inventory-quantity strong{font-size:19px;color:#fff;white-space:nowrap}
+.inventory-quantity small{font-size:14px;color:#cce8f9}
+.inventory-low{color:#ffcc99!important}
+@media(max-width:800px){.inventory-pilot{padding:17px 13px}.inventory-pilot>summary{font-size:21px}.inventory-forms{grid-template-columns:1fr}.inventory-toolbar button{flex:1 1 43%}.inventory-line{gap:8px}.inventory-line-main strong{font-size:17px}.inventory-quantity strong{font-size:17px}.inventory-formbox{padding:15px 12px}}
+
 </style>
 </head>
 <body>
@@ -1493,11 +1527,190 @@ function renderStartupWizard(root,grid){
  render();
 }
 
+
+/* Inventario piloto seguro y persistente v2.6 · no multiempresa
+   Productos y kardex del usuario autorizado, RLS y RPC transaccional en Supabase. */
+function renderInventoryPilot(root,grid){
+ const panel=document.createElement("details");panel.id="inventoryPilot";panel.className="inventory-pilot";
+ const summary=document.createElement("summary");summary.textContent="Inventario operativo · Piloto con base de datos";
+ panel.append(summary);
+ const intro=document.createElement("p");intro.className="inventory-intro";
+ intro.textContent="Prueba con artículos ficticios. Guarda productos y movimientos en Supabase, calcula existencias y exporta CSV. Acceso restringido a la cuenta autorizada; aún NO es un sistema multiempresa comercial.";
+ panel.append(intro);
+ const status=document.createElement("div");status.className="inventory-status";status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+ status.textContent="Abre este apartado para comprobar disponibilidad. Los datos privados no se cargan en vista previa.";
+ panel.append(status);
+ const controls=document.createElement("div");controls.className="inventory-toolbar";
+ const refresh=document.createElement("button");refresh.type="button";refresh.className="business-secondary";refresh.textContent="Actualizar";
+ const exportItems=document.createElement("button");exportItems.type="button";exportItems.className="business-secondary";exportItems.textContent="Exportar existencias CSV";
+ const exportLedger=document.createElement("button");exportLedger.type="button";exportLedger.className="business-secondary";exportLedger.textContent="Exportar movimientos CSV";
+ controls.append(refresh,exportItems,exportLedger);panel.append(controls);
+ const stats=document.createElement("div");stats.className="inventory-stats";panel.append(stats);
+ const sections=document.createElement("div");sections.className="inventory-forms";
+ const productBox=document.createElement("section");productBox.className="inventory-formbox";
+ const ph=document.createElement("h3");ph.textContent="Registrar producto";productBox.append(ph);
+ const productForm=document.createElement("form");productForm.className="inventory-entry";
+ const skuLabel=document.createElement("label");skuLabel.textContent="Código SKU";
+ const sku=document.createElement("input");sku.type="text";sku.maxLength=64;sku.required=true;sku.autocomplete="off";sku.placeholder="ZAP-001";skuLabel.append(sku);
+ const nameLabel=document.createElement("label");nameLabel.textContent="Nombre del producto";
+ const name=document.createElement("input");name.type="text";name.maxLength=140;name.required=true;name.autocomplete="off";name.placeholder="Zapato de prueba";nameLabel.append(name);
+ const unitLabel=document.createElement("label");unitLabel.textContent="Unidad";
+ const unit=document.createElement("select");for(const opt of ["unidad","par","caja","kg","litro"]){const o=document.createElement("option");o.value=opt;o.textContent=opt;unit.append(o)}unitLabel.append(unit);
+ const minLabel=document.createElement("label");minLabel.textContent="Alerta cuando quede en o debajo de";
+ const threshold=document.createElement("input");threshold.type="number";threshold.min="0";threshold.max="1000000000";threshold.step="0.001";threshold.value="2";threshold.required=true;minLabel.append(threshold);
+ const create=document.createElement("button");create.type="submit";create.className="business-primary";create.textContent="Guardar producto";
+ productForm.append(skuLabel,nameLabel,unitLabel,minLabel,create);productBox.append(productForm);
+ const moveBox=document.createElement("section");moveBox.className="inventory-formbox";
+ const mh=document.createElement("h3");mh.textContent="Registrar entrada o salida";moveBox.append(mh);
+ const moveForm=document.createElement("form");moveForm.className="inventory-entry";
+ const itemLabel=document.createElement("label");itemLabel.textContent="Producto";
+ const itemSelect=document.createElement("select");itemSelect.required=true;itemLabel.append(itemSelect);
+ const typeLabel=document.createElement("label");typeLabel.textContent="Movimiento";
+ const type=document.createElement("select");
+ for(const [value,text] of [["entrada","Entrada · aumentar existencias"],["salida","Salida · descontar existencias"]]){const o=document.createElement("option");o.value=value;o.textContent=text;type.append(o)}
+ typeLabel.append(type);
+ const qtyLabel=document.createElement("label");qtyLabel.textContent="Cantidad";
+ const qty=document.createElement("input");qty.type="number";qty.min="0.001";qty.step="0.001";qty.max="1000000000";qty.required=true;qty.placeholder="1";qtyLabel.append(qty);
+ const noteLabel=document.createElement("label");noteLabel.textContent="Justificación breve (opcional)";
+ const note=document.createElement("input");note.type="text";note.maxLength=240;note.placeholder="Prueba de entrada o salida";noteLabel.append(note);
+ const move=document.createElement("button");move.type="submit";move.className="business-primary";move.textContent="Registrar movimiento";
+ moveForm.append(itemLabel,typeLabel,qtyLabel,noteLabel,move);moveBox.append(moveForm);
+ sections.append(productBox,moveBox);panel.append(sections);
+ const prodTitle=document.createElement("h3");prodTitle.className="inventory-subtitle";prodTitle.textContent="Existencias y alertas";
+ const prodList=document.createElement("div");prodList.className="inventory-list";
+ const ledgerTitle=document.createElement("h3");ledgerTitle.className="inventory-subtitle";ledgerTitle.textContent="Historial de movimientos";
+ const ledgerList=document.createElement("div");ledgerList.className="inventory-list";
+ panel.append(prodTitle,prodList,ledgerTitle,ledgerList);
+ const warning=document.createElement("p");warning.className="inventory-disclaimer";
+ warning.textContent="Prueba piloto individual. No usar aún nómina, datos de clientes, facturas o inventario comercial crítico. El registro es persistente, los movimientos se conservan y no se permite stock negativo. Las funciones multiempresa, respaldos y auditoría comercial deben probarse antes de venderlo.";
+ panel.append(warning);
+ grid.before(panel);
+ let items=[],movements=[],busy=false,lastPayload="",lastKey="";
+ const authenticated=()=>!preview&&authorized&&!!session?.access_token&&!!sb;
+ const fmt=n=>Number(n||0).toLocaleString("es-CO",{maximumFractionDigits:3});
+ const stockOf=id=>Math.round(movements.filter(m=>m.item_id===id).reduce((sum,m)=>sum+(m.movement_type==="entrada"?1:-1)*Number(m.quantity),0)*1000)/1000;
+ const csvCell=v=>{
+  let value=String(v??"");
+  if(/^[\s]*[=+\-@]/.test(value))value="'"+value;
+  return '"'+value.replaceAll('"','""')+'"';
+ };
+ const csvRows=records=>"\uFEFF"+records.map(row=>row.map(csvCell).join(",")).join("\r\n")+"\r\n";
+ const showStatus=(msg,error=false)=>{status.textContent=msg;status.classList.toggle("inventory-error",error)};
+ const addText=(parent,tag,value,className)=>{
+  const el=document.createElement(tag);el.textContent=String(value);if(className)el.className=className;
+  parent.append(el);return el;
+ };
+ function render(){
+  stats.replaceChildren();prodList.replaceChildren();ledgerList.replaceChildren();
+  const low=items.filter(x=>x.active&&Number(x.reorder_point)>0&&stockOf(x.id)<=Number(x.reorder_point));
+  for(const [title,value] of [["Productos",items.length],["Con alerta",low.length],["Movimientos",movements.length]]){
+   const box=document.createElement("div");addText(box,"strong",value);addText(box,"span",title);stats.append(box);
+  }
+  const previous=itemSelect.value;itemSelect.replaceChildren();
+  for(const item of items.filter(x=>x.active)){const option=document.createElement("option");option.value=item.id;option.textContent=item.sku+" · "+item.name;itemSelect.append(option)}
+  if(items.some(x=>x.id===previous&&x.active))itemSelect.value=previous;
+  move.disabled=!itemSelect.options.length;
+  if(!items.length)addText(prodList,"p","No hay productos. Comienza registrando uno ficticio.");
+  for(const item of items){
+   const row=document.createElement("div");row.className="inventory-line";
+   const data=document.createElement("div");data.className="inventory-line-main";
+   addText(data,"strong",item.sku+" · "+item.name);
+   addText(data,"small",(item.active?"Activo":"Inactivo")+" · Alerta mínima: "+fmt(item.reorder_point)+" "+item.unit);
+   const amount=document.createElement("div");amount.className="inventory-quantity";
+   const current=stockOf(item.id);addText(amount,"strong",fmt(current)+" "+item.unit);
+   if(item.active&&Number(item.reorder_point)>0&&current<=Number(item.reorder_point))addText(amount,"small","Existencias bajas","inventory-low");
+   row.append(data,amount);
+   prodList.append(row);
+  }
+  if(!movements.length)addText(ledgerList,"p","Sin movimientos todavía. Los productos comienzan con cero existencias.");
+  const names=new Map(items.map(x=>[x.id,x.sku]));
+  for(const m of movements.slice(0,30)){
+   const row=document.createElement("div");row.className="inventory-line";
+   const data=document.createElement("div");data.className="inventory-line-main";
+   addText(data,"strong",(m.movement_type==="entrada"?"Entrada":"Salida")+" · "+(names.get(m.item_id)||"Producto no disponible"));
+   addText(data,"small",new Date(m.created_at).toLocaleString("es-CO")+" · "+(m.note||"Sin nota"));
+   addText(row,"strong",(m.movement_type==="entrada"?"+":"−")+fmt(m.quantity),"inventory-quantity");
+   row.prepend(data);ledgerList.append(row);
+  }
+ }
+ async function load(){
+  if(busy)return;
+  if(!authenticated()){showStatus("Inicia sesión como titular autorizado para cargar inventarios. La vista previa no lee ni modifica productos.");return}
+  busy=true;refresh.disabled=true;create.disabled=true;move.disabled=true;showStatus("Consultando productos y movimientos protegidos…");
+  try{
+   const [a,b]=await Promise.all([
+    sb.from("sjm_business_inventory_items_v1").select("id,sku,name,unit,reorder_point,active,created_at").order("created_at",{ascending:false}).limit(1000),
+    sb.from("sjm_business_inventory_movements_v1").select("id,item_id,movement_type,quantity,note,created_at").order("created_at",{ascending:false}).limit(1000)
+   ]);
+   if(a.error)throw a.error;if(b.error)throw b.error;
+   items=a.data||[];movements=b.data||[];
+   render();
+   if(items.length>=1000||movements.length>=1000)showStatus("Se alcanzó el límite de 1.000 registros de la vista piloto. El cálculo puede ser incompleto: no uses el informe hasta implementar paginación.",true);
+   else showStatus("Datos protegidos actualizados: "+new Date().toLocaleString("es-CO")+" · "+items.length+" productos · "+movements.length+" movimientos.");
+  }catch(error){showStatus("No se pudo leer el inventario: "+String(error?.message||error).slice(0,170),true)}
+  finally{busy=false;refresh.disabled=false;create.disabled=!authenticated();move.disabled=!authenticated()||!itemSelect.options.length}
+ }
+ productForm.onsubmit=async e=>{
+  e.preventDefault();
+  if(busy)return;
+  if(!authenticated()){showStatus("Solo una cuenta autorizada puede guardar productos.",true);return}
+  if(items.length>=1000){showStatus("Límite piloto de artículos alcanzado. Requiere paginación.",true);return}
+  const product=sku.value.trim(),title=name.value.trim(),minimum=Number(threshold.value);
+  if(!product||!title||!Number.isFinite(minimum)||minimum<0||minimum>1000000000||Math.round(minimum*1000)!==minimum*1000){showStatus("Revisa SKU, nombre y mínimo (máximo 3 decimales).",true);return}
+  busy=true;create.disabled=true;move.disabled=true;
+  showStatus("Guardando producto en la base protegida…");
+  try{
+   const res=await sb.from("sjm_business_inventory_items_v1").insert({sku:product,name:title,unit:unit.value,reorder_point:minimum}).select("id").single();
+   if(res.error)throw res.error;
+   productForm.reset();threshold.value="2";busy=false;await load();
+   showStatus("Producto guardado. Registra una ENTRADA para añadir existencias.");
+  }catch(error){showStatus("No se pudo guardar: "+(error?.code==="23505"?"SKU repetido para esta cuenta.":String(error?.message||error).slice(0,170)),true)}
+  finally{busy=false;create.disabled=!authenticated();move.disabled=!authenticated()||!itemSelect.options.length}
+ };
+ moveForm.onsubmit=async e=>{
+  e.preventDefault();if(busy)return;
+  if(!authenticated()){showStatus("Solo una cuenta autorizada puede registrar movimientos.",true);return}
+  const n=Number(qty.value);
+  if(!itemSelect.value||!Number.isFinite(n)||n<=0||n>1000000000||Math.round(n*1000)!==n*1000){showStatus("Elige producto y cantidad válida (máximo 3 decimales).",true);return}
+  const payload={p_item_id:itemSelect.value,p_type:type.value,p_quantity:n,p_note:note.value.trim()};
+  const signature=JSON.stringify(payload);
+  if(signature!==lastPayload){lastPayload=signature;lastKey=crypto.randomUUID()}
+  busy=true;move.disabled=true;create.disabled=true;showStatus("Validando existencias y registrando movimiento…");
+  try{
+   const res=await sb.rpc("sjm_inventory_register_movement_v1",{...payload,p_request_key:lastKey});
+   if(res.error)throw res.error;
+   const retry=res.data?.duplicatePrevented===true;
+   lastPayload="";lastKey="";qty.value="";note.value="";
+   busy=false;await load();
+   showStatus(retry?"Solicitud repetida identificada; no se duplicó el movimiento.":"Movimiento registrado y existencias recalculadas en la base de datos.");
+  }catch(error){showStatus("Movimiento NO confirmado: "+String(error?.message||error).slice(0,170)+". Reintenta sin modificar los datos para conservar su clave de solicitud.",true)}
+  finally{busy=false;move.disabled=!authenticated()||!itemSelect.options.length;create.disabled=!authenticated()}
+ };
+ refresh.onclick=()=>void load();
+ exportItems.onclick=()=>{
+  if(!authenticated()||!items.length){showStatus("Carga productos autorizados antes de exportar.",true);return}
+  if(items.length>=1000||movements.length>=1000){showStatus("Exportación bloqueada: se requieren todas las páginas del historial para existencias exactas.",true);return}
+  const rows=[["SKU","Producto","Unidad","Existencias","Alerta mínima","Bajo mínimo","Activo"]];
+  for(const x of items){const current=stockOf(x.id);rows.push([x.sku,x.name,x.unit,current,x.reorder_point,Number(x.reorder_point)>0&&current<=Number(x.reorder_point)?"Sí":"No",x.active?"Sí":"No"])}
+  downloadText("SJM_360_Inventario_Existencias.csv",csvRows(rows));showStatus("Archivo de existencias generado localmente con los registros visibles.");
+ };
+ exportLedger.onclick=()=>{
+  if(!authenticated()||!movements.length){showStatus("No hay movimientos autorizados para exportar.",true);return}
+  if(movements.length>=1000){showStatus("Exportación bloqueada: se requiere paginar el historial completo.",true);return}
+  const names=new Map(items.map(x=>[x.id,x.sku]));
+  const rows=[["Fecha","SKU","Movimiento","Cantidad","Nota","ID de comprobante"]];
+  for(const m of movements)rows.push([m.created_at,names.get(m.item_id)||"",m.movement_type,m.quantity,m.note,m.id]);
+  downloadText("SJM_360_Inventario_Movimientos.csv",csvRows(rows));showStatus("Historial CSV exportado. Incluye ID de comprobante de cada movimiento.");
+ };
+ panel.addEventListener("toggle",()=>{if(panel.open&&!items.length)void load()});
+}
+
 function renderEnterpriseCenter(root,grid){
  root.classList.add("enterprise-center");grid.classList.add("business-module-grid");
  const hero=document.createElement("div");hero.className="enterprise-hero";hero.innerHTML='<span class="enterprise-eyebrow">CENTRO DE SOLUCIONES EMPRESARIALES 360°</span><h2>Una solicitud. Distintas soluciones.</h2><p>Elige un área o describe el problema de tu empresa. COMTROL prepara el trabajo; los servicios reales se activan únicamente cuando están conectados, autorizados y probados.</p>';
  root.insertBefore(hero,grid);
  renderStartupWizard(root,grid);
+ renderInventoryPilot(root,grid);
  const begin=document.createElement("button");begin.type="button";begin.className="business-primary business-hero-button";begin.textContent="Comenzar diagnóstico";begin.onclick=()=>document.getElementById("businessIntake")?.scrollIntoView({behavior:"smooth",block:"center"});hero.append(begin);
  for(const m of enterpriseModules){
   const card=document.createElement("article");card.className="business-service";
@@ -1509,6 +1722,12 @@ function renderEnterpriseCenter(root,grid){
   const p=document.createElement("p");p.textContent=m.summary;
   const buttons=document.createElement("div");buttons.className="business-card-actions";
   const ask=document.createElement("button");ask.type="button";ask.className="business-primary";ask.textContent="Solicitar solución";ask.onclick=()=>companyDraftRequest(m.title,m.focus);buttons.append(ask);
+  if(m.id==="inventarios"){
+    const openPilot=document.createElement("button");openPilot.type="button";openPilot.className="business-primary";openPilot.textContent="Abrir inventario operativo";
+    openPilot.onclick=()=>{const target=document.getElementById("inventoryPilot");if(target){target.open=true;target.scrollIntoView({behavior:"smooth",block:"start"})}};
+    buttons.append(openPilot);
+    badge.textContent="Piloto con base real · requiere sesión";
+  }
   if(m.csv){const csv=document.createElement("button");csv.type="button";csv.className="business-secondary";csv.textContent="Plantilla CSV";csv.onclick=()=>csvStarter(m.csv);buttons.append(csv)}
   card.append(label,h,p,buttons);
   const reference=enterprisePlaybooks[m.id];
