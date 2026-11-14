@@ -28,6 +28,12 @@ public final class AppWorkflowPolicySelfTest {
         check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","","https://www.youtube.com/watch?v=RHZTk79wAL4"),"URLs disallowed");
         check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","","invalid"),"video ID length limited");
         check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","desc:Buscar","RHZTk79wAL4"),"video action cannot inject selector");
+        check(AppWorkflowPolicy.isAllowedStep("youtube_search_play","","Hosanna|Marco Barrientos"),"dynamic song accepted");
+        check(AppWorkflowPolicy.isAllowedStep("youtube_search_play","","Mi Universo|Jesus Adrian Romero"),"different song accepted");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_search_play","","Hosanna"),"song+artist required");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_search_play","","Hosanna|"),"artist required");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_search_play","","https://bad.example|Singer"),"URL rejected");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_search_play","desc:Buscar","Hosanna|Marco Barrientos"),"selector rejected");
         check(AppWorkflowPolicy.isAllowedStep("wait","","800"),"bounded wait");
         check(!AppWorkflowPolicy.isAllowedStep("wait","","80000"),"unbounded wait");
         System.out.println("KAIRÓS generic workflow policy 17/17 PASS");

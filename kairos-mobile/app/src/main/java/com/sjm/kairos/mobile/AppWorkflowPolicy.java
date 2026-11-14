@@ -41,6 +41,18 @@ public final class AppWorkflowPolicy {
         for(String term:blocked)if(s.contains(term))return true;
         return false;
     }
+    public static boolean isValidSongRequest(String request){
+        if(request==null || request.length()<7 || request.length()>160 ||
+           request.contains("://") || request.indexOf('\n')>=0 ||
+           request.indexOf('\r')>=0 || request.indexOf('\u0000')>=0 ||
+           isSensitiveClick(request))return false;
+        int separator=request.indexOf('|');
+        return separator>=3 && separator==request.lastIndexOf('|') &&
+               request.substring(0,separator).trim().length()>=3 &&
+               request.substring(separator+1).trim().length()>=3 &&
+               separator<=80 && request.length()-separator-1<=80;
+    }
+
     public static boolean isAllowedStep(String action,String selector,String value){
         if(action==null)return false;
         switch(action){
@@ -55,6 +67,8 @@ public final class AppWorkflowPolicy {
             case "youtube_play_video":
                 return (selector==null || selector.isEmpty()) && value!=null &&
                        value.matches("[A-Za-z0-9_-]{11}");
+            case "youtube_search_play":
+                return (selector==null || selector.isEmpty()) && isValidSongRequest(value);
             case "tap_video":
                 if(selector!=null&&!selector.isEmpty() || value==null ||
                    value.length()<7 || value.length()>160 || value.contains("\u0000")) return false;

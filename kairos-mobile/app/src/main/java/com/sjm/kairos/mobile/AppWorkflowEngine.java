@@ -56,7 +56,8 @@ final class AppWorkflowEngine {
             String selector=step.optString("selector","");
             String value=step.optString("value","");
             if(!AppWorkflowPolicy.isAllowedStep(action,selector,value))return false;
-            if("youtube_play_video".equals(action) &&
+            if(("youtube_play_video".equals(action) ||
+                 "youtube_search_play".equals(action)) &&
                (!"com.google.android.youtube".equals(target) || sequence.length()!=1))
                 return false;
         }
@@ -76,6 +77,10 @@ final class AppWorkflowEngine {
             worker.openYoutubeVideo(onlyStep.optString("value",""));
             return;
         }
+        if(onlyStep!=null && "youtube_search_play".equals(onlyStep.optString("action",""))){
+            worker.searchAndPlayYoutube(onlyStep.optString("value",""));
+            return;
+        }
         try{
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
             svc.startActivity(launch);
@@ -89,6 +94,63 @@ final class AppWorkflowEngine {
      * This avoids brittle keyboard selectors and never opens another app.
      * An accepted launch does NOT certify that audio has started.
      */
+    /** Search any requested song by a YouTube deep link; no fixed video IDs or coordinates. */
+    private void searchAndPlayYoutube(String request){
+        if(!"com.google.android.youtube".equals(target) ||
+           !AppWorkflowPolicy.isValidSongRequest(request)){
+            finish(false,"YOUTUBE_SEARCH_POLICY_DENIED");
+            return;
+        }
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        int separator=request.indexOf('|');
+        String title=request.substring(0,separator).trim();
+        String artist=request.substring(separator+1).trim();
+        Uri search=Uri.parse("https://www.youtube.com/results").buildUpon()
+            .appendQueryParameter("search_query",title+" "+artist).build();
+        try {
+            Intent intent=new Intent(Intent.ACTION_VIEW,search);
+            intent.setPackage("com.google.android.youtube");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            service.startActivity(intent);
+            handler.postDelayed(()->tapYouTubeResult(request,0),1900L);
+        }catch(RuntimeException e){
+            finish(false,"YOUTUBE_SEARCH_LAUNCH_DENIED");
+        }
+    }
+
+    private void tapYouTubeResult(String request,int attempt){
+        if(finished)return;
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        AccessibilityNodeInfo root=foreground();
+        if(root!=null){
+            AccessibilityNodeInfo video=findMatchingVideo(root,request);
+            if(video!=null){
+                AccessibilityNodeInfo click=safeClickableAncestor(video);
+                try {
+                    if(click!=null && click.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
+                        handler.postDelayed(()->{
+                            if(foreground()!=null)
+                                finish(true,"YOUTUBE_SEARCH_RESULT_CLICKED_FOREGROUND_CONFIRMED_PLAYBACK_UNVERIFIED");
+                            else finish(false,"YOUTUBE_SEARCH_RESULT_CLICKED_FOREGROUND_UNVERIFIED");
+                        },1500L);
+                        return;
+                    }
+                }catch(RuntimeException ignored){}
+            }
+        }
+        if(attempt>=18){
+            finish(false,"YOUTUBE_SEARCH_MATCHING_RESULT_NOT_VERIFIED");
+            return;
+        }
+        handler.postDelayed(()->tapYouTubeResult(request,attempt+1),650L);
+    }
+
     private void openYoutubeVideo(String videoId){
         if(!"com.google.android.youtube".equals(target) ||
            videoId==null || !videoId.matches("[A-Za-z0-9_-]{11}")){
@@ -258,10 +320,15 @@ final class AppWorkflowEngine {
                !n.isVisibleToUser())continue;
             String label=(String.valueOf(n.getText())+" "+String.valueOf(n.getContentDescription()))
                 .toLowerCase(java.util.Locale.ROOT);
-            if(!n.isEditable()&&label.contains(song)&&label.contains(artist)&&
+            if(!n.isEditable()&&!n.isPassword()&&
                !AppWorkflowPolicy.isSensitiveClick(label)){
-                AccessibilityNodeInfo click=safeClickableAncestor(n);
-                if(click!=null)return n;
+                AccessibilityNodeInfo clickable=safeClickableAncestor(n);
+                if(clickable!=null && !clickable.isScrollable()){
+                    if(label.contains(song)&&label.contains(artist))return n;
+                    // A result row can split the video title and channel labels.
+                    if(label.contains(song) && matchingRowText(clickable,song,artist))
+                        return clickable;
+                }
             }
             for(int i=0;i<n.getChildCount();i++){
                 AccessibilityNodeInfo child=n.getChild(i);
@@ -269,6 +336,28 @@ final class AppWorkflowEngine {
             }
         }
         return null;
+    }
+
+    private boolean matchingRowText(AccessibilityNodeInfo row,String song,String artist){
+        ArrayDeque<AccessibilityNodeInfo> sub=new ArrayDeque<>();
+        sub.add(row);
+        int checked=0;
+        StringBuilder labels=new StringBuilder();
+        while(!sub.isEmpty()&&checked++<30){
+            AccessibilityNodeInfo child=sub.removeFirst();
+            if(!target.equals(String.valueOf(child.getPackageName())) ||
+               !child.isVisibleToUser() || child.isPassword() ||
+               child.isEditable())return false;
+            String label=(String.valueOf(child.getText())+" "+
+                    String.valueOf(child.getContentDescription())).toLowerCase(java.util.Locale.ROOT);
+            if(AppWorkflowPolicy.isSensitiveClick(label))return false;
+            labels.append(' ').append(label);
+            for(int i=0;i<child.getChildCount();i++){
+                AccessibilityNodeInfo nested=child.getChild(i);
+                if(nested!=null)sub.addLast(nested);
+            }
+        }
+        return sub.isEmpty() && labels.toString().contains(song) && labels.toString().contains(artist);
     }
 
     private AccessibilityNodeInfo safeClickableAncestor(AccessibilityNodeInfo node){
