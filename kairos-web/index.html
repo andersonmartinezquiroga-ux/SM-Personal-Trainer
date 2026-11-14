@@ -997,6 +997,37 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .startup-warning{font-size:15px!important;color:#bbd3e6!important;margin:11px 0 0!important}
 @media(max-width:800px){.startup-wizard{padding:18px 15px}.startup-actions button{flex:1 1 43%;font-size:16px}.startup-wizard h2{font-size:24px}}
 
+
+/* Dictado universal COMTROL v2.4 · micrófono y teclado en entradas */
+.field-writing-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:8px 0 1px;max-width:100%}
+.field-write-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:7px 13px;min-height:43px;min-width:91px;
+ border-radius:12px;border:1px solid #6789a3;background:#293d50;color:#e8f7ff;font-family:inherit;font-size:15px;font-weight:680;
+ line-height:1.25;box-shadow:inset 0 1px #ffffff15}
+.field-write-btn svg{width:19px;height:19px;flex:none}
+.field-write-btn:hover{background:#35536b;border-color:#8bb4d0}
+.field-write-btn:focus-visible{outline:3px solid #b3e1ff;outline-offset:2px}
+.field-write-btn.dictation-on,#mic.dictation-on{border-color:#c4e8ff;background:#286d9f;color:#fff;
+ box-shadow:0 0 0 2px #63baff55,inset 0 1px #ffffff3d;animation:dictate-pulse 1.8s ease-in-out infinite}
+@keyframes dictate-pulse{0%,100%{box-shadow:0 0 0 2px #63baff30}50%{box-shadow:0 0 0 5px #63baff55}}
+.composer textarea{min-width:0}
+#mic svg,#keyboardChat svg{display:block;height:22px;width:22px}
+#keyboardChat{background:#2b3c4d;color:#edf8ff;border:1px solid #627f96}
+#keyboardChat:hover{background:#39536a}
+@media(max-width:800px){
+ .field-writing-actions{gap:7px;margin-top:8px}
+ .field-write-btn{min-height:42px;min-width:88px;font-size:15px;padding:8px 11px}
+ .composer{gap:5px;padding:7px}
+ .composer .round{width:38px;min-width:38px;height:39px;border-radius:12px}
+ .composer textarea{padding:9px 2px;min-width:0}
+}
+@media(max-width:390px){
+ .composer{gap:4px;padding:6px}
+ .composer .round{width:34px;min-width:34px;height:37px}
+ .composer .round svg{height:19px;width:19px}
+ .field-write-btn{min-width:82px;padding:7px 9px}
+}
+@media(prefers-reduced-motion:reduce){.field-write-btn.dictation-on,#mic.dictation-on{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1064,7 +1095,7 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 <input id="camera" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Tomar fotografía">
 <button id="attach" type="button" class="round attachment-trigger" aria-label="Agregar archivo o foto" aria-expanded="false">＋</button>
 <textarea id="prompt" rows="1" maxlength="700" placeholder="Pregunta lo que necesites…" aria-label="Mensaje a KAIRÓS"></textarea>
-<button id="mic" type="button" class="round" aria-label="Dictar mensaje">♬</button><button id="callVoiceComposer" type="button" class="round voice-launch" aria-label="Iniciar modo voz, llamada manos libres" title="Hablar con COMTROL 360"><svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4m4-5v6"/></svg></button>
+<button id="mic" type="button" class="round" aria-label="Dictar mensaje por voz" title="Hablar y escribir automáticamente"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5m-4 0h8"/></svg></button><button id="keyboardChat" type="button" class="round" aria-label="Escribir mensaje con el teclado" title="Escribir con teclado"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/></svg></button><button id="callVoiceComposer" type="button" class="round voice-launch" aria-label="Iniciar modo voz, llamada manos libres" title="Hablar con COMTROL 360"><svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4m4-5v6"/></svg></button>
 <button id="send" type="submit" class="round primary" aria-label="Enviar mensaje">↑</button>
 </form></div>
 <div class="composer-foot"><span id="mode">Mentor guiado · sin ejecuciones externas</span><span id="attachmentHelp">＋ Archivos, fotos o cámara</span></div>
@@ -1916,6 +1947,7 @@ async function voiceProcess(utterance){
 }
 function startVoiceCall(){
  if(voiceCall.active)return;
+ stopFieldDictation(true);
  closePanels();closeDrawer();
  voiceCall.active=true;voiceCall.token++;voiceCall.muted=false;voiceCall.captions=false;
  voiceCall.busy=false;voiceCall.speaking=false;voiceCall.permissionBlocked=false;
@@ -1969,8 +2001,111 @@ function voiceVisibility(){
 }
 
 function speak(){if(!lastAnswer){info("Primero solicita una respuesta");return}if(!("speechSynthesis" in window)){info("El navegador no admite lectura de voz");return}speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(lastAnswer.slice(0,3000));utter.lang="es-CO";utter.rate=.95;utter.pitch=.9;const vv=speechSynthesis.getVoices().filter(v=>(v.lang||"").toLowerCase().startsWith("es"));utter.voice=vv.find(v=>/male|mascul|jorge|juan|pablo|diego/i.test(v.name))||vv[0]||null;speechSynthesis.speak(utter);info("Reproducción con la voz disponible en Android; aún no es el motor de voz premium")}
-function mic(){if(!authorized){info("Debes iniciar sesión");return}const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){info("Dictado no disponible en este navegador");return}if(recognizing)return;const rec=new R();rec.lang="es-CO";rec.interimResults=false;rec.onresult=e=>{$("prompt").value=String(e.results?.[0]?.[0]?.transcript||"").replace(/^kair[oó]s[,.:]?\s*/i,"");grow();info("Dictado recibido: revisa y pulsa enviar")};rec.onerror=e=>info("Micrófono: "+String(e.error||"no disponible"));rec.onend=()=>recognizing=false;recognizing=true;try{rec.start();info("Escuchando por el micrófono del navegador…")}catch{recognizing=false;info("No se pudo iniciar el micrófono")}}
-async function logout(){endVoiceCall();attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
+
+/* Dictado universal COMTROL v2.4 · transforma voz en texto editable; NO envía respuestas. */
+const dictation={recognition:null,field:null,button:null,heard:false,session:0};
+const dictatedFields=new WeakSet();
+const iconMic=String.raw`<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5m-4 0h8"/></svg>`;
+const iconKeyboard=String.raw`<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/></svg>`;
+function stopFieldDictation(cancel=false){
+ const rec=dictation.recognition;
+ const btn=dictation.button;
+ dictation.recognition=null;dictation.field=null;dictation.button=null;
+ dictation.session++;
+ if(btn){btn.classList.remove("dictation-on");btn.setAttribute("aria-pressed","false");btn.setAttribute("title","Dictar por voz")}
+ if(rec){try{if(cancel)rec.abort();else rec.stop()}catch{}}
+}
+function startFieldDictation(field,button){
+ if(!field||field.disabled||field.readOnly)return;
+ if(dictation.recognition){
+  if(dictation.field===field){stopFieldDictation();info("Dictado detenido. Revisa el texto antes de continuar.");return}
+  stopFieldDictation(true);
+ }
+ if(voiceCall.active){info("Primero finaliza la llamada de voz para dictar en un campo.");return}
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){info("El navegador no admite dictado automático. Pulsa Escribir y usa el micrófono del teclado de Android.");return}
+ const rec=new Recognition();
+ rec.lang="es-CO";rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=1;
+ let begin=field.value;let start=begin.length;let end=begin.length;
+ try{start=field.selectionStart??start;end=field.selectionEnd??end}catch{}
+ const prefix=begin.slice(0,start),suffix=begin.slice(end);
+ const id=++dictation.session;
+ dictation.recognition=rec;dictation.field=field;dictation.button=button;dictation.heard=false;
+ if(button){button.classList.add("dictation-on");button.setAttribute("aria-pressed","true");button.title="Detener dictado"}
+ let last="";
+ rec.onresult=e=>{
+  if(dictation.recognition!==rec||dictation.session!==id||!field.isConnected)return;
+  const text=Array.from(e.results).map(item=>String(item[0]?.transcript||"")).join(" ").trim();
+  if(!text)return;
+  dictation.heard=true;last=text;
+  const before=prefix+(prefix&&!/\s$/.test(prefix)?" ":"");
+  const after=(suffix&&!/^\s|[.,;!?]/.test(suffix)?" ":"")+suffix;
+  let updated=before+text+after;
+  const limit=field.maxLength>0?field.maxLength:10000;
+  updated=updated.slice(0,limit);
+  field.value=updated;
+  field.dispatchEvent(new Event("input",{bubbles:true}));
+  if(field.id==="prompt")grow();
+ };
+ rec.onerror=e=>{
+  if(dictation.recognition!==rec)return;
+  const error=String(e.error||"error");
+  const messages={
+   "not-allowed":"El micrófono está bloqueado: activa el permiso para este sitio en Chrome.",
+   "service-not-allowed":"El servicio de reconocimiento de voz no está permitido en este navegador.",
+   "audio-capture":"No se encontró un micrófono disponible.",
+   "network":"El dictado no pudo conectarse. Revisa la conexión a internet.",
+   "no-speech":"No se detectó voz. Toca Hablar para intentarlo de nuevo."
+  };
+  info(messages[error]||"Error de dictado: "+error);
+ };
+ rec.onend=()=>{
+  if(dictation.recognition!==rec)return;
+  const heard=dictation.heard;
+  dictation.recognition=null;dictation.field=null;dictation.button=null;
+  if(button){button.classList.remove("dictation-on");button.setAttribute("aria-pressed","false");button.title="Dictar por voz"}
+  if(heard)info("Texto dictado. Puedes corregirlo, añadir más o continuar.");
+ };
+ try{
+  rec.start();
+  info("Escuchando en español… habla con naturalidad. La respuesta quedará escrita, no enviada.");
+ }catch(e){
+  stopFieldDictation(true);
+  info("No fue posible activar el micrófono. Usa Escribir o el micrófono del teclado.");
+ }
+}
+function addFieldWritingControls(field){
+ if(!field||dictatedFields.has(field)||field.closest("#auth")||field.id==="prompt"||field.id==="search"||field.id==="projectSearch")return;
+ if(field.disabled||field.readOnly||field.type==="password"||field.type==="hidden")return;
+ dictatedFields.add(field);
+ const group=document.createElement("div");group.className="field-writing-actions";
+ const voice=document.createElement("button");voice.type="button";voice.className="field-write-btn";
+ voice.setAttribute("aria-label","Dictar por voz en este campo");voice.setAttribute("aria-pressed","false");
+ voice.title="Hablar: convertir voz en texto";voice.innerHTML=iconMic+"<span>Hablar</span>";
+ const keyboard=document.createElement("button");keyboard.type="button";keyboard.className="field-write-btn";
+ keyboard.setAttribute("aria-label","Escribir con el teclado en este campo");keyboard.title="Escribir con teclado";
+ keyboard.innerHTML=iconKeyboard+"<span>Escribir</span>";
+ voice.onclick=()=>startFieldDictation(field,voice);
+ keyboard.onclick=()=>{if(dictation.field===field)stopFieldDictation(true);field.focus();info("Escribe normalmente. También puedes utilizar el micrófono de tu teclado.");};
+ group.append(voice,keyboard);field.insertAdjacentElement("afterend",group);
+}
+function enhanceWritingInputs(){
+ if(dictation.field&&!dictation.field.isConnected)stopFieldDictation(true);
+ const root=$("layout");if(!root)return;
+ for(const field of root.querySelectorAll('textarea,input[type="text"],input:not([type])')){
+  addFieldWritingControls(field);
+ }
+}
+function initWritingModes(){
+ enhanceWritingInputs();
+ const container=$("layout");if(!container)return;
+ const observer=new MutationObserver(()=>enhanceWritingInputs());
+ observer.observe(container,{childList:true,subtree:true});
+ $("keyboardChat").onclick=()=>{if(dictation.field===$("prompt"))stopFieldDictation(true);$("prompt").focus();info("Teclado disponible para escribir el mensaje.")};
+}
+
+function mic(){startFieldDictation($("prompt"),$("mic"))}
+async function logout(){stopFieldDictation(true);endVoiceCall();attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;$("previewBanner").classList.add("hidden");session=null;authorized=false;chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
 async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Pega tu clave privada para entrar a CONTROL 360.");return}
 preview=false;$("previewBanner").classList.add("hidden");attachments=[];renderAttachments();const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
 $("auth").classList.add("hidden");$("layout").classList.remove("hidden");restore();messagesRender();show("chat")}
@@ -2035,6 +2170,6 @@ document.addEventListener("visibilitychange",voiceVisibility);
 if("speechSynthesis" in window)try{speechSynthesis.addEventListener("voiceschanged",()=>{if(!$("#voiceScreen").classList.contains("hidden"))voiceReadOptions()})}catch{}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
-async function start(){navBuild();events();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
+async function start(){navBuild();events();initWritingModes();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
