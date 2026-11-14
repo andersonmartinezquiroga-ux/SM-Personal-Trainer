@@ -33,6 +33,25 @@ jobs:
         run: |
           mkdir -p build/policy-test
           javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          # Verificar que ningún componente informe una versión Android literal y anticuada.
+          python3 - <<'PY'
+          import pathlib,re
+          root=pathlib.Path('app')
+          gradle=(root/'build.gradle').read_text()
+          version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
+          code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
+          assert version=='0.3.15' and int(code)>=18, (version,code)
+          files=[
+              root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
+              root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
+          ]
+          for f in files:
+              text=f.read_text()
+              assert 'getPackageManager().getPackageInfo(getPackageName(),0).versionName' in text, f
+              assert not re.search(r'\.put\("appVersion","[0-9.]+?"\)',text), f
+          assert 'VERSIÓN '+version in files[0].read_text()
+          print('ANDROID_VERSION_SYNC 2/2 PASS: packageManager authoritative in UI and accessibility')
+          PY
           java -cp build/policy-test com.sjm.kairos.mobile.LastResultTextSelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.LocalInteractionPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.NavigationPolicySelfTest
@@ -88,7 +107,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0314
+          name: KairosMobile-release-APK-V0315
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -99,12 +118,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.14-supabase'
+          tag='kairos-mobile-v0.3.15-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.14-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.15-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.14-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.14 · resultado local visible bajo el botón'               --notes 'KAIRÓS 0.3.14: muestra bajo Ver último resultado el comprobante local y el estado del sondeo sin repetir órdenes. Conservar límites 0.3.13: no navega, no envía postulaciones ni mensajes y no declara autonomía. Mantiene permisos y límites de 0.3.12; no declara autonomía. VersiónCode 17 y misma firma permanente: comprobar certificado antes de instalar sobre 0.3.12.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.15-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.15 · versión real en registro Android'               --notes 'KAIRÓS 0.3.15: corrige informe falso 0.3.13 desde servicio de Accesibilidad. Ambos registros usan versión instalada real Android. La vista conserva resultado y sondeo visibles sin repetir órdenes. Conservar límites 0.3.13: no navega, no envía postulaciones ni mensajes y no declara autonomía. Mantiene permisos y límites de 0.3.12; no declara autonomía. VersiónCode 18 y misma firma permanente: sobre 0.3.14 sin desinstalar ni perder credenciales. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
           fi

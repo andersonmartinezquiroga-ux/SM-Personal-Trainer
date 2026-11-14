@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
         layout.setPadding(24,38,24,24);
         scroll.addView(layout);
         layout.addView(text("KAIRÓS MÓVIL · SJM CONTROL 360",23));
-        layout.addView(text("VERSIÓN 0.3.14 · RESULTADOS VISIBLES",17));
+        layout.addView(text("VERSIÓN 0.3.15 · RESULTADOS VISIBLES",17));
         TextView immediateTapStatus=text("PRUEBA DE BOTÓN: aún no iniciada.",18);
         layout.addView(immediateTapStatus);
         layout.addView(text("Ejecutor privado para el Motorola. No modifica su MacroDroid ni permite pagos, mensajes o formularios.",16));
@@ -257,7 +257,9 @@ public class MainActivity extends Activity {
             try {
                 JSONArray scopes=new JSONArray().put("notify").put("open_app").put("open_url");
                 JSONObject request=new JSONObject().put("action","register")
-                    .put("version",1).put("appVersion","0.3.14").put("capabilities",scopes);
+                    .put("version",1)
+                    .put("appVersion",getPackageManager().getPackageInfo(getPackageName(),0).versionName)
+                    .put("capabilities",scopes);
                 JSONObject reply=BridgeHttp.call("/_api/kairos/phone_executor","POST",request,key);
                 if(!reply.optBoolean("ok",false))
                     throw new IllegalStateException("El servidor no confirmó la vinculación");

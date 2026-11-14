@@ -371,7 +371,8 @@ public class KairosAccessibility extends AccessibilityService {
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
                 JSONObject registration=new JSONObject()
-                    .put("action","register").put("version",1).put("appVersion","0.3.13")
+                    .put("action","register").put("version",1)
+                    .put("appVersion",getPackageManager().getPackageInfo(getPackageName(),0).versionName)
                     .put("capabilities",capabilities);
                 JSONObject registered=BridgeHttp.call("/_api/kairos/phone_executor","POST",registration,key);
                 if (!registered.optBoolean("ok",false)) throw new IllegalStateException("Registro no confirmado");
