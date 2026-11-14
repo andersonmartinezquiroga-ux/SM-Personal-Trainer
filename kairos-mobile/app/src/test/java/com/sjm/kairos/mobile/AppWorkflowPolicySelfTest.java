@@ -24,6 +24,10 @@ public final class AppWorkflowPolicySelfTest {
         check(!AppWorkflowPolicy.isAllowedStep("tap_video","","Hosanna|"),"video requires real artist");
         check(!AppWorkflowPolicy.isAllowedStep("tap_video","","Comprar|pagar"),"sensitive video blocked");
         check(!AppWorkflowPolicy.isAllowedStep("ime_search","",""),"IME needs a field");
+        check(AppWorkflowPolicy.isAllowedStep("youtube_play_video","","RHZTk79wAL4"),"verified video ID accepted");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","","https://www.youtube.com/watch?v=RHZTk79wAL4"),"URLs disallowed");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","","not-a-video"),"video ID length limited");
+        check(!AppWorkflowPolicy.isAllowedStep("youtube_play_video","desc:Buscar","RHZTk79wAL4"),"video action cannot inject selector");
         check(AppWorkflowPolicy.isAllowedStep("wait","","800"),"bounded wait");
         check(!AppWorkflowPolicy.isAllowedStep("wait","","80000"),"unbounded wait");
         System.out.println("KAIRÓS generic workflow policy 17/17 PASS");

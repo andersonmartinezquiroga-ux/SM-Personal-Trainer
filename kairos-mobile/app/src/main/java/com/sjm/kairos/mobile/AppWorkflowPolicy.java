@@ -52,6 +52,9 @@ public final class AppWorkflowPolicy {
                     value.length()>=1 && value.length()<=400 && !value.contains("\u0000");
             case "ime_search":
                 return isValidSelector(selector) && (value==null || value.isEmpty());
+            case "youtube_play_video":
+                return (selector==null || selector.isEmpty()) && value!=null &&
+                       value.matches("[A-Za-z0-9_-]{11}");
             case "tap_video":
                 if(selector!=null&&!selector.isEmpty() || value==null ||
                    value.length()<7 || value.length()>160 || value.contains("\u0000")) return false;

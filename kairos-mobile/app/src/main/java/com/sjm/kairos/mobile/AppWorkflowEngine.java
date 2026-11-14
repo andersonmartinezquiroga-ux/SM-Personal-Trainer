@@ -2,6 +2,7 @@ package com.sjm.kairos.mobile;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -55,6 +56,9 @@ final class AppWorkflowEngine {
             String selector=step.optString("selector","");
             String value=step.optString("value","");
             if(!AppWorkflowPolicy.isAllowedStep(action,selector,value))return false;
+            if("youtube_play_video".equals(action) &&
+               (!"com.google.android.youtube".equals(target) || sequence.length()!=1))
+                return false;
         }
         return true;
     }
@@ -67,11 +71,61 @@ final class AppWorkflowEngine {
         Intent launch=svc.getPackageManager().getLaunchIntentForPackage(pkg);
         if(launch==null) {cb.onDone(false,"WORKFLOW_APP_UNAVAILABLE");return;}
         AppWorkflowEngine worker=new AppWorkflowEngine(svc,h,pkg,payload.optJSONArray("steps"),cb);
+        JSONObject onlyStep=payload.optJSONArray("steps").optJSONObject(0);
+        if(onlyStep!=null && "youtube_play_video".equals(onlyStep.optString("action",""))){
+            worker.openYoutubeVideo(onlyStep.optString("value",""));
+            return;
+        }
         try{
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
             svc.startActivity(launch);
             h.postDelayed(()->worker.executeStep(0),1100L);
         }catch(RuntimeException e){cb.onDone(false,"WORKFLOW_LAUNCH_DENIED");}
+    }
+
+    /**
+     * Direct verified YouTube video link. The backend searches for the
+     * song's real video ID; the phone opens it in YouTube itself.
+     * This avoids brittle keyboard selectors and never opens another app.
+     * An accepted launch does NOT certify that audio has started.
+     */
+    private void openYoutubeVideo(String videoId){
+        if(!"com.google.android.youtube".equals(target) ||
+           videoId==null || !videoId.matches("[A-Za-z0-9_-]{11}")){
+            finish(false,"YOUTUBE_VIDEO_POLICY_DENIED");
+            return;
+        }
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        try{
+            Intent intent=new Intent(Intent.ACTION_VIEW,
+                 Uri.parse("https://www.youtube.com/watch?v="+videoId));
+            intent.setPackage("com.google.android.youtube");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            service.startActivity(intent);
+            handler.postDelayed(()->verifyYoutubeOpened(0),1600L);
+        }catch(RuntimeException e){
+            finish(false,"YOUTUBE_VIDEO_OPEN_DENIED");
+        }
+    }
+
+    private void verifyYoutubeOpened(int attempt){
+        if(finished)return;
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        if(foreground()!=null){
+            finish(true,"YOUTUBE_VIDEO_LINK_OPENED_FOREGROUND_CONFIRMED_PLAYBACK_UNVERIFIED");
+            return;
+        }
+        if(attempt>=18){
+            finish(false,"YOUTUBE_VIDEO_FOREGROUND_NOT_VERIFIED");
+            return;
+        }
+        handler.postDelayed(()->verifyYoutubeOpened(attempt+1),650L);
     }
 
     private void finish(boolean ok,String detail) {
