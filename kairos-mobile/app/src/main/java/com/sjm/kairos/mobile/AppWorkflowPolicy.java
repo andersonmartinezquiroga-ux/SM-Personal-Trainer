@@ -25,8 +25,10 @@ public final class AppWorkflowPolicy {
         if(x.contains("password") || x.contains("passwd") || x.contains("contrase") ||
            x.contains("pin_code") || x.contains("cvv") || x.contains("otp") ||
            x.contains("security_code") || x.contains("one_time"))return false;
-        return selector.startsWith("id:") || selector.startsWith("text:") ||
-               selector.startsWith("desc:") || selector.startsWith("hint:");
+        return (selector.startsWith("id:") && selector.length()>3) ||
+               (selector.startsWith("text:") && selector.length()>5) ||
+               (selector.startsWith("desc:") && selector.length()>5) ||
+               (selector.startsWith("hint:") && selector.length()>5);
     }
     public static boolean isSensitiveClick(String selector){
         if(selector==null)return true;
