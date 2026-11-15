@@ -1203,6 +1203,10 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .chat-cloud-backups #cloudChatStatus.cloud-chat-error{color:#9c4a39;font-weight:650}
 @media(max-width:800px){.chat-cloud-backups{padding:10px}.chat-cloud-buttons button{flex:1 1 42%}.chat-cloud-restore select{flex:1 1 100%}.chat-cloud-restore button{flex:1 1 100%}}
 
+
+/* COMTROL · Contexto opcional por conversación v3.1 */
+.brain-independent-controls .brain-context-consent{margin-top:9px;padding-top:9px;border-top:1px solid #c0d6e3;font-weight:570}
+
 </style>
 </head>
 <body>
@@ -1261,7 +1265,8 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  <button id="brainIndependentMode" type="button" class="brain-mode-choice" aria-pressed="false">✦ COMTROL · IA independiente</button>
 </div>
 <div id="brainIndependentControls" class="brain-independent-controls hidden">
- <label><input id="brainExternalConsent" type="checkbox"> Autorizo enviar <strong>solo esta pregunta</strong> al proveedor externo independiente.</label>
+ <label><input id="brainExternalConsent" type="checkbox"> Autorizo enviar <strong>esta pregunta</strong> al proveedor independiente.</label>
+ <label class="brain-context-consent"><input id="brainIncludeContext" type="checkbox"> Incluir hasta <strong>4 mensajes anteriores</strong> para que recuerde el contexto de esta conversación (opcional, por esta pregunta).</label>
  <p id="brainIndependentState">Modelo independiente: comprobación pendiente. Sin historial compartido ni órdenes automáticas.</p>
  <button id="brainIndependentSelfTest" type="button" class="brain-selftest-btn">Comprobar seguridad de la conexión (sin consumir IA)</button>
  <p id="brainSelfTestResult" role="status" aria-live="polite"></p>
@@ -1336,17 +1341,18 @@ const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQ
 const $=id=>document.getElementById(id);
 let standaloneModelReady=false,standaloneSelected=false,standaloneName="";
 function updateStandaloneControls(){
- const mentor=$("brainMentorMode"),independent=$("brainIndependentMode"),controls=$("brainIndependentControls"),consent=$("brainExternalConsent"),state=$("brainIndependentState");
- if(!mentor||!independent||!controls||!consent||!state)return;
+ const mentor=$("brainMentorMode"),independent=$("brainIndependentMode"),controls=$("brainIndependentControls"),consent=$("brainExternalConsent"),context=$("brainIncludeContext"),state=$("brainIndependentState");
+ if(!mentor||!independent||!controls||!consent||!context||!state)return;
  mentor.classList.toggle("selected",!standaloneSelected);independent.classList.toggle("selected",standaloneSelected);
  mentor.setAttribute("aria-pressed",String(!standaloneSelected));independent.setAttribute("aria-pressed",String(standaloneSelected));
  controls.classList.toggle("hidden",!standaloneSelected);
  consent.disabled=!standaloneModelReady||preview||!authorized;
+ context.disabled=!standaloneModelReady||preview||!authorized;
  state.textContent=preview?"Vista previa: ningún modelo ni dato privado conectados.":
  !authorized?"Primero verifica tu sesión para usar el modelo independiente.":
  standaloneModelReady?"Modelo independiente configurado"+(standaloneName?" ("+standaloneName+")":"")+". Solo se enviará tu pregunta si autorizas esta consulta. No se envía el historial.":
  "Modelo independiente aún no configurado en el servidor. Usa CONTROL · Supervisión mientras conectamos el motor de IA.";
- if(!standaloneModelReady||preview)consent.checked=false;
+ if(!standaloneModelReady||preview){consent.checked=false;context.checked=false;}
 }
 
 /* COMTROL · Respaldo privado voluntario de conversaciones v3.0
@@ -1442,7 +1448,7 @@ function initCloudChatBackups(){
 }
 
 function initBrainSelector(){
- $("brainMentorMode").onclick=()=>{standaloneSelected=false;$("brainExternalConsent").checked=false;updateStandaloneControls()};
+ $("brainMentorMode").onclick=()=>{standaloneSelected=false;$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls()};
  $("brainIndependentMode").onclick=()=>{standaloneSelected=true;updateStandaloneControls()};
  $("brainIndependentSelfTest").onclick=async()=>{
   const el=$("brainSelfTestResult"),btn=$("brainIndependentSelfTest");
@@ -2823,15 +2829,23 @@ const independent=standaloneSelected&&!forceMentor;
 if(independent&&!preview){
  if(!standaloneModelReady){info("El modelo independiente aún no está configurado. Selecciona CONTROL · Supervisión para consultar el Mentor.");return}
  if(!$("brainExternalConsent").checked){info("Para esta pregunta debes autorizar su envío al proveedor del modelo independiente.");return}
- $("brainExternalConsent").checked=false;updateStandaloneControls();
 }
 if(preview){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(0,55);chat.messages.push({role:"user",text:q});const lower=q.toLocaleLowerCase("es");let dest="";
  if(/abrir|mostrar|ver|ir a/.test(lower)){if(/proyecto|portafolio/.test(lower))dest="projects";else if(/radar/.test(lower))dest="radars";else if(/motorola|android/.test(lower))dest="motorola";else if(/postulacion|postulaci[oó]n/.test(lower))dest="applications";else if(/auditor[ií]a/.test(lower))dest="audit";else if(/control|tablero/.test(lower))dest="control";}
  let subject=projectCatalog.find(p=>lower.includes(p.name.toLocaleLowerCase("es")));
  lastAnswer=dest?"Abro la sección de "+(infos[dest]?.[0]||"Mis proyectos")+". Esta es una navegación local, no una consulta al servidor.":subject?"Ficha del portafolio: "+subject.name+". "+subject.desc+" Puedes abrir el proyecto en el menú lateral para ver desarrollo y apoyos. No hay datos en vivo en esta vista previa.":"VISTA PREVIA: puedo mostrarte la estructura de SJM, proyectos, menús e historial local. Para responder con datos reales, supervisar el Motorola o ejecutar acciones se necesita una sesión autorizada del backend.";
- chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);c.messages.push({role:"user",text:q});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();const pending=bubble({role:"assistant",text:"Consultando el registro protegido…"},true);
-try{const r=await api(independent?{action:"ask_independent",question:q,allow_external_processing:true}:{action:"ask",question:q,allow_external_processing:false});
-pending.remove();lastAnswer=String(r.answer||"Sin respuesta");const msg={role:"assistant",text:lastAnswer,mode:r.mode||""};c.messages.push(msg);save();bubble(msg);$("mode").textContent=r.mode==="independent_model"?"COMTROL · IA independiente · sin acciones":r.mode==="cloud_grounded"?"IA en nube con consentimiento":"Mentor guiado · ninguna acción ejecutada";if(r.executedActions)info("Revisa evidencia de acciones reportadas antes de darlas por completadas")}
+ chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);const useContext=independent&&$("brainIncludeContext").checked;
+const permittedHistory=useContext?c.messages
+ .filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.text==="string"&&m.text.trim())
+ .slice(-4).map(m=>({role:m.role,content:m.text.slice(0,450)})):[];
+if(independent){$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls();}
+c.messages.push({role:"user",text:q});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();
+const pending=bubble({role:"assistant",text:independent?"Consultando el modelo independiente…":"Consultando el registro protegido…"},true);
+try{const r=await api(independent?{
+  action:"ask_independent",question:q,allow_external_processing:true,
+  ...(useContext?{include_context:true,history:permittedHistory}:{})
+ }:{action:"ask",question:q,allow_external_processing:false});
+pending.remove();lastAnswer=String(r.answer||"Sin respuesta");const msg={role:"assistant",text:lastAnswer,mode:r.mode||""};c.messages.push(msg);save();bubble(msg);$("mode").textContent=r.mode==="independent_model"?"COMTROL · IA independiente · "+(Number(r.contextMessagesUsed)||0)+" mensajes de contexto · sin acciones":r.mode==="cloud_grounded"?"IA en nube con consentimiento":"Mentor guiado · ninguna acción ejecutada";if(r.executedActions)info("Revisa evidencia de acciones reportadas antes de darlas por completadas")}
 catch(e){pending.remove();const m={role:"assistant",text:"Consulta no disponible: "+e.message+". No se ejecutó ninguna acción externa.",mode:"error"};c.messages.push(m);save();bubble(m);connection(false,"Error de consulta")}
 finally{busy=false;$("send").disabled=false;historyRender()}}
 async function readLive(instruction){
