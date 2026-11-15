@@ -1,14 +1,14 @@
 # SJM CONTROL 360 — ESTADO COMPROBADO
 
-**Última ejecución automática (UTC):** 2026-11-15T02:51:33Z
+**Última ejecución automática (UTC):** 2026-11-15T11:15:15Z
 
 **Comprobaciones correctas: 3 de 3**
 
 | Control | Resultado | Próxima revisión (UTC) |
 |---|---|---|
-| render-executor-health | 🟢 checked_ok | 2026-11-15T03:51:33Z |
-| europe-eic-official | 🟢 checked_ok | 2026-11-15T07:18:51Z |
-| awesome-foundation-official | 🟢 checked_ok | 2026-11-15T07:18:51Z |
+| render-executor-health | 🟢 checked_ok | 2026-11-15T12:15:15Z |
+| europe-eic-official | 🟢 checked_ok | 2026-11-15T23:15:15Z |
+| awesome-foundation-official | 🟢 checked_ok | 2026-11-15T23:15:15Z |
 
 🟢 = comprobación automática realizada correctamente. 🔴 = fallo o revisión requerida.
 
