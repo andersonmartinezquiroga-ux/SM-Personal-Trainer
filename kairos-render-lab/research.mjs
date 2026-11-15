@@ -4,9 +4,10 @@ const WIKI_API = "https://es.wikipedia.org/w/api.php";
 const MAX_BODY_BYTES = 170000;
 export function normalizePublicTopic(value) {
   if (typeof value !== "string" || value.length > 160) return null;
+  // Validate raw input BEFORE trim() so leading/trailing controls cannot disappear.
+  if (/[\u0000-\u001f\u007f<>]/u.test(value)) return null;
   const text = value.trim();
   if (text.length < 2 || text.length > 120 ||
-      /[\u0000-\u001f\u007f<>]/u.test(text) ||
       /@|https?:\/\//i.test(text) ||
       /(?:contraseñ|password|secret[oa]|api\s*key|private\s*key|\botp\b|c[oó]digo\s+de\s+verificaci[oó]n|pin\s+bancario|token\s+de\s+acceso|frase\s+semilla)/i.test(text)) return null;
   const topic = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
