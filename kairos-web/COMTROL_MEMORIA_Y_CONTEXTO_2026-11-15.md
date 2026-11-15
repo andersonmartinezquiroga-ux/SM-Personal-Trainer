@@ -29,3 +29,8 @@ El cliente web limita el contexto a **pares anteriores de preguntas/respuestas d
 
 ## Próximo paso
 **Conectar un modelo libre de pago obligatorio** (si el proveedor confirma condiciones viables, o autoalojado con recursos propios), activar la conexión segura con credenciales solo en servidor, probar preguntas con y sin contexto; después implementar memoria contextual persistente y controles de eliminación y cifrado de los datos empresariales.
+
+## Control del titular: eliminar respaldo (15 noviembre 2026)
+Se añadió **Eliminar respaldo de nube** con confirmación explícita dentro del mismo panel. Elimina únicamente el registro de Supabase seleccionado, sin modificar el historial local del dispositivo. La política RLS `sjm_chat_backups_owner_delete` y permiso DELETE autenticado se aplicaron mediante la migración `comtrol_owner_explicit_delete_private_chat_backups_20261115`. Una transacción reversible probó eliminación propia (1 fila), bloqueo de borrado ajeno (0 filas) y ROLLBACK sin dejar datos. Solo la cuenta propietaria tiene acceso según `owner_id=auth.uid()`.
+
+**Publicación final:** Vercel `dpl_CnQkTnoFo7jG3k12kbCKuvRFJXfv` READY, URL canónica HTTP 200 y script JS válido. Supabase `sjm_brain_hybrid_v1` v8 sigue ACTIVE/JWT. Prueba de uso real Chrome Android y modelo LLM independiente aún pendientes.
