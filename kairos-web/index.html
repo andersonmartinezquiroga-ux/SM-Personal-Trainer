@@ -1266,7 +1266,7 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 </div>
 <div id="brainIndependentControls" class="brain-independent-controls hidden">
  <label><input id="brainExternalConsent" type="checkbox"> Autorizo enviar <strong>esta pregunta</strong> al proveedor independiente.</label>
- <label class="brain-context-consent"><input id="brainIncludeContext" type="checkbox"> Incluir hasta <strong>4 mensajes anteriores</strong> para que recuerde el contexto de esta conversación (opcional, por esta pregunta).</label>
+ <label class="brain-context-consent"><input id="brainIncludeContext" type="checkbox"> Incluir hasta <strong>4 mensajes de conversaciones anteriores con el modelo independiente</strong> (no incluye informes de CONTROL; opcional y solo por esta pregunta).</label>
  <p id="brainIndependentState">Modelo independiente: comprobación pendiente. Sin historial compartido ni órdenes automáticas.</p>
  <button id="brainIndependentSelfTest" type="button" class="brain-selftest-btn">Comprobar seguridad de la conexión (sin consumir IA)</button>
  <p id="brainSelfTestResult" role="status" aria-live="polite"></p>
@@ -2835,9 +2835,20 @@ if(preview){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(
  let subject=projectCatalog.find(p=>lower.includes(p.name.toLocaleLowerCase("es")));
  lastAnswer=dest?"Abro la sección de "+(infos[dest]?.[0]||"Mis proyectos")+". Esta es una navegación local, no una consulta al servidor.":subject?"Ficha del portafolio: "+subject.name+". "+subject.desc+" Puedes abrir el proyecto en el menú lateral para ver desarrollo y apoyos. No hay datos en vivo en esta vista previa.":"VISTA PREVIA: puedo mostrarte la estructura de SJM, proyectos, menús e historial local. Para responder con datos reales, supervisar el Motorola o ejecutar acciones se necesita una sesión autorizada del backend.";
  chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);const useContext=independent&&$("brainIncludeContext").checked;
-const permittedHistory=useContext?c.messages
- .filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.text==="string"&&m.text.trim())
- .slice(-4).map(m=>({role:m.role,content:m.text.slice(0,450)})):[];
+// Only past INDEPENDENT MODEL turns are eligible for forwarding: never include Mentor
+// summaries, private device status, pairing codes or administrative reports.
+const permittedHistory=[];
+if(useContext){
+ const msgs=c.messages;
+ for(let i=1;i<msgs.length;i++){
+  const answer=msgs[i],question=msgs[i-1];
+  if(answer?.role==="assistant"&&answer.mode==="independent_model"&&
+     question?.role==="user"&&typeof answer.text==="string"&&typeof question.text==="string"){
+   permittedHistory.push({role:"user",content:question.text.slice(0,450)},{role:"assistant",content:answer.text.slice(0,450)});
+  }
+ }
+ if(permittedHistory.length>4)permittedHistory.splice(0,permittedHistory.length-4);
+}
 if(independent){$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls();}
 c.messages.push({role:"user",text:q});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();
 const pending=bubble({role:"assistant",text:independent?"Consultando el modelo independiente…":"Consultando el registro protegido…"},true);
