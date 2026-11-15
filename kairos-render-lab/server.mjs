@@ -1,6 +1,7 @@
 import http from "node:http";
 import {authorizePulse,coordinatePulse} from "./pulse.mjs";
 import {normalizeCommand} from "./policy.mjs";
+import {publicKnowledge} from "./research.mjs";
 import {isAuthorizedGithubBuild,haveSigningMaterial,signingMaterialForAuthorizedBuild} from "./signing.mjs";
 const PORT=Number(process.env.PORT||10000);
 const VERSION="0.1.0";
@@ -15,6 +16,34 @@ function safeBasePath(url){
 }
 const server=http.createServer(async(req,res)=>{
  const path=safeBasePath(req.url||"/");
+ // Independently hosted public research read fallback for the existing KAIRÓS laboratory.
+ // Never accepts arbitrary target URLs, personal context or execution requests.
+ if(path==="/public-knowledge"&&(req.method==="GET"||req.method==="OPTIONS")){
+   const origin=String(req.headers.origin||"");
+   const isAllowedOrigin=[
+     "https://sjm-kairos-lab-sjm-pruebas.vercel.app",
+     "https://sjm-control-360.floot.app"
+   ].includes(origin);
+   const h={"Content-Type":"application/json; charset=utf-8",
+     "Cache-Control":"no-store","X-Content-Type-Options":"nosniff",
+     "Vary":"Origin"};
+   if(isAllowedOrigin)h["Access-Control-Allow-Origin"]=origin;
+   if(origin&&!isAllowedOrigin){
+     res.writeHead(403,h);res.end(JSON.stringify({ok:false,error:"Origen no permitido"}));return;
+   }
+   if(req.method==="OPTIONS"){
+     h["Access-Control-Allow-Methods"]="GET,OPTIONS";
+     h["Access-Control-Allow-Headers"]="content-type";
+     res.writeHead(204,h);res.end();return;
+   }
+   const params=new URL(req.url||"/","http://localhost").searchParams;
+   // Do not accept hidden input parameters; q is the sole public search term.
+   if([...params.keys()].some(k=>k!=="q")||params.getAll("q").length!==1){
+     res.writeHead(400,h);res.end(JSON.stringify({ok:false,error:"Consulta inválida"}));return;
+   }
+   const result=await publicKnowledge(params.get("q"));
+   res.writeHead(result.status,h);res.end(JSON.stringify(result.body));return;
+ }
  if(req.method==="POST"&&path==="/coordinate"){
    const auth=req.headers.authorization||"";
    if(!auth.startsWith("Bearer ")||!await authorizePulse(auth.slice(7)))return reply(res,403,{ok:false,error:"Pulso no autorizado"});
