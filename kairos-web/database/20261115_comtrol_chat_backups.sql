@@ -25,3 +25,10 @@ create policy sjm_chat_backups_owner_update on public.sjm_comtrol_chat_backups_v
  for update to authenticated using(owner_id=auth.uid()) with check(owner_id=auth.uid());
 revoke all on public.sjm_comtrol_chat_backups_v1 from public,anon,authenticated;
 grant select,insert,update on public.sjm_comtrol_chat_backups_v1 to authenticated;
+
+-- Derecho de eliminación solo para el propietario, bajo RLS
+-- Migración complementaria comtrol_owner_explicit_delete_private_chat_backups_20261115.
+drop policy if exists sjm_chat_backups_owner_delete on public.sjm_comtrol_chat_backups_v1;
+create policy sjm_chat_backups_owner_delete on public.sjm_comtrol_chat_backups_v1
+ for delete to authenticated using(owner_id=auth.uid());
+grant delete on public.sjm_comtrol_chat_backups_v1 to authenticated;
