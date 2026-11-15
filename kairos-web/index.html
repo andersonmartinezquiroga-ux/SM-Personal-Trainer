@@ -1188,6 +1188,21 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .brain-selftest-btn:disabled{opacity:.45}
 @media(max-width:800px){.brain-model-bar{gap:5px;padding-bottom:7px}.brain-mode-choice{font-size:13px;padding:8px 9px;flex:1 1 45%}.brain-independent-controls{padding:11px}.brain-independent-controls label{font-size:15px}}
 
+
+/* COMTROL · Respaldo privado voluntario de conversaciones v3.0 */
+.chat-cloud-backups{background:#e8f2fa;color:#204b68;border:1px solid #a9c7dc;border-radius:12px;margin:0 0 9px;padding:10px 12px}
+.chat-cloud-backups>summary{font-weight:730;font-size:15px;line-height:1.4;cursor:pointer;color:#224e6c}
+.chat-cloud-backups>p{font-size:14px;line-height:1.5;color:#3b5d74;margin:9px 0}
+.chat-cloud-backups .cloud-chat-warning{color:#8c4538;font-weight:620}
+.chat-cloud-buttons,.chat-cloud-restore{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.chat-cloud-buttons button,.chat-cloud-restore button{border:1px solid #8bb3cc;border-radius:10px;background:#d7e9f6;color:#254d68;font-size:14px;font-weight:710;min-height:41px;padding:8px 11px}
+.chat-cloud-buttons button:disabled,.chat-cloud-restore button:disabled{opacity:.48}
+.chat-cloud-restore label{font-size:14px;font-weight:680;color:#315d79}
+.chat-cloud-restore select{flex:1;min-width:140px;max-width:100%;border:1px solid #89b0ca;border-radius:9px;padding:8px 10px;background:#fff;color:#224a66;font-size:14px;min-height:40px}
+.chat-cloud-backups #cloudChatStatus{font-size:14px;color:#376079;line-height:1.48}
+.chat-cloud-backups #cloudChatStatus.cloud-chat-error{color:#9c4a39;font-weight:650}
+@media(max-width:800px){.chat-cloud-backups{padding:10px}.chat-cloud-buttons button{flex:1 1 42%}.chat-cloud-restore select{flex:1 1 100%}.chat-cloud-restore button{flex:1 1 100%}}
+
 </style>
 </head>
 <body>
@@ -1251,6 +1266,21 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  <button id="brainIndependentSelfTest" type="button" class="brain-selftest-btn">Comprobar seguridad de la conexión (sin consumir IA)</button>
  <p id="brainSelfTestResult" role="status" aria-live="polite"></p>
 </div>
+<details id="cloudChatBackups" class="chat-cloud-backups">
+ <summary>▤ Mis conversaciones · respaldos privados</summary>
+ <p>Guardar o recuperar chats entre dispositivos, solamente cuando tú lo solicites. No se sincronizan automáticamente ni se envían al modelo de IA.</p>
+ <p class="cloud-chat-warning">No guardes contraseñas, códigos, información bancaria ni datos privados de clientes. Se guardan como máximo los últimos 30 mensajes del chat seleccionado.</p>
+ <div class="chat-cloud-buttons">
+  <button id="cloudChatSave" type="button">Guardar conversación</button>
+  <button id="cloudChatList" type="button">Buscar mis respaldos</button>
+ </div>
+ <div class="chat-cloud-restore">
+  <label for="cloudChatSelector">Elegir respaldo</label>
+  <select id="cloudChatSelector"><option value="">Sin respaldos cargados</option></select>
+  <button id="cloudChatRestore" type="button">Recuperar selección</button>
+ </div>
+ <p id="cloudChatStatus" role="status" aria-live="polite">Función disponible con tu sesión privada; no funciona en vista previa.</p>
+</details>
 <div id="attachment" class="attachment-list hidden" aria-live="polite"></div>
 <div class="composer-anchor">
 <div class="attach-pop hidden" id="attachPanel" role="menu">
@@ -1318,6 +1348,99 @@ function updateStandaloneControls(){
  "Modelo independiente aún no configurado en el servidor. Usa CONTROL · Supervisión mientras conectamos el motor de IA.";
  if(!standaloneModelReady||preview)consent.checked=false;
 }
+
+/* COMTROL · Respaldo privado voluntario de conversaciones v3.0
+   Sin autoguardado de nube ni inclusión automática en modelos externos. */
+function initCloudChatBackups(){
+ const root=$("cloudChatBackups"),saveButton=$("cloudChatSave"),listButton=$("cloudChatList");
+ const select=$("cloudChatSelector"),restoreButton=$("cloudChatRestore"),status=$("cloudChatStatus");
+ if(!root||!saveButton||!listButton||!select||!restoreButton||!status)return;
+ let busyCloud=false;
+ const enabled=()=>!!sb&&!!session?.access_token&&authorized&&!preview;
+ const setStatus=(message,error=false)=>{status.textContent=String(message);status.classList.toggle("cloud-chat-error",error)};
+ const safeMessages=messages=>(Array.isArray(messages)?messages:[])
+  .filter(m=>m&&["user","assistant"].includes(m.role)&&typeof m.text==="string"&&m.text.trim())
+  .slice(-30).map(m=>({role:m.role,text:m.text.slice(0,2500),mode:typeof m.mode==="string"?m.mode.slice(0,48):""}));
+ function fromLocal(chat){
+  const title=String(chat?.title||"Conversación SJM").trim().slice(0,90)||"Conversación SJM";
+  const messages=safeMessages(chat?.messages);
+  const key=String(chat?.id||"").trim();
+  if(!/^[a-zA-Z0-9_-]{8,96}$/.test(key))throw Error("Identificador de conversación inválido.");
+  if(!messages.length)throw Error("Primero escribe al menos un mensaje en esta conversación.");
+  const data={chat_key:key,title,messages,updated_at:new Date().toISOString()};
+  const bytes=new TextEncoder().encode(JSON.stringify(messages)).byteLength;
+  if(bytes>90000)throw Error("Conversación extensa: el respaldo no debe superar 90 KB. Usa otra conversación.");
+  if(messages.some(m=>/\b(?:contrase(?:ñ|n)a|password|otp|llave privada|frase semilla|token de acceso|api.key|pin bancario|c[oó]digo de verificaci[oó]n)\b/i.test(m.text))){
+   throw Error("El chat parece contener información confidencial. Crea una versión sin secretos antes de guardarlo.");
+  }
+  return data;
+ }
+ async function refreshCloudList(){
+  if(!enabled()){setStatus("Inicia sesión con tu cuenta autorizada para consultar respaldos. No se transfirió información.",true);return}
+  if(busyCloud)return;busyCloud=true;listButton.disabled=true;restoreButton.disabled=true;
+  setStatus("Consultando únicamente títulos de respaldos de tu cuenta…");
+  try{
+   const r=await sb.from("sjm_comtrol_chat_backups_v1")
+    .select("chat_key,title,updated_at").order("updated_at",{ascending:false}).limit(60);
+   if(r.error)throw r.error;
+   const old=select.value;select.replaceChildren();
+   const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Selecciona un respaldo";select.append(placeholder);
+   for(const item of r.data||[]){
+    if(!/^[a-zA-Z0-9_-]{8,96}$/.test(String(item.chat_key||"")))continue;
+    const opt=document.createElement("option");opt.value=item.chat_key;
+    const date=new Date(item.updated_at).toLocaleDateString("es-CO",{timeZone:"America/Bogota"});
+    opt.textContent=String(item.title||"Sin título").slice(0,90)+" · "+date;
+    select.append(opt);
+   }
+   if([...select.options].some(o=>o.value===old))select.value=old;
+   setStatus((r.data||[]).length+" respaldo(s) disponible(s). No se han descargado sus mensajes.");
+  }catch(error){setStatus("No pude consultar respaldos: "+String(error?.message||error).slice(0,165),true)}
+  finally{busyCloud=false;listButton.disabled=false;restoreButton.disabled=false}
+ }
+ saveButton.onclick=async()=>{
+  if(busyCloud)return;
+  if(!enabled()){setStatus("Vista previa o sesión sin autorización: no se enviaron conversaciones.",true);return}
+  let record;
+  try{record=fromLocal(active())}catch(error){setStatus(String(error?.message||error),true);return}
+  if(!window.confirm("¿Guardar voluntariamente los últimos "+record.messages.length+" mensajes de «"+record.title+"» en tu espacio privado de COMTROL? No guardes datos sensibles."))return;
+  busyCloud=true;saveButton.disabled=true;listButton.disabled=true;restoreButton.disabled=true;
+  setStatus("Guardando la copia privada; no se está contactando a ningún modelo de IA…");
+  try{
+   const result=await sb.from("sjm_comtrol_chat_backups_v1").upsert(record,{onConflict:"owner_id,chat_key"}).select("chat_key").single();
+   if(result.error)throw result.error;
+   setStatus("Copia guardada para esta cuenta. Puedes recuperarla después en otro dispositivo. Respaldo manual, no automático.");
+  }catch(error){setStatus("No se guardó la copia: "+String(error?.message||error).slice(0,175),true)}
+  finally{busyCloud=false;saveButton.disabled=false;listButton.disabled=false;restoreButton.disabled=false}
+ };
+ listButton.onclick=()=>void refreshCloudList();
+ restoreButton.onclick=async()=>{
+  if(busyCloud)return;
+  if(!enabled()){setStatus("Debes iniciar sesión autorizada para recuperar un respaldo.",true);return}
+  const key=select.value;
+  if(!/^[a-zA-Z0-9_-]{8,96}$/.test(key)){setStatus("Elige un respaldo de la lista.",true);return}
+  if(chats.some(c=>c.id===key)){
+   current=key;show("chat");historyRender();messagesRender();
+   setStatus("La conversación ya existe en este dispositivo: la abrí sin reemplazar mensajes locales.");
+   return;
+  }
+  busyCloud=true;restoreButton.disabled=true;setStatus("Recuperando solo la conversación seleccionada…");
+  try{
+   const result=await sb.from("sjm_comtrol_chat_backups_v1")
+    .select("chat_key,title,messages,updated_at").eq("chat_key",key).single();
+   if(result.error)throw result.error;
+   const item=result.data;
+   const data=safeMessages(item.messages);
+   if(!data.length)throw Error("El respaldo no contiene mensajes compatibles.");
+   if(chats.length>=60)throw Error("Hay 60 chats locales; libera espacio antes de recuperar otro para evitar pérdida de información.");
+   const recovered={id:key,title:String(item.title||"Conversación recuperada").slice(0,90),messages:data,at:item.updated_at};
+   chats.unshift(recovered);current=key;save();historyRender();show("chat");messagesRender();
+   setStatus("Conversación recuperada desde la nube privada. No se envió al proveedor de IA.");
+  }catch(error){setStatus("No se pudo recuperar: "+String(error?.message||error).slice(0,175),true)}
+  finally{busyCloud=false;restoreButton.disabled=false}
+ };
+ root.addEventListener("toggle",()=>{if(root.open&&!enabled())setStatus("Inicia sesión con autorización. La vista previa no puede acceder a tu nube privada.")});
+}
+
 function initBrainSelector(){
  $("brainMentorMode").onclick=()=>{standaloneSelected=false;$("brainExternalConsent").checked=false;updateStandaloneControls()};
  $("brainIndependentMode").onclick=()=>{standaloneSelected=true;updateStandaloneControls()};
@@ -3090,6 +3213,6 @@ document.addEventListener("visibilitychange",voiceVisibility);
 if("speechSynthesis" in window)try{speechSynthesis.addEventListener("voiceschanged",()=>{if(!$("#voiceScreen").classList.contains("hidden"))voiceReadOptions()})}catch{}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
-async function start(){navBuild();events();initWritingModes();initBrainSelector();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
+async function start(){navBuild();events();initWritingModes();initBrainSelector();initCloudChatBackups();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
