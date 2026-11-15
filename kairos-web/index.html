@@ -1223,6 +1223,21 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 .standalone-tool-panel small{display:block;margin-top:7px;color:#44677d;font-size:12px;line-height:1.5}
 @media(max-width:600px){.standalone-tool-panel{padding:9px}.standalone-tool-buttons button{font-size:13px;min-width:130px;min-height:42px}}
 
+
+/* COMTROL · Motor generativo local WebGPU experimental v3.4 */
+.brain-model-bar .brain-mode-choice{flex:1 1 30%;font-size:13px}
+.brain-local-controls{background:#e8f4fa;color:#204e69;border:1px solid #9cbfd5;border-radius:12px;padding:12px;margin:0 0 10px}
+.brain-local-controls.hidden{display:none}
+.brain-local-controls strong{font-size:15px;color:#24516d;line-height:1.45}
+.brain-local-controls p{font-size:14px;line-height:1.55;color:#375f77;margin:8px 0}
+.brain-local-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.brain-local-actions button{flex:1 1 140px;border:1px solid #90b5cd;background:#d8eaf5;border-radius:10px;min-height:43px;padding:8px 11px;color:#264e6b;font-size:14px;font-weight:700}
+.brain-local-actions button:disabled{opacity:.43}
+.brain-local-actions button:focus-visible{outline:3px solid #7eb8e1;outline-offset:2px}
+.brain-local-controls #brainLocalStatus{color:#2b617d;font-weight:680}
+.brain-local-controls small{display:block;color:#496a7f;font-size:13px;line-height:1.52}
+@media(max-width:600px){.brain-model-bar .brain-mode-choice{font-size:12px;min-width:93px;padding:8px 6px}.brain-local-actions button{font-size:13px}}
+
 </style>
 </head>
 <body>
@@ -1278,7 +1293,8 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 <div class="composer-area"><div class="composer-inner">
 <div class="brain-model-bar" id="brainModelBar" role="group" aria-label="Selecciona el tipo de conversación">
  <button id="brainMentorMode" type="button" class="brain-mode-choice selected" aria-pressed="true">◈ CONTROL · Supervisión</button>
- <button id="brainIndependentMode" type="button" class="brain-mode-choice" aria-pressed="false">✦ COMTROL · IA independiente</button>
+ <button id="brainIndependentMode" type="button" class="brain-mode-choice" aria-pressed="false">✦ COMTROL · IA en nube</button>
+ <button id="brainLocalMode" type="button" class="brain-mode-choice" aria-pressed="false">◉ COMTROL · IA local</button>
 </div>
 <div id="brainIndependentControls" class="brain-independent-controls hidden">
  <label><input id="brainExternalConsent" type="checkbox"> Autorizo enviar <strong>esta pregunta</strong> al proveedor independiente.</label>
@@ -1286,6 +1302,17 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  <p id="brainIndependentState">Modelo independiente: comprobación pendiente. Sin historial compartido ni órdenes automáticas.</p>
  <button id="brainIndependentSelfTest" type="button" class="brain-selftest-btn">Comprobar seguridad de la conexión (sin consumir IA)</button>
  <p id="brainSelfTestResult" role="status" aria-live="polite"></p>
+</div>
+<div id="brainLocalControls" class="brain-local-controls hidden">
+ <strong>IA local experimental · modelo abierto pequeño</strong>
+ <p>Funciona dentro del navegador cuando el dispositivo admite WebGPU. La primera carga descarga archivos grandes y puede consumir batería, memoria y datos de internet. <strong>No equivale a ChatGPT.</strong></p>
+ <div class="brain-local-actions">
+  <button type="button" id="brainCheckGpu">Comprobar mi dispositivo</button>
+  <button type="button" id="brainLoadLocal">Descargar e iniciar IA local</button>
+  <button type="button" id="brainUnloadLocal" disabled>Descargar de memoria</button>
+ </div>
+ <p id="brainLocalStatus" role="status" aria-live="polite">No se descargó ningún modelo. Primero comprueba tu dispositivo; decide tú si deseas descargarlo.</p>
+ <small>Modelo de prueba: SmolLM2-360M Instruct, de MLC/WebLLM. No se envían las preguntas a ChatGPT ni a servidores de inferencia; solo se descargan los archivos del modelo.</small>
 </div>
 <div id="independentTools" class="standalone-tool-panel" role="group" aria-label="Herramientas que no necesitan un modelo generativo">
  <span class="standalone-tool-title">Herramientas sin ChatGPT</span>
@@ -1365,12 +1392,99 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 const BASE="https://dfqjwlsgqetyxdrsuviy.supabase.co",KEY="sb_publishable_P2OnnQQ1JBHfDRRKut-trg_V-2isCjX",ENDPOINT=BASE+"/functions/v1/sjm_brain_hybrid_v1";
 const $=id=>document.getElementById(id);
 let standaloneModelReady=false,standaloneSelected=false,standaloneName="";
+let localModelSelected=false,localModelEngine=null,localModelLoading=false,localModelEpoch=0;
+const localModelId="SmolLM2-360M-Instruct-q4f32_1-MLC";
+function updateLocalModelStatus(message){
+ const status=$("brainLocalStatus"),load=$("brainLoadLocal"),unload=$("brainUnloadLocal");
+ if(status&&message)status.textContent=String(message);
+ if(load)load.disabled=localModelLoading||!!localModelEngine;
+ if(unload)unload.disabled=localModelLoading||!localModelEngine;
+}
+async function releaseLocalModel(){
+ localModelEpoch++;
+ const engine=localModelEngine;localModelEngine=null;
+ if(engine){try{await engine.unload?.()}catch{}}
+ updateLocalModelStatus("Modelo local descargado de memoria. Los archivos descargados pueden seguir en la caché del navegador.");
+ updateStandaloneControls();
+}
+/* COMTROL · Motor generativo local WebGPU experimental v3.4
+   Load only after explicit user confirmation; no cloud LLM inference. */
+function initLocalBrowserModel(){
+ const check=$("brainCheckGpu"),load=$("brainLoadLocal"),unload=$("brainUnloadLocal");
+ if(!check||!load||!unload)return;
+ check.onclick=async()=>{
+  if(!navigator.gpu){updateLocalModelStatus("Este navegador no ofrece WebGPU. El modelo local no puede cargarse aquí; no se descargó nada.");return}
+  check.disabled=true;updateLocalModelStatus("Comprobando acceso a la tarjeta gráfica del dispositivo…");
+  try{
+   const adapter=await navigator.gpu.requestAdapter({powerPreference:"low-power"});
+   if(!adapter)throw Error("No hay una tarjeta gráfica accesible mediante WebGPU.");
+   updateLocalModelStatus("WebGPU disponible: compatibilidad preliminar, todavía sin cargar el modelo. Se necesitará internet para descargar archivos grandes.");
+  }catch(e){updateLocalModelStatus("WebGPU no disponible o incompatible: "+String(e?.message||e).slice(0,160))}
+  finally{check.disabled=false}
+ };
+ load.onclick=async()=>{
+  if(localModelLoading||localModelEngine)return;
+  if(!navigator.gpu){updateLocalModelStatus("WebGPU no disponible; no se inició ninguna descarga.");return}
+  const adapter=await navigator.gpu.requestAdapter({powerPreference:"low-power"}).catch(()=>null);
+  if(!adapter){updateLocalModelStatus("El dispositivo no permite ejecutar WebGPU ahora. No se descargó el modelo.");return}
+  if(!window.confirm("¿Descargar un modelo abierto de IA de varios cientos de MB? Puede consumir datos móviles, memoria y batería. Usa Wi-Fi y suficiente espacio. No hay cobro de ChatGPT, pero el rendimiento no está garantizado."))return;
+  localModelLoading=true;const epoch=++localModelEpoch;
+  updateLocalModelStatus("Preparando módulo WebLLM… No cierres la pestaña si deseas completar la carga.");
+  try{
+   // Import only on explicit click: normal COMTROL remains light and unchanged.
+   const webllm=await import("https://esm.run/@mlc-ai/web-llm");
+   if(epoch!==localModelEpoch)return;
+   if(!webllm?.CreateMLCEngine||!webllm.prebuiltAppConfig?.model_list?.some(x=>x.model_id===localModelId))
+    throw Error("La versión del motor no incluye el modelo abierto elegido.");
+   const engine=await webllm.CreateMLCEngine(localModelId,{
+    initProgressCallback:progress=>{
+     if(epoch!==localModelEpoch)return;
+     const fraction=Number(progress?.progress);
+     const percentage=Number.isFinite(fraction)?Math.round(Math.min(1,Math.max(0,fraction))*100):null;
+     updateLocalModelStatus("Descargando/preparando IA local"+
+      (percentage!==null?" · "+percentage+" %":"")+" · "+
+      String(progress?.text||"Un momento…").slice(0,140));
+    }
+   });
+   if(epoch!==localModelEpoch){try{await engine.unload?.()}catch{}return}
+   localModelEngine=engine;
+   updateLocalModelStatus("Modelo local cargado. Puedes escribir una pregunta en el chat sin enviarla a un proveedor de IA. Resultados experimentales; no se ejecutan herramientas.");
+   $("mode").textContent="IA local experimental · sin nube generativa";
+  }catch(e){
+   updateLocalModelStatus("No se pudo cargar el modelo en este dispositivo: "+String(e?.message||e).slice(0,170)+". No se contrató ningún servicio.");
+  }finally{if(epoch===localModelEpoch){localModelLoading=false;updateLocalModelStatus()}}
+ };
+ unload.onclick=()=>void releaseLocalModel();
+ updateLocalModelStatus("IA local no cargada. Requiere WebGPU y descarga voluntaria.");
+}
+async function askLocalBrowserModel(q,chat){
+ if(!localModelEngine)throw Error("Primero descarga y activa la IA local.");
+ const history=[],records=Array.isArray(chat?.messages)?chat.messages:[];
+ // Only prior local-model exchanges, never CONTROL reports, cloud sessions or secrets.
+ for(let i=1;i<records.length-1;i++){
+  const a=records[i],before=records[i-1];
+  if(a?.role==="assistant"&&a.mode==="local_browser_llm"&&before?.role==="user"){
+   history.push({role:"user",content:String(before.text||"").slice(0,450)},
+     {role:"assistant",content:String(a.text||"").slice(0,450)});
+  }
+ }
+ const messages=[
+  {role:"system",content:"Eres COMTROL 360 Local, asistente experimental de SJM. Responde en español claro. No afirmes navegar, verificar datos recientes, enviar mensajes, ejecutar tareas ni crear archivos. Si desconoces algo, dilo. Trabajas únicamente dentro de este dispositivo y no tienes acceso a datos privados de CONTROL 360."},
+  ...history.slice(-4),
+  {role:"user",content:String(q).slice(0,700)}
+ ];
+ const result=await localModelEngine.chat.completions.create({messages,temperature:0.4,max_tokens:320});
+ const text=String(result?.choices?.[0]?.message?.content||"").trim();
+ if(!text)throw Error("El modelo local no devolvió una respuesta válida.");
+ return {ok:true,mode:"local_browser_llm",answer:text.slice(0,6500),executedActions:0,externalProcessing:false,contextMessagesUsed:history.slice(-4).length};
+}
+
 function updateStandaloneControls(){
- const mentor=$("brainMentorMode"),independent=$("brainIndependentMode"),controls=$("brainIndependentControls"),consent=$("brainExternalConsent"),context=$("brainIncludeContext"),state=$("brainIndependentState");
- if(!mentor||!independent||!controls||!consent||!context||!state)return;
- mentor.classList.toggle("selected",!standaloneSelected);independent.classList.toggle("selected",standaloneSelected);
- mentor.setAttribute("aria-pressed",String(!standaloneSelected));independent.setAttribute("aria-pressed",String(standaloneSelected));
- controls.classList.toggle("hidden",!standaloneSelected);
+ const mentor=$("brainMentorMode"),independent=$("brainIndependentMode"),local=$("brainLocalMode"),controls=$("brainIndependentControls"),localControls=$("brainLocalControls"),consent=$("brainExternalConsent"),context=$("brainIncludeContext"),state=$("brainIndependentState");
+ if(!mentor||!independent||!local||!controls||!localControls||!consent||!context||!state)return;
+ mentor.classList.toggle("selected",!standaloneSelected&&!localModelSelected);independent.classList.toggle("selected",standaloneSelected);local.classList.toggle("selected",localModelSelected);
+ mentor.setAttribute("aria-pressed",String(!standaloneSelected&&!localModelSelected));independent.setAttribute("aria-pressed",String(standaloneSelected));local.setAttribute("aria-pressed",String(localModelSelected));
+ controls.classList.toggle("hidden",!standaloneSelected);localControls.classList.toggle("hidden",!localModelSelected);
  consent.disabled=!standaloneModelReady||preview||!authorized;
  context.disabled=!standaloneModelReady||preview||!authorized;
  state.textContent=preview?"Vista previa: ningún modelo ni dato privado conectados.":
@@ -1589,8 +1703,9 @@ function initIndependentTools(){
 }
 
 function initBrainSelector(){
- $("brainMentorMode").onclick=()=>{standaloneSelected=false;$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls()};
- $("brainIndependentMode").onclick=()=>{standaloneSelected=true;updateStandaloneControls()};
+ $("brainMentorMode").onclick=()=>{standaloneSelected=false;localModelSelected=false;$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls()};
+ $("brainIndependentMode").onclick=()=>{standaloneSelected=true;localModelSelected=false;updateStandaloneControls()};
+ $("brainLocalMode").onclick=()=>{standaloneSelected=false;localModelSelected=true;$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls()};
  $("brainIndependentSelfTest").onclick=async()=>{
   const el=$("brainSelfTestResult"),btn=$("brainIndependentSelfTest");
   if(preview||!authorized){el.textContent="Requiere una sesión autorizada; no se usó ningún modelo.";return}
@@ -2967,15 +3082,17 @@ async function checkStatus(){if(preview){connection(false,"Vista previa");return
 function grow(){const t=$("prompt");t.style.height="auto";t.style.height=Math.min(155,t.scrollHeight)+"px"}
 async function sendMessage(text,forceMentor=false){const q=String(text||"").trim();if(!q||busy)return;if(q.length>700){info("Máximo 700 caracteres");return}
 const independent=standaloneSelected&&!forceMentor;
+const local=localModelSelected&&!forceMentor;
+if(local&&!localModelEngine){info("Primero comprueba WebGPU y activa voluntariamente el modelo local en el panel de IA local.");return}
 if(independent&&!preview){
  if(!standaloneModelReady){info("El modelo independiente aún no está configurado. Selecciona CONTROL · Supervisión para consultar el Mentor.");return}
  if(!$("brainExternalConsent").checked){info("Para esta pregunta debes autorizar su envío al proveedor del modelo independiente.");return}
 }
-if(preview){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(0,55);chat.messages.push({role:"user",text:q});const lower=q.toLocaleLowerCase("es");let dest="";
+if(preview&&!local){const chat=ensureChat();if(!chat.messages.length)chat.title=q.slice(0,55);chat.messages.push({role:"user",text:q});const lower=q.toLocaleLowerCase("es");let dest="";
  if(/abrir|mostrar|ver|ir a/.test(lower)){if(/proyecto|portafolio/.test(lower))dest="projects";else if(/radar/.test(lower))dest="radars";else if(/motorola|android/.test(lower))dest="motorola";else if(/postulacion|postulaci[oó]n/.test(lower))dest="applications";else if(/auditor[ií]a/.test(lower))dest="audit";else if(/control|tablero/.test(lower))dest="control";}
  let subject=projectCatalog.find(p=>lower.includes(p.name.toLocaleLowerCase("es")));
  lastAnswer=dest?"Abro la sección de "+(infos[dest]?.[0]||"Mis proyectos")+". Esta es una navegación local, no una consulta al servidor.":subject?"Ficha del portafolio: "+subject.name+". "+subject.desc+" Puedes abrir el proyecto en el menú lateral para ver desarrollo y apoyos. No hay datos en vivo en esta vista previa.":"VISTA PREVIA: puedo mostrarte la estructura de SJM, proyectos, menús e historial local. Para responder con datos reales, supervisar el Motorola o ejecutar acciones se necesita una sesión autorizada del backend.";
- chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);const useContext=independent&&$("brainIncludeContext").checked;
+ chat.messages.push({role:"assistant",text:lastAnswer,mode:"demo"});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();if(dest){show(dest)}return}if(!authorized&&!local){info("Primero verifica sesión y conexión al Mentor");return}busy=true;$("send").disabled=true;const c=ensureChat();if(!c.messages.length)c.title=q.slice(0,55);const useContext=independent&&$("brainIncludeContext").checked;
 // Only past INDEPENDENT MODEL turns are eligible for forwarding: never include Mentor
 // summaries, private device status, pairing codes or administrative reports.
 const permittedHistory=[];
@@ -2992,12 +3109,12 @@ if(useContext){
 }
 if(independent){$("brainExternalConsent").checked=false;$("brainIncludeContext").checked=false;updateStandaloneControls();}
 c.messages.push({role:"user",text:q});save();show("chat");messagesRender();historyRender();$("prompt").value="";grow();
-const pending=bubble({role:"assistant",text:independent?"Consultando el modelo independiente…":"Consultando el registro protegido…"},true);
-try{const r=await api(independent?{
+const pending=bubble({role:"assistant",text:local?"Pensando en el dispositivo (IA local)…":independent?"Consultando el modelo independiente…":"Consultando el registro protegido…"},true);
+try{const r=local?await askLocalBrowserModel(q,c):await api(independent?{
   action:"ask_independent",question:q,allow_external_processing:true,
   ...(useContext?{include_context:true,history:permittedHistory}:{})
  }:{action:"ask",question:q,allow_external_processing:false});
-pending.remove();lastAnswer=String(r.answer||"Sin respuesta");const msg={role:"assistant",text:lastAnswer,mode:r.mode||""};c.messages.push(msg);save();bubble(msg);$("mode").textContent=r.mode==="independent_model"?"COMTROL · IA independiente · "+(Number(r.contextMessagesUsed)||0)+" mensajes de contexto · sin acciones":r.mode==="cloud_grounded"?"IA en nube con consentimiento":"Mentor guiado · ninguna acción ejecutada";if(r.executedActions)info("Revisa evidencia de acciones reportadas antes de darlas por completadas")}
+pending.remove();lastAnswer=String(r.answer||"Sin respuesta");const msg={role:"assistant",text:lastAnswer,mode:r.mode||""};c.messages.push(msg);save();bubble(msg);$("mode").textContent=r.mode==="local_browser_llm"?"COMTROL · IA local · "+(Number(r.contextMessagesUsed)||0)+" mensajes de contexto · sin acciones":r.mode==="independent_model"?"COMTROL · IA independiente · "+(Number(r.contextMessagesUsed)||0)+" mensajes de contexto · sin acciones":r.mode==="cloud_grounded"?"IA en nube con consentimiento":"Mentor guiado · ninguna acción ejecutada";if(r.executedActions)info("Revisa evidencia de acciones reportadas antes de darlas por completadas")}
 catch(e){pending.remove();const m={role:"assistant",text:"Consulta no disponible: "+e.message+". No se ejecutó ninguna acción externa.",mode:"error"};c.messages.push(m);save();bubble(m);connection(false,"Error de consulta")}
 finally{busy=false;$("send").disabled=false;historyRender()}}
 async function readLive(instruction){
@@ -3314,7 +3431,7 @@ function initWritingModes(){
 }
 
 function mic(){startFieldDictation($("prompt"),$("mic"))}
-async function logout(){stopFieldDictation(true);endVoiceCall();attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;standaloneModelReady=false;standaloneName="";$("previewBanner").classList.add("hidden");session=null;authorized=false;updateStandaloneControls();chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
+async function logout(){stopFieldDictation(true);endVoiceCall();await releaseLocalModel();localModelSelected=false;attachments=[];renderAttachments();closePanels();if(sb&&!preview){try{await sb.auth.signOut()}catch{}}preview=false;standaloneModelReady=false;standaloneName="";$("previewBanner").classList.add("hidden");session=null;authorized=false;updateStandaloneControls();chats=[];current=null;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Sesión cerrada. Entra de nuevo con tu clave privada.")}
 async function signedIn(){const {data}=await sb.auth.getSession();session=data?.session||null;if(!session){authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Pega tu clave privada para entrar a CONTROL 360.");return}
 preview=false;$("previewBanner").classList.add("hidden");attachments=[];renderAttachments();const ok=await checkStatus();if(!ok){$("layout").classList.add("hidden");$("auth").classList.remove("hidden");authInfo("Tu cuenta tiene sesión, pero no se verificó su autorización al Mentor. Comprueba internet o permisos.");return}
 $("auth").classList.add("hidden");$("layout").classList.remove("hidden");restore();messagesRender();show("chat")}
@@ -3379,6 +3496,6 @@ document.addEventListener("visibilitychange",voiceVisibility);
 if("speechSynthesis" in window)try{speechSynthesis.addEventListener("voiceschanged",()=>{if(!$("#voiceScreen").classList.contains("hidden"))voiceReadOptions()})}catch{}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
-async function start(){navBuild();events();initWritingModes();initBrainSelector();initIndependentTools();initCloudChatBackups();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
+async function start(){navBuild();events();initWritingModes();initBrainSelector();initLocalBrowserModel();initIndependentTools();initCloudChatBackups();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
