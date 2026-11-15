@@ -1211,6 +1211,18 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 /* COMTROL cloud backup owner-controlled deletion */
 .chat-cloud-restore .cloud-chat-delete{background:#f8e9e5;border-color:#ba8e80;color:#763f35}
 
+
+/* COMTROL · Herramientas independientes sin ChatGPT v3.3 */
+.standalone-tool-panel{background:#edf5fa;color:#31516a;border:1px solid #c0d6e3;border-radius:12px;padding:10px 12px;margin:0 0 9px}
+.standalone-tool-title{display:block;font-size:14px;line-height:1.5;font-weight:750;color:#315471;margin-bottom:6px}
+.standalone-tool-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.standalone-tool-buttons button{background:#dfeff9;color:#234963;border:1px solid #95b9d1;border-radius:10px;min-height:40px;font-family:inherit;font-size:14px;font-weight:750;padding:8px 12px;flex:1 1 auto}
+.standalone-tool-buttons button:hover{background:#c9e5f5}
+.standalone-tool-buttons button:focus-visible{outline:3px solid #80b8e2;outline-offset:2px}
+.standalone-tool-buttons button:disabled{opacity:.45}
+.standalone-tool-panel small{display:block;margin-top:7px;color:#44677d;font-size:12px;line-height:1.5}
+@media(max-width:600px){.standalone-tool-panel{padding:9px}.standalone-tool-buttons button{font-size:13px;min-width:130px;min-height:42px}}
+
 </style>
 </head>
 <body>
@@ -1274,6 +1286,14 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  <p id="brainIndependentState">Modelo independiente: comprobación pendiente. Sin historial compartido ni órdenes automáticas.</p>
  <button id="brainIndependentSelfTest" type="button" class="brain-selftest-btn">Comprobar seguridad de la conexión (sin consumir IA)</button>
  <p id="brainSelfTestResult" role="status" aria-live="polite"></p>
+</div>
+<div id="independentTools" class="standalone-tool-panel" role="group" aria-label="Herramientas que no necesitan un modelo generativo">
+ <span class="standalone-tool-title">Herramientas sin ChatGPT</span>
+ <div class="standalone-tool-buttons">
+  <button id="toolLocalCalculate" type="button" title="Calcula en este dispositivo sin internet ni modelos externos">▦ Calcular</button>
+  <button id="toolPublicResearch" type="button" title="Busca en Wikipedia con tu permiso y muestra las fuentes">◎ Buscar conocimiento público</button>
+ </div>
+ <small>Escribe o dicta una operación o tema en el cuadro y elige la herramienta. Cálculos: locales. Búsqueda: Wikipedia, solo con permiso.</small>
 </div>
 <details id="cloudChatBackups" class="chat-cloud-backups">
  <summary>▤ Mis conversaciones · respaldos privados</summary>
@@ -1471,6 +1491,101 @@ function initCloudChatBackups(){
   finally{busyCloud=false;restoreButton.disabled=false}
  };
  root.addEventListener("toggle",()=>{if(root.open&&!enabled())setStatus("Inicia sesión con autorización. La vista previa no puede acceder a tu nube privada.")});
+}
+
+
+/* COMTROL · Herramientas independientes sin ChatGPT v3.3
+   Calculator is deterministic on-device; research is authenticated read-only lookup.
+   Neither tool sends data to ChatGPT or invokes LLM models. */
+function localCalculate(expression){
+ const clean=String(expression||"").replace(/,/g,".").replace(/\s/g,"");
+ if(!clean||clean.length>130||/[^0-9()+\-*/.%]/.test(clean))
+  throw Error("Escribe una operación numérica sencilla, por ejemplo: (25000+5000)*1.19");
+ const tokens=clean.match(/(?:\d+(?:\.\d*)?|\.\d+)|[()+\-*/%]/g)||[];
+ if(tokens.join("")!==clean||tokens.length>80)
+  throw Error("Operación no válida o demasiado extensa.");
+ let i=0,depth=0,steps=0;
+ const safe=v=>{
+  if(++steps>120||!Number.isFinite(v)||Math.abs(v)>1e15)
+   throw Error("El cálculo supera los límites seguros o intenta dividir entre cero.");
+  return v;
+ };
+ function base(){
+  if(depth>14)throw Error("Demasiados paréntesis en la operación.");
+  const t=tokens[i++];
+  if(t==="+"||t==="-")return safe((t==="-"?-1:1)*base());
+  if(t==="("){
+   depth++;const v=sum();depth--;
+   if(tokens[i++]!==")")throw Error("Falta cerrar un paréntesis.");
+   return safe(v);
+  }
+  if(!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(t||""))throw Error("Número u operador no válido.");
+  return safe(Number(t));
+ }
+ function percentage(){
+  let v=base();while(tokens[i]==="%"){i++;v=safe(v/100)}
+  return v;
+ }
+ function term(){
+  let v=percentage();
+  while(tokens[i]==="*"||tokens[i]==="/"){
+   const op=tokens[i++],r=percentage();
+   if(op==="/"&&r===0)throw Error("No se puede dividir entre cero.");
+   v=safe(op==="*"?v*r:v/r);
+  }
+  return v;
+ }
+ function sum(){
+  let v=term();
+  while(tokens[i]==="+"||tokens[i]==="-"){
+   const op=tokens[i++],r=term();
+   v=safe(op==="+"?v+r:v-r);
+  }
+  return v;
+ }
+ const result=sum();
+ if(i!==tokens.length)throw Error("Hay operadores o paréntesis sin resolver.");
+ return Number((Object.is(result,-0)?0:result).toPrecision(12));
+}
+function initIndependentTools(){
+ const calc=$("toolLocalCalculate"),research=$("toolPublicResearch");
+ const prompt=$("prompt");
+ if(!calc||!research||!prompt)return;
+ function showToolMessage(question,answer,mode){
+  const chat=ensureChat();
+  if(!chat.messages.length)chat.title=question.slice(0,55);
+  chat.messages.push({role:"user",text:question});
+  const response={role:"assistant",text:String(answer),mode};
+  chat.messages.push(response);
+  lastAnswer=response.text;
+  save();show("chat");messagesRender();historyRender();
+  prompt.value="";grow();
+ }
+ calc.onclick=()=>{
+  if(busy)return;
+  const query=prompt.value.trim();
+  if(!query){info("Escribe o dicta una operación, por ejemplo: 25000*3");prompt.focus();return}
+  try{
+   const result=localCalculate(query);
+   showToolMessage("Calcular: "+query,"Resultado local: "+new Intl.NumberFormat("es-CO",{maximumFractionDigits:10}).format(result)+
+    "\nOperación: "+query+"\nCálculo hecho en este dispositivo, sin ChatGPT, sin llamadas externas y sin modelo generativo. El signo % equivale a dividir entre 100.","local_calculation");
+  }catch(e){info(String(e?.message||e).slice(0,190))}
+ };
+ research.onclick=async()=>{
+  if(busy)return;
+  const query=prompt.value.trim();
+  if(!query||query.length>130){info("Escribe o dicta un tema público de 2 a 130 caracteres, sin datos privados.");prompt.focus();return}
+  if(preview||!authorized||!session?.access_token){info("Esta herramienta necesita iniciar sesión como titular autorizado. No envía consultas en vista previa.");return}
+  if(!window.confirm("¿Consultar «"+query.slice(0,110)+"» en Wikipedia en español? El texto de búsqueda se enviará a Wikipedia. No incluyas datos privados ni secretos."))return;
+  busy=true;research.disabled=true;$("send").disabled=true;
+  try{
+   const r=await api({action:"research_public",query,allow_public_search:true});
+   if(r.mode!=="public_research"||r.executedActions!==0||!Array.isArray(r.sources))throw Error("La fuente no confirmó un resultado verificable.");
+   showToolMessage("Consultar Wikipedia: "+query, r.answer,"public_research");
+   info("Consulta enciclopédica realizada. Abre las fuentes para comprobar su contenido; no es investigación de actualidad.");
+  }catch(e){info("Búsqueda no completada: "+String(e?.message||e).slice(0,150)+". No se inventaron resultados.")}
+  finally{busy=false;research.disabled=false;$("send").disabled=false}
+ };
 }
 
 function initBrainSelector(){
@@ -3264,6 +3379,6 @@ document.addEventListener("visibilitychange",voiceVisibility);
 if("speechSynthesis" in window)try{speechSynthesis.addEventListener("voiceschanged",()=>{if(!$("#voiceScreen").classList.contains("hidden"))voiceReadOptions()})}catch{}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePanels();closeDrawer()}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.body.classList.add("drawer");$("menu").setAttribute("aria-expanded","true");$("search").focus()}});
 }
-async function start(){navBuild();events();initWritingModes();initBrainSelector();initCloudChatBackups();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
+async function start(){navBuild();events();initWritingModes();initBrainSelector();initIndependentTools();initCloudChatBackups();applyFontSizePreference();try{const mod=await import("https://esm.sh/@supabase/supabase-js@2.76.1");sb=mod.createClient(BASE,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await signedIn();sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){session=null;authorized=false;$("layout").classList.add("hidden");$("auth").classList.remove("hidden")}})}catch(e){authInfo("No se pudo cargar Supabase. Abre Chrome con internet: "+String(e.message||e).slice(0,100))}}
 start();
 </script></body></html>
