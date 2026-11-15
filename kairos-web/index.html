@@ -1207,6 +1207,10 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 /* COMTROL · Contexto opcional por conversación v3.1 */
 .brain-independent-controls .brain-context-consent{margin-top:9px;padding-top:9px;border-top:1px solid #c0d6e3;font-weight:570}
 
+
+/* COMTROL cloud backup owner-controlled deletion */
+.chat-cloud-restore .cloud-chat-delete{background:#f8e9e5;border-color:#ba8e80;color:#763f35}
+
 </style>
 </head>
 <body>
@@ -1283,6 +1287,7 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
   <label for="cloudChatSelector">Elegir respaldo</label>
   <select id="cloudChatSelector"><option value="">Sin respaldos cargados</option></select>
   <button id="cloudChatRestore" type="button">Recuperar selección</button>
+  <button id="cloudChatDelete" type="button" class="cloud-chat-delete">Eliminar respaldo de nube</button>
  </div>
  <p id="cloudChatStatus" role="status" aria-live="polite">Función disponible con tu sesión privada; no funciona en vista previa.</p>
 </details>
@@ -1359,8 +1364,8 @@ function updateStandaloneControls(){
    Sin autoguardado de nube ni inclusión automática en modelos externos. */
 function initCloudChatBackups(){
  const root=$("cloudChatBackups"),saveButton=$("cloudChatSave"),listButton=$("cloudChatList");
- const select=$("cloudChatSelector"),restoreButton=$("cloudChatRestore"),status=$("cloudChatStatus");
- if(!root||!saveButton||!listButton||!select||!restoreButton||!status)return;
+ const select=$("cloudChatSelector"),restoreButton=$("cloudChatRestore"),deleteButton=$("cloudChatDelete"),status=$("cloudChatStatus");
+ if(!root||!saveButton||!listButton||!select||!restoreButton||!deleteButton||!status)return;
  let busyCloud=false;
  const enabled=()=>!!sb&&!!session?.access_token&&authorized&&!preview;
  const setStatus=(message,error=false)=>{status.textContent=String(message);status.classList.toggle("cloud-chat-error",error)};
@@ -1419,6 +1424,27 @@ function initCloudChatBackups(){
   finally{busyCloud=false;saveButton.disabled=false;listButton.disabled=false;restoreButton.disabled=false}
  };
  listButton.onclick=()=>void refreshCloudList();
+ deleteButton.onclick=async()=>{
+  if(busyCloud)return;
+  if(!enabled()){setStatus("Debes tener una sesión autorizada para eliminar un respaldo.",true);return}
+  const key=select.value;
+  if(!/^[a-zA-Z0-9_-]{8,96}$/.test(key)){setStatus("Selecciona primero un respaldo de nube.",true);return}
+  const title=select.selectedOptions[0]?.textContent||"la conversación";
+  if(!window.confirm("¿Eliminar permanentemente el respaldo de la nube «"+title+"»? Esto NO borra tus chats de este dispositivo."))return;
+  busyCloud=true;deleteButton.disabled=true;restoreButton.disabled=true;
+  setStatus("Eliminando solo el respaldo seleccionado…");
+  try{
+   const result=await sb.from("sjm_comtrol_chat_backups_v1")
+     .delete().eq("chat_key",key).select("chat_key");
+   if(result.error)throw result.error;
+   if(!Array.isArray(result.data)||result.data.length!==1)throw Error("No se confirmó la eliminación del respaldo.");
+   select.querySelector('option[value="'+key+'"]')?.remove();
+   select.value="";
+   setStatus("Respaldo eliminado de la nube privada. El historial local del dispositivo permanece intacto.");
+  }catch(error){setStatus("No pude confirmar el borrado: "+String(error?.message||error).slice(0,175),true)}
+  finally{busyCloud=false;deleteButton.disabled=false;restoreButton.disabled=false}
+ };
+
  restoreButton.onclick=async()=>{
   if(busyCloud)return;
   if(!enabled()){setStatus("Debes iniciar sesión autorizada para recuperar un respaldo.",true);return}
