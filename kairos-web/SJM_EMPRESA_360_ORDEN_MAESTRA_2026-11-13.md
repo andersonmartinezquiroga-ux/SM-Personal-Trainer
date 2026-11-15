@@ -234,3 +234,13 @@ Se mantiene la evaluación orientativa **37/100** hasta validar el piloto de pun
 - No se ha medido oficialmente el porcentaje. Conservar la referencia interna `37/100` antes de pruebas integrales, sin aumentarla por diseño o código no probado en dispositivo real.
 
 **Próximas prioridades:** escoger inferencia viable sin pago obligatorio o autoalojamiento con recursos SJM; configurar modelo y confirmar respuesta real; habilitar memoria conversacional en backend separada por usuario/organización; preservar autorización para herramientas; pruebas de Motorola y evaluación de seguridad multiempresa.
+
+## COMTROL 360 · Respaldo privado, contexto opcional y borrado (15 noviembre 2026)
+
+Avance nuevo sin duplicar productos ni proyectos: tabla RLS `public.sjm_comtrol_chat_backups_v1` y panel de chat **Mis conversaciones · respaldos privados**. El usuario autorizado puede guardar explícitamente una copia de los últimos 30 mensajes de una conversación, listar títulos, recuperarla en otro dispositivo de la misma cuenta y eliminar la copia de nube bajo confirmación. La función **no sincroniza automáticamente** ni envía respaldos a un modelo externo. No se debe guardar información sensible; hay aviso y un bloqueo básico de cadenas con credenciales.
+
+El cerebro independiente se actualizó a **Edge Function `sjm_brain_hybrid_v1` versión 8 ACTIVE (JWT=true)**. Puede recibir hasta 4 mensajes anteriores bajo doble consentimiento por mensaje y por contexto. El cliente solo selecciona intercambios anteriores con `mode=independent_model`, excluye informes y secretos del Mentor/CONTROL y no carga el historial del backend para inferencia. La configuración de modelo independiente real **NO se verificó**; es una capacidad técnica pendiente de prueba con inferencia.
+
+**Pruebas técnicas:** base de datos verificó guardado/actualización del propietario, imposibilidad de lectura, actualización o borrado cruzado y rechazo de inserción en nombre de otro usuario. RLS habilitada con cuatro políticas, anónimo sin SELECT/DELETE, 0 respaldos tras rollback. Validador de contexto y filtrado cliente pasaron 7/7 pruebas puras (no constituyen E2E con modelo). Web desplegada y comprobada: `dpl_CnQkTnoFo7jG3k12kbCKuvRFJXfv`, https://sjm-kairos-cerebro-web.vercel.app HTTP 200 y JavaScript válido; inventarios, CRM y espacios empresariales permanecen.
+
+**Siguiente prioridad:** prueba de respaldo/restauración/eliminación desde Motorola y segundo dispositivo, conectar proveedor de IA generativa abierto **sin suscripción a ChatGPT**, probar respuesta real con/sin contexto y documentar costos. Mantener estimación de madurez histórica sin acreditar cierre de autonomía antes de probarla.
