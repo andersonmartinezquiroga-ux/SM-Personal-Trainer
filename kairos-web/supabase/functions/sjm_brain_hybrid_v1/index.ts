@@ -120,6 +120,7 @@ Deno.serve(async (req: Request) => {
       mentor_bridge:"integrated",local_model_connected:false,
       cloud_model_configured:cloudReady,
       independent_route_available:true,
+      independent_read_only_tools_available:["public_research"],
       independent_model_configured:independent.ready,
       independent_model_name:independent.ready?model:null,
       independent_provider_host:independent.ready?independent.host:null,
@@ -132,7 +133,7 @@ Deno.serve(async (req: Request) => {
 
     // General conversation does NOT depend on the CONTROL Mentor's grounded report.
     // However, all calls still require the same protected SJM owner authorization.
-    if(action==="ask_independent" || action==="independent_self_test"){
+    if(action==="ask_independent" || action==="independent_self_test" || action==="research_public"){
       let allowed=false;
       try{
         const gate=await fetch(base+"/functions/v1/sjm_kairos_mentor_api",{
@@ -145,6 +146,62 @@ Deno.serve(async (req: Request) => {
         else if(gate.status===401||gate.status===403)return respond({ok:false,error:"Cuenta no autorizada"},gate.status);
       }catch{}
       if(!allowed)return respond({ok:false,error:"No fue posible verificar autorización"},503);
+
+      if(action==="research_public"){
+        // Explicit opt-in, public query only. Never share conversation logs or private app data.
+        const keyword=cap(body?.query,130);
+        if(!keyword||keyword.length<2||protectedInput.test(keyword))
+          return respond({ok:false,error:"Escribe un tema público de 2 a 130 caracteres, sin contraseñas ni datos sensibles."},400);
+        if(body?.allow_public_search!==true)
+          return respond({ok:false,error:"Autoriza expresamente enviar este término de búsqueda a Wikipedia."},403);
+        try{
+          const url=new URL("https://es.wikipedia.org/w/api.php");
+          url.searchParams.set("action","query");
+          url.searchParams.set("generator","search");
+          url.searchParams.set("gsrsearch",keyword);
+          url.searchParams.set("gsrlimit","3");
+          url.searchParams.set("prop","extracts");
+          url.searchParams.set("exintro","1");
+          url.searchParams.set("explaintext","1");
+          url.searchParams.set("exchars","350");
+          url.searchParams.set("format","json");
+          url.searchParams.set("formatversion","2");
+          const response=await fetch(url.toString(),{
+            method:"GET",
+            headers:{"accept":"application/json","user-agent":"COMTROL360-Research/1.0 (https://sjm-kairos-cerebro-web.vercel.app; educational read-only tool)"},
+            signal:AbortSignal.timeout(12000)
+          });
+          if(!response.ok)throw new Error("Fuente pública no respondió ("+response.status+")");
+          const declared=Number(response.headers.get("content-length")||0);
+          if(declared>180000)throw new Error("Respuesta pública demasiado grande");
+          const textData=await response.text();
+          if(textData.length>180000)throw new Error("Respuesta pública demasiado grande");
+          const json=JSON.parse(textData);
+          if(json?.error)throw new Error("Fuente pública rechazó la consulta");
+          const pages=Array.isArray(json?.query?.pages)?json.query.pages:[];
+          const entries=pages.filter((p:any)=>p&&typeof p.title==="string"&&Number.isInteger(p.pageid))
+           .slice(0,3).map((p:any)=>{
+             const article="https://es.wikipedia.org/wiki/"+encodeURIComponent(p.title.replace(/ /g,"_"));
+             const excerpt=cap(typeof p.extract==="string"?p.extract.replace(/\s+/g," "):"",350);
+             return {title:cap(p.title,160),excerpt,url:article};
+           });
+          if(!entries.length)return respond({
+            ok:true,mode:"public_research",brain:"COMTROL_READ_ONLY_TOOLS_V1",
+            answer:"Wikipedia en español no encontró artículos para este término. Prueba con una búsqueda más específica. No se usó ningún modelo de IA.",
+            sources:[],source:"Wikipedia en español",externalProcessing:true,executedActions:0
+          });
+          const answer=[
+            "Consulta enciclopédica pública · Wikipedia en español",
+            "No es una búsqueda de noticias actuales ni una respuesta generativa. Verifica fecha y contenido en las fuentes.",
+            ...entries.map((e:any,i:number)=>"\n"+(i+1)+". "+e.title+"\n"+(e.excerpt||"Artículo disponible; abre la fuente para más información.")+"\nFuente: "+e.url)
+          ].join("\n");
+          return respond({ok:true,mode:"public_research",brain:"COMTROL_READ_ONLY_TOOLS_V1",
+            answer,sources:entries,source:"Wikipedia en español",externalProcessing:true,
+            executedActions:0,readOnly:true,provider:"wikimedia"});
+        }catch(_e){
+          return respond({ok:false,error:"No se pudo consultar Wikipedia. Puede existir una limitación temporal de conexión; no se inventaron resultados.",externalProcessing:false,executedActions:0},503);
+        }
+      }
       if(action==="independent_self_test"){
         const tests=[
           {case:"URL insegura",pass:independentModelConfig("http://localhost:8000/v1/chat/completions","modelo","",true).ready===false},
