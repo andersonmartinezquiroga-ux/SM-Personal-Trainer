@@ -44,7 +44,7 @@ export async function publicKnowledge(input, requestFetch=fetch) {
       headers:{"accept":"application/json","user-agent":"SJM-Kairos-360/0.1 (public educational read-only research)"},
       signal:AbortSignal.timeout(10000)
     });
-    if(!response.ok) throw new Error("Fuente enciclopédica no disponible (HTTP "+response.status+")");
+    if(!response.ok) throw new Error("upstream_http_"+response.status);
     const declared=Number(response.headers.get("content-length")||0);
     if(!Number.isFinite(declared)||declared>MAX_BODY_BYTES)throw new Error("Fuente demasiado extensa");
     const reader=response.body?.getReader();
@@ -68,7 +68,14 @@ export async function publicKnowledge(input, requestFetch=fetch) {
       sources:entries,readOnly:true,generatedByLLM:false,executedActions:0,
       disclaimer:"Los extractos son de la enciclopedia, no respuestas generadas ni hechos verificados independientemente."
     }};
-  }catch {
-    return {status:503,body:{ok:false,error:"No se pudo consultar la fuente pública. No se inventaron resultados.",readOnly:true,generatedByLLM:false,executedActions:0}};
+  }catch (err) {
+    // Safe diagnostics: no query, headers, URLs, user content or stack traces.
+    const raw=String(err?.message||"");
+    const upstream=/^upstream_http_(\d{3})$/.exec(raw);
+    const failure_class=upstream?"upstream_http_"+upstream[1]:
+      err?.name==="TimeoutError"||err?.name==="AbortError"?"timeout":
+      raw==="Fuente demasiado extensa"?"content_too_large":
+      err instanceof SyntaxError?"invalid_json":"source_unavailable";
+    return {status:503,body:{ok:false,error:"No se pudo consultar la fuente pública. No se inventaron resultados.",failure_class,readOnly:true,generatedByLLM:false,executedActions:0}};
   }
 }
