@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test policy.test.mjs"
+    "test": "node --test policy.test.mjs research.test.mjs"
   },
   "engines": {
     "node": ">=20"
