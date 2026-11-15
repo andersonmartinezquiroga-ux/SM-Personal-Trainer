@@ -1289,7 +1289,7 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
 <button type="button" id="menuFont">Aa &nbsp; Texto extra grande</button><button type="button" id="menuSettings">⚙ &nbsp; Configuración</button>
 </div></div>
 </header>
-<section id="chat"><div id="previewBanner" class="hidden" role="status" style="padding:11px 16px;background:#203c60;color:#e3effc;border-bottom:1px solid #729ac0;font-size:13px"><b>VISTA PREVIA:</b> interfaz navegable, pero sin acceso a Supabase, IA ni acciones reales. Los resultados privados permanecen protegidos.</div><div id="messages"></div>
+<section id="chat"><div id="previewBanner" class="hidden" role="status" style="padding:11px 16px;background:#203c60;color:#e3effc;border-bottom:1px solid #729ac0;font-size:13px"><b>VISTA PREVIA:</b> sin datos privados de Supabase ni IA en nube. Las herramientas locales y la IA experimental del dispositivo pueden usarse si el navegador es compatible.</div><div id="messages"></div>
 <div class="composer-area"><div class="composer-inner">
 <div class="brain-model-bar" id="brainModelBar" role="group" aria-label="Selecciona el tipo de conversación">
  <button id="brainMentorMode" type="button" class="brain-mode-choice selected" aria-pressed="true">◈ CONTROL · Supervisión</button>
@@ -1309,10 +1309,10 @@ nav#nav .nav-item.nav-important .nav-symbol{color:#b9ddf7}
  <div class="brain-local-actions">
   <button type="button" id="brainCheckGpu">Comprobar mi dispositivo</button>
   <button type="button" id="brainLoadLocal">Descargar e iniciar IA local</button>
-  <button type="button" id="brainUnloadLocal" disabled>Descargar de memoria</button>
+  <button type="button" id="brainUnloadLocal" disabled>Liberar memoria</button>
  </div>
  <p id="brainLocalStatus" role="status" aria-live="polite">No se descargó ningún modelo. Primero comprueba tu dispositivo; decide tú si deseas descargarlo.</p>
- <small>Modelo de prueba: SmolLM2-360M Instruct, de MLC/WebLLM. No se envían las preguntas a ChatGPT ni a servidores de inferencia; solo se descargan los archivos del modelo.</small>
+ <small>Modelo de prueba: SmolLM2-360M Instruct, de MLC/WebLLM. No se envían las preguntas a ChatGPT ni a servidores de inferencia; solo se descargan los archivos del modelo. Para hablar usa el botón de dictado; la llamada manos libres sigue asociada a CONTROL.</small>
 </div>
 <div id="independentTools" class="standalone-tool-panel" role="group" aria-label="Herramientas que no necesitan un modelo generativo">
  <span class="standalone-tool-title">Herramientas sin ChatGPT</span>
@@ -1402,6 +1402,7 @@ function updateLocalModelStatus(message){
 }
 async function releaseLocalModel(){
  localModelEpoch++;
+ localModelLoading=false;
  const engine=localModelEngine;localModelEngine=null;
  if(engine){try{await engine.unload?.()}catch{}}
  updateLocalModelStatus("Modelo local descargado de memoria. Los archivos descargados pueden seguir en la caché del navegador.");
