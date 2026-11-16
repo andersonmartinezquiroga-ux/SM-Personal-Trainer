@@ -7,34 +7,34 @@
       "evidence_sha256": "323456efcd65bc3b85903e2d7ff21fa3a625755a4416a8cd2e7e2aced5d9b2ec",
       "detail": "Executor HTTP 200, ready; this is NOT a submission test",
       "checks_attempted": 1,
-      "checked_utc": "2026-11-16T11:47:02Z",
-      "next_due": "2026-11-16T12:47:02Z",
+      "checked_utc": "2026-11-16T22:21:53Z",
+      "next_due": "2026-11-16T23:21:53Z",
       "kind": "executor_health",
       "url": "https://sjm-playwright-executor.onrender.com/healthz",
-      "attempts": 54
+      "attempts": 55
     },
     "europe-eic-official": {
       "outcome": "checked_ok",
       "http_status": 200,
       "evidence_sha256": "3d6e88a06a4663997b9d5d45971fa4c4b613ad93fd61c2e64d5a20ecf89dbed5",
       "detail": "Official public page reached; individual eligibility NOT verified",
-      "checked_utc": "2026-11-16T02:52:48Z",
-      "next_due": "2026-11-16T14:52:48Z",
+      "checked_utc": "2026-11-16T22:21:53Z",
+      "next_due": "2026-11-17T10:21:53Z",
       "kind": "official_page",
       "url": "https://eic.ec.europa.eu/",
-      "attempts": 23
+      "attempts": 24
     },
     "awesome-foundation-official": {
       "outcome": "checked_ok",
       "http_status": 200,
-      "evidence_sha256": "734b485f026ebf085fe853cd3195ba1b1af28dc8ed9e109b31e14b223e9e4c82",
+      "evidence_sha256": "aaa130a7d6064470c09d1b1501feb278b508fc84174f6c3bc624d3da0535df00",
       "detail": "Official public page reached; individual eligibility NOT verified",
-      "checked_utc": "2026-11-16T02:52:48Z",
-      "next_due": "2026-11-16T14:52:48Z",
+      "checked_utc": "2026-11-16T22:21:53Z",
+      "next_due": "2026-11-17T10:21:53Z",
       "kind": "official_page",
       "url": "https://www.awesomefoundation.org/en",
-      "attempts": 23
+      "attempts": 24
     }
   },
-  "last_cycle": "2026-11-16T11:47:02Z"
+  "last_cycle": "2026-11-16T22:21:53Z"
 }
