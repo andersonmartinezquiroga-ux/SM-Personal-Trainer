@@ -306,7 +306,11 @@ class API(BaseHTTPRequestHandler):
                 with tempfile.TemporaryDirectory() as d:
                     navigation = run("http://127.0.0.1:8765/", d + "/navigation.json")
                     submission = run("http://127.0.0.1:8765/", d + "/submission.json", submit=True)
-                    return self.reply(200, {"navigation": navigation, "form": submission})
+                    return self.reply(200, {"navigation": navigation, "form": submission,
+                                            "inspection_kind": "self_test",
+                                            "submitted": False,
+                                            "external_submission": False,
+                                            "simulated_local_form_submission": bool(submission.get("submitted"))})
             if not isinstance(params.get("url"), str):
                 return self.reply(400, {"error": "url_required"})
             allowed = {"url"} if self.path == "/jobs/inspect" else {"url", "fields"}
