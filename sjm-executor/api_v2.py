@@ -142,12 +142,14 @@ def read_vetted_public_source(focus):
 class API(BaseHTTPRequestHandler):
     def reply(self, status, body):
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Cache-Control", "no-store")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
         try:
+            # A peer may disconnect while headers are being written, not only
+            # during the response body. Treat both cases as undelivered.
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
             self.wfile.write(data)
         except (BrokenPipeError, ConnectionResetError):
             # The client disconnected after the response was prepared. This is
