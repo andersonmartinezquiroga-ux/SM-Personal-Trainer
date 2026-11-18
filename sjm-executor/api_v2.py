@@ -147,7 +147,15 @@ class API(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            # The client disconnected after the response was prepared. This is
+            # not proof that the client received an ACK or completed an action.
+            print(json.dumps({"event": "browser_http_client_disconnected",
+                              "route": self.path.split("?", 1)[0],
+                              "status": status, "ack_delivered": False}), flush=True)
+            return
         # Structured, secret-free response evidence for Render/Supabase correlation.
         # Never log headers, payloads, query strings, or personal data.
         route = self.path.split("?", 1)[0]
