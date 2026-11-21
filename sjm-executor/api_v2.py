@@ -201,15 +201,23 @@ class API(BaseHTTPRequestHandler):
         return data
 
     def do_HEAD(self):
-        if self.path == "/healthz":
-            self.send_response(200)
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-        else:
-            self.send_response(404)
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        # A health probe can disconnect before headers are flushed.
+        # Never mistake a broken socket for an application/job failure.
+        try:
+            if self.path == "/healthz":
+                self.send_response(200)
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+            else:
+                self.send_response(404)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+        except (BrokenPipeError, ConnectionResetError):
+            print(json.dumps({"event": "browser_http_client_disconnected",
+                              "route": self.path.split("?", 1)[0],
+                              "method": "HEAD", "ack_delivered": False}), flush=True)
+            return
 
     def do_GET(self):
         if self.path == "/healthz":
