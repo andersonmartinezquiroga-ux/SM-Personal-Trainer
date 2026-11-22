@@ -12,6 +12,10 @@ import java.util.Set;
  */
 public final class SjmNavigationPolicy {
     private static final String HOST = "sjm-control-360.floot.app";
+    private static final Set<String> VERIFIED_ROOT_HOSTS = new HashSet<>(Arrays.asList(
+        "sjm-control-360-respaldo.vercel.app",
+        "sjm-kairos-conversacion-sjm-pruebas.vercel.app"
+    ));
     private static final Set<String> PAGES = new HashSet<>(Arrays.asList(
         "/", "/mentor", "/kairos", "/estado", "/secretario", "/expedientes", "/sjm-panel-8"
     ));
@@ -31,12 +35,14 @@ public final class SjmNavigationPolicy {
         try {
             URI uri = new URI(url);
             return "https".equalsIgnoreCase(uri.getScheme())
-                && HOST.equalsIgnoreCase(uri.getHost())
                 && uri.getPort() == -1
                 && uri.getUserInfo() == null
                 && uri.getRawQuery() == null
                 && uri.getRawFragment() == null
-                && PAGES.contains(uri.getRawPath());
+                && ((HOST.equalsIgnoreCase(uri.getHost()) && PAGES.contains(uri.getRawPath()))
+                    || (uri.getHost() != null
+                        && VERIFIED_ROOT_HOSTS.contains(uri.getHost().toLowerCase(java.util.Locale.ROOT))
+                        && "/".equals(uri.getRawPath())));
         } catch (URISyntaxException | IllegalArgumentException e) {
             return false;
         }

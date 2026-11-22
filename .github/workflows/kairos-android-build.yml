@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.24' and int(code)>=27, (version,code)
+          assert version=='0.3.25' and int(code)>=28, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -126,7 +126,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0324
+          name: KairosMobile-release-APK-V0325
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -137,12 +137,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.24-supabase'
+          tag='kairos-mobile-v0.3.25-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.24-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.25-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.24-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.24 · verificación de reproducción en YouTube'               --notes 'KAIRÓS 0.3.24: ya no declara completada una búsqueda al pulsar un resultado; intenta reproducir mediante botón Play de YouTube, controla una segunda pantalla de resultados y exige botón Pause visible y audio activo antes de dar un acuse positivo. Si no se comprueba, reporta fallo. No se leen ni envían textos de otras apps. No declara finalización de tareas de negocio sin evidencia ni autonomía general. Mantiene vínculo y comprobación real de versión. VersionCode 27 y firma permanente; instalar encima de 0.3.23 sin desinstalar ni perder vinculación. Instalar solo cuando propietario disponga de carga y pueda verificar.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.25-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.25 · rutas SJM verificadas'               --notes 'KAIRÓS 0.3.25: permite solo las raíces HTTPS verificadas de CONTROL respaldo y conversación KAIRÓS en Vercel, bloqueando rutas inexistentes, consultas, fragmentos y dominios ajenos. Mantiene seguridad y verificaciones previas. VersionCode 28 y firma permanente; instalar encima de 0.3.24 sin desinstalar y comprobar en Motorola. No se declara autonomía total.'               --prerelease
           fi
