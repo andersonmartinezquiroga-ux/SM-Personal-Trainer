@@ -13,9 +13,20 @@ import java.nio.charset.StandardCharsets;
 final class BridgeHttp {
     private static final String BASE = "https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_kairos_phone_v1";
     static JSONObject call(String endpoint, String method, JSONObject body, String executorKey) throws Exception {
+        return call(endpoint, method, body, executorKey, null);
+    }
+    /** Signed poll can transmit only a transient busy/free boolean, never audio. */
+    static JSONObject call(String endpoint, String method, JSONObject body, String executorKey,
+                           Boolean voiceBusy) throws Exception {
         if (!endpoint.startsWith("/_api/kairos/") || endpoint.contains(".."))
             throw new IOException("Endpoint no permitido");
-        HttpURLConnection connection = (HttpURLConnection) new URL(BASE + "?path=" + java.net.URLEncoder.encode(endpoint, "UTF-8")).openConnection();
+        String requestUrl = BASE + "?path=" + java.net.URLEncoder.encode(endpoint, "UTF-8");
+        if (voiceBusy != null) {
+            if (!"/_api/kairos/phone_command_poll".equals(endpoint) || !"GET".equals(method))
+                throw new IOException("Estado de voz solo permitido para sondeo autenticado");
+            requestUrl += "&voice=" + (voiceBusy.booleanValue() ? "busy" : "free");
+        }
+        HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(9000);
         connection.setReadTimeout(9000);

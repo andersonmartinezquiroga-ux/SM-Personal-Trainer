@@ -400,10 +400,12 @@ public class KairosAccessibility extends AccessibilityService {
             // No detener TODO el enlace durante sesiones de voz: las notificaciones
             // pueden recibirse sin interrumpir la conversación. Las acciones que
             // cambian de pantalla siguen prohibidas mientras esté activa.
-            if(hasActiveCommunication())
+            boolean voiceBusy=hasActiveCommunication();
+            if(voiceBusy)
                 CommandReceiptStore.markBridge(this,"VOICE_POLL_SAFE_ONLY");
             stage="POLL";
-            JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key);
+            // The authenticated server rejects new screen jobs while busy.
+            JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key,voiceBusy);
             if(!pending.optBoolean("ok",false)) {
                 CommandReceiptStore.markBridge(this,"POLL_REJECTED");
                 return;

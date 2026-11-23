@@ -35,6 +35,14 @@ final class AppWorkflowEngine {
         service=svc; handler=h; target=pkg; steps=instructions; completion=callback;
     }
 
+    private boolean isCommunicationActive() {
+        AudioManager mgr=service.getSystemService(AudioManager.class);
+        if(mgr==null)return true; // fail closed when Android cannot report audio mode
+        int mode=mgr.getMode();
+        return mode==AudioManager.MODE_IN_CALL ||
+               mode==AudioManager.MODE_IN_COMMUNICATION;
+    }
+
     static boolean validate(JSONObject payload) {
         if(payload==null || payload.length()!=2 ||
            !payload.has("package") || !payload.has("steps"))return false;
@@ -73,6 +81,10 @@ final class AppWorkflowEngine {
         Intent launch=svc.getPackageManager().getLaunchIntentForPackage(pkg);
         if(launch==null) {cb.onDone(false,"WORKFLOW_APP_UNAVAILABLE");return;}
         AppWorkflowEngine worker=new AppWorkflowEngine(svc,h,pkg,payload.optJSONArray("steps"),cb);
+        if(worker.isCommunicationActive()){
+            cb.onDone(false,"WORKFLOW_VOICE_BUSY_NOT_EXECUTED");
+            return;
+        }
         JSONObject onlyStep=payload.optJSONArray("steps").optJSONObject(0);
         if(onlyStep!=null && "youtube_play_video".equals(onlyStep.optString("action",""))){
             worker.openYoutubeVideo(onlyStep.optString("value",""));
@@ -307,6 +319,11 @@ final class AppWorkflowEngine {
         if(finished)return;
         if(CommandReceiptStore.isPaused(service)){
             finish(false,"WORKFLOW_OWNER_PAUSED");return;
+        }
+        // A voice call may start after the command was received. Recheck
+        // before EVERY UI step rather than blindly continuing a prior plan.
+        if(isCommunicationActive()){
+            finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");return;
         }
         AccessibilityNodeInfo root=foreground();
         if(root==null){
