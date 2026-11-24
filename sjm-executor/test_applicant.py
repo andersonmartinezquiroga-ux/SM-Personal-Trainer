@@ -47,6 +47,34 @@ class SecurityTests(unittest.TestCase):
             with self.subTest(url=url),self.assertRaises(ValueError):
                 checked_url(url)
 
+
+    def test_magneto_four_registered_exact_public_pages_only(self):
+        """Old HTTP400 mismatch: Supabase allows four listings; Render must inspect them safely."""
+        permitted=(
+            "https://www.magneto365.com/co/empleos/asesor-comercial-sin-experiencia-partime-1144830",
+            "https://www.magneto365.com/co/empleos/asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783",
+            "https://www.magneto365.com/co/empleos/auxiliar-de-servicio-al-cliente-sin-experiencia-por-temporada-manizales-1141475",
+            "https://www.magneto365.com/co/empleos/operador-de-tienda-ara-fusagasuga-cundinamarca-1140758",
+        )
+        for url in permitted:
+            with self.subTest(url=url):
+                self.assertEqual(checked_url(url),url)
+                self.assertTrue(is_safe_readonly_asset(url,"GET"))
+                self.assertFalse(is_safe_readonly_asset(url,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(url,{"full_name":"NEVER_SEND_PRIVATE_DATA"})
+                for suffix in ("?apply=1","#apply","/submit","/account"):
+                    with self.assertRaises(ValueError): checked_url(url+suffix)
+        for url in (
+            "https://www.magneto365.com/login",
+            "https://www.magneto365.com/co/empleos/otro-9999999",
+            "https://www.magneto365.com/co/empleos/asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783?token=x",
+            "http://www.magneto365.com/co/empleos/asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783",
+            "https://www.magneto365.com@127.0.0.1/co/empleos/asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783",
+        ):
+            with self.subTest(blocked=url),self.assertRaises(ValueError): checked_url(url)
+        self.assertFalse(is_safe_readonly_asset("https://www.magneto365.com/login","GET"))
+
     def test_jobbers_exact_public_path_without_registration(self):
         for domain in ("www.jobbers.io","jobbers.io"):
             url = "https://" + domain + "/provider-signup/"
