@@ -7,10 +7,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY executor.py test_form.py server.py api_v2.py applicant.py form_adapter.py submit_ypai.py run_authorized_ypai_20261020.py ./
+COPY executor.py test_form.py server.py api_v2.py applicant.py form_adapter.py workflow_engine.py submit_ypai.py run_authorized_ypai_20261020.py ./
 # Compile-only/offline regression: exact public route, no account creation or external POST.
-COPY test_applicant.py test_form_adapter.py ./
-RUN python -m unittest test_applicant.SecurityTests.test_wellonis_founding_coach_public_only test_form_adapter.FormAdapterTests.test_wellonis_requires_owner_terms_and_never_submits
+COPY test_applicant.py test_form_adapter.py test_workflow_engine.py ./
+RUN python -m unittest test_applicant.SecurityTests.test_wellonis_founding_coach_public_only test_form_adapter.FormAdapterTests.test_wellonis_requires_owner_terms_and_never_submits test_workflow_engine
 ENV PYTHONUNBUFFERED=1
 EXPOSE 10000
 CMD ["python", "api_v2.py"]

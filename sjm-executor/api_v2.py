@@ -5,6 +5,7 @@ from urllib.error import HTTPError, URLError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
+from workflow_engine import prepare_workflow
 from submit_ypai import apply_ypai_role, ROLE_CONFIG
 from test_form import H
 
@@ -161,14 +162,14 @@ class API(BaseHTTPRequestHandler):
         # Structured, secret-free response evidence for Render/Supabase correlation.
         # Never log headers, payloads, query strings, or personal data.
         route = self.path.split("?", 1)[0]
-        if route in {"/healthz", "/self-test", "/jobs/inspect", "/jobs/draft", "/jobs/submit-ypai", "/jobs/submit-ypai-role"}:
+        if route in {"/healthz", "/self-test", "/jobs/inspect", "/jobs/draft", "/jobs/prepare", "/jobs/submit-ypai", "/jobs/submit-ypai-role"}:
             # Correlate only a bounded opaque identifier, never a token or request body.
             # The caller must pass the same request_id used in its Supabase ACK.
             raw_id = self.headers.get("X-Request-ID", "")
             request_id = raw_id if re.fullmatch(r"[A-Za-z0-9_-]{1,64}", raw_id) else None
             print(json.dumps({"event": "browser_http_response", "route": route,
                               "status": status, "request_id": request_id,
-                              "submitted": False if route in {"/jobs/inspect", "/jobs/draft", "/self-test"} else None}), flush=True)
+                              "submitted": False if route in {"/jobs/inspect", "/jobs/draft", "/jobs/prepare", "/self-test"} else None}), flush=True)
 
     def log_message(self, format, *args):
         pass
@@ -225,7 +226,7 @@ class API(BaseHTTPRequestHandler):
             return self.reply(200, {
                 "service": "sjm-playwright-executor",
                 "status": "ready",
-                "version": "application-gated-submit-v4",
+                "version": "autonomy-prepare-workflow-v1",
                 "external_submission": "disabled_without_exact_case_approval",
                 "approved_case_count": len(approvals),
                 "ypai_role_allowlist": sorted(ROLE_CONFIG),
@@ -249,7 +250,7 @@ class API(BaseHTTPRequestHandler):
                 return self.reply(400, {"error": "invalid_readonly_pulse", "details": str(exc)[:100]})
 
         known = (
-            "/self-test", "/jobs/inspect", "/jobs/draft",
+            "/self-test", "/jobs/inspect", "/jobs/draft", "/jobs/prepare",
             "/jobs/submit-ypai", "/jobs/submit-ypai-role",
         )
         if self.path not in known:
@@ -334,6 +335,8 @@ class API(BaseHTTPRequestHandler):
             allowed = {"url"} if self.path == "/jobs/inspect" else {"url", "fields"}
             if set(params) - allowed:
                 return self.reply(400, {"error": "unsupported_parameters"})
+            if self.path == "/jobs/prepare":
+                return self.reply(200, prepare_workflow(params["url"], params.get("fields", {})))
             result = inspect(params["url"], fields=params.get("fields", {}))
             return self.reply(200, result)
         except (ValueError, json.JSONDecodeError) as exc:
