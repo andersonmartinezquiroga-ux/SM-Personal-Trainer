@@ -393,6 +393,7 @@ def inspect(url, fields=None):
         result["consent_or_captcha_present"]=page.locator('iframe[src*="captcha"], [class*="captcha"], input[type="checkbox"]').count()>0
         result["adapter_summary"]=classify_application_form(
             url, result["fields"], challenge=result["challenge_detected"],
+            source_blocked=result["source_access_blocked"],
             form_visible=result["application_form_visible"],
             required_cv_hint=result["required_cv"] if source=="jobs.lever.co" else False
         )
