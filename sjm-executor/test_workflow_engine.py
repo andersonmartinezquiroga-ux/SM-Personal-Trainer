@@ -110,6 +110,16 @@ class MotionRoleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             checked_url(url+"/submit")
 
+    def test_observed_motion_fields_and_optional_marketing(self):
+        from submit_ypai import motion_field_schema_ok, MOTION_REVIEWED_FIELDS
+        fields=sorted(MOTION_REVIEWED_FIELDS)
+        self.assertTrue(motion_field_schema_ok(fields, ["name","email","consent"]))
+        for invalid in (fields+["unknown_field"],fields+["name"],
+                        [n for n in fields if n!="country"]):
+            self.assertFalse(motion_field_schema_ok(invalid, ["name","email","consent"]))
+        for required in ("partner_learn_consent","phone","cv","city"):
+            self.assertFalse(motion_field_schema_ok(fields, ["name","email","consent",required]))
+
     def test_endpoint_missing_or_outside_origin_fails_closed(self):
         from submit_ypai import verified_submit_endpoint
         with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":""}):
