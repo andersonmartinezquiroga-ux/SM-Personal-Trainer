@@ -5,6 +5,19 @@ from form_adapter import classify_application_form as classify
 class FormAdapterTests(unittest.TestCase):
 
 
+    def test_mobidea_instruimos_semantic_block_not_marked_ready(self):
+        listing=classify('https://www.careers-page.com/mobidea/job/LR8Y485X',[],form_visible=False)
+        self.assertEqual(listing['adapter'],'mobidea_careers_listing_readonly')
+        self.assertEqual(listing['preflight_state'],'needs_interactive_form_inspection')
+        self.assertFalse(listing['submitted'])
+        blocked=classify('https://www.instruimos.com/TrabajeNosotros.awp',
+          [{'name':'email','type':'email','required':True}],
+          source_blocked=True,form_visible=True)
+        self.assertEqual(blocked['adapter'],'instruimos_public_jobs_readonly')
+        self.assertEqual(blocked['preflight_state'],'source_access_blocked')
+        self.assertFalse(blocked['automatic_submission_enabled'])
+        self.assertFalse(blocked['submitted'])
+
     def test_jobbers_public_legal_gate(self):
         url="https://www.jobbers.io/provider-signup/"
         result=classify(url,[{"name":"email","type":"email","required":True},
