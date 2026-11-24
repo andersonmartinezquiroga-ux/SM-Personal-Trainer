@@ -20,6 +20,9 @@ ALLOWED={
  # Colombian government job URL, exact public query params, GET-only.
  # Exact publicly listed SJM source URLs. GET only; no login, payment or submission.
  "gymstart.co": re.compile(r"^/$"),
+ # Wellonis Founding Coach: PUBLIC enrollment preflight, NEVER register or accept terms.
+ "wellonis.com": re.compile(r"^/signup/partner/?$"),
+ "www.wellonis.com": re.compile(r"^/signup/partner/?$"),
  "mantra.fit": re.compile(r"^/careers/fitness-expert-job-in-spain/?$"),
  # Exact SJM tracked public listings. No account/session access or submissions.
  "co.linkedin.com": re.compile(r"^/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155/?$"),
@@ -88,7 +91,7 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
               "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
-              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com","conectapp.com.co","ko-fi.com","mindrift.ai","www.fiverr.com","mostaql.com","www.superprof.ae"}
+              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com","conectapp.com.co","ko-fi.com","mindrift.ai","www.fiverr.com","mostaql.com","www.superprof.ae","wellonis.com","www.wellonis.com"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):

@@ -13,6 +13,8 @@ ADAPTERS = {
     'community.transperfect.com': 'transperfect_listing',
     'www.workana.com': 'workana_listing',
     'myvirtualtrainer.co': 'partner_listing',
+    'wellonis.com': 'wellonis_partner_signup_readonly',
+    'www.wellonis.com': 'wellonis_partner_signup_readonly',
     # Exact public job path separately restricted in applicant.py; READ-ONLY.
     'agentify.teamtailor.com': 'teamtailor_listing',
 }

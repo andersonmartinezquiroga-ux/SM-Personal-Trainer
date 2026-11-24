@@ -3,6 +3,19 @@ import unittest
 from form_adapter import classify_application_form as classify
 
 class FormAdapterTests(unittest.TestCase):
+
+    def test_wellonis_requires_owner_terms_and_never_submits(self):
+        r=classify('https://wellonis.com/signup/partner',
+          [{'name':'email','type':'email','required':True},
+           {'name':'partnerAgreement','type':'checkbox',
+            'label':'I accept the Partner Terms and Privacy Policy','required':True}],
+          form_visible=True)
+        self.assertEqual(r['adapter'],'wellonis_partner_signup_readonly')
+        self.assertEqual(r['preflight_state'],'needs_specific_authorization')
+        self.assertIn('terms_or_privacy',r['required_approval_scopes'])
+        self.assertFalse(r['automatic_submission_enabled'])
+        self.assertFalse(r['submitted'])
+
     def test_ypai_with_consent(self):
         r=classify('https://freelancer.ypai.ai/jobs/openings/text-annotator-co',
           [{'name':'email','type':'email','required':True},

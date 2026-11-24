@@ -15,6 +15,21 @@ class SecurityTests(unittest.TestCase):
             "By applying, your resume will be reviewed"))
         self.assertFalse(lever_required_resume_visible(None))
 
+
+    def test_wellonis_founding_coach_public_only(self):
+        "A known partner signup path is inspectable, never an account action."
+        for host in ("wellonis.com","www.wellonis.com"):
+            u="https://"+host+"/signup/partner"
+            self.assertEqual(checked_url(u),u)
+            self.assertTrue(is_safe_readonly_asset(u,"GET"))
+            self.assertFalse(is_safe_readonly_asset(u,"POST"))
+            with self.assertRaises(ValueError):
+                inspect(u,{"name":"NOT_AUTHORIZED_TO_POST"})
+            for bad in ("/login","/signup","/signup/partner/confirm","/account",
+                        "/signup/partner?plan=paid","/signup/partner#checkout"):
+                with self.assertRaises(ValueError):
+                    checked_url("https://"+host+bad)
+
     def test_official(self):
         url="https://jobs.lever.co/weloglobal/54157634-2cb4-4073-a1e6-4b51f3d411fd/apply"
         self.assertEqual(checked_url(url),url)
