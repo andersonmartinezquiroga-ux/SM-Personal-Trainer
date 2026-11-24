@@ -44,6 +44,23 @@ READ_HOSTS = {
 }
 MAX_NAME = 120
 
+# Exact field names observed in public inspection job 409. Any new field
+# requires review; optional marketing and profile enrichment are never filled.
+MOTION_REQUIRED_FIELDS = frozenset(("name", "email", "country", "consent"))
+MOTION_REVIEWED_FIELDS = MOTION_REQUIRED_FIELDS | frozenset((
+    "openingId", "postingSelection", "postingSelectionState", "_formStartTime",
+    "website_url", "apply-country-search", "region", "city", "english_level",
+    "education_level", "field_of_study", "apply-profession", "current_role",
+    "specialty", "years_experience", "ai_work", "cv", "partner_learn_consent",
+    "phone"
+))
+
+def motion_field_schema_ok(names, required):
+    return (all(isinstance(n,str) and n in MOTION_REVIEWED_FIELDS for n in names)
+            and len(set(names)) == len(names)
+            and MOTION_REQUIRED_FIELDS.issubset(names)
+            and set(required).issubset(MOTION_REQUIRED_FIELDS))
+
 def clean_person(name, email, country, privacy_consent, contributor_agreement):
     if not isinstance(name, str) or not (3 <= len(name.strip()) <= MAX_NAME):
         raise ValueError("full_name_invalid")
@@ -126,6 +143,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         page.set_default_timeout(6500)
         posts = []
         post_statuses = []
+        filling_started = False
         def record_post_response(response):
             if response.request.method == "POST" and response.url == endpoint:
                 post_statuses.append(response.status)
@@ -139,6 +157,9 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                 if u.scheme != "https" or u.port not in (None, 443):
                     return route.abort()
                 if req.method in ("GET", "HEAD") and host in READ_HOSTS:
+                    # No query-bearing GET after personal values are entered.
+                    if filling_started and u.query:
+                        return route.abort()
                     return route.continue_()
                 # Permit exactly one verified form POST only AFTER the explicit click boundary.
                 if req.method == "POST" and req.url == endpoint and out["attempted_submit"] and not posts:
@@ -172,12 +193,11 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
             form = forms.first
             elements = form.locator("input,select,textarea").all()
             names = [x.get_attribute("name") for x in elements]
-            for mandatory in ("name", "email", "country", "consent"):
-                if mandatory not in names:
-                    out["status"] = "blocked_unexpected_fields"
-                    return out
-            if len(set(x for x in names if x)) > 14:
-                out["status"] = "blocked_extra_fields"
+            required_names = [el.get_attribute("name") for el in elements
+                              if el.get_attribute("required") is not None
+                              or el.get_attribute("aria-required") == "true"]
+            if not motion_field_schema_ok(names, required_names):
+                out["status"] = "blocked_unreviewed_form_schema"
                 return out
 
             blocked_names = (
@@ -200,10 +220,18 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                     return out
 
             cboxes = form.locator('input[type="checkbox"]')
-            if cboxes.count() != 1 or cboxes.first.get_attribute("name") != "consent":
+            checkbox_names = [el.get_attribute("name") for el in cboxes.all()]
+            if (len(set(checkbox_names)) != len(checkbox_names)
+                    or "consent" not in checkbox_names
+                    or not set(checkbox_names).issubset({"consent","partner_learn_consent"})):
                 out["status"] = "blocked_additional_checkbox"
                 return out
-            consent_text = cboxes.first.evaluate(
+            consent = form.locator('input[type="checkbox"][name="consent"]')
+            marketing = form.locator('input[type="checkbox"][name="partner_learn_consent"]')
+            if marketing.count() and marketing.first.is_checked():
+                out["status"] = "blocked_preselected_optional_marketing"
+                return out
+            consent_text = consent.first.evaluate(
                 """el => (el.closest('label')?.innerText || el.parentElement?.innerText || '').trim()"""
             )
             lowered = consent_text.lower()
@@ -212,6 +240,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                 return out
             out["consent_text_fingerprint"] = re.sub(r"\s+", " ", consent_text)[:220]
 
+            filling_started = True
             form.locator('[name="name"]').fill(name)
             form.locator('[name="email"]').fill(email)
             country_input = form.locator('select[name="country"]')
@@ -238,7 +267,10 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                     out["required_field"] = field
                     return out
 
-            cboxes.first.check()
+            consent.first.check()
+            if marketing.count() and marketing.first.is_checked():
+                out["status"] = "blocked_optional_marketing_changed"
+                return out
             invalid = form.evaluate(
                 """el=>Array.from(el.querySelectorAll('input,select,textarea'))
                 .filter(x=>!x.checkValidity()).map(x=>x.name||x.id)"""
