@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
 from workflow_engine import prepare_workflow
-from submit_ypai import apply_ypai_role, ROLE_CONFIG
+from submit_ypai import apply_ypai_role, ROLE_CONFIG, validate_role_request, clean_person
 from test_form import H
 
 lock = threading.Lock()
@@ -15,6 +15,35 @@ DIAGNOSTIC = {
     "external_form_read_only": "on_demand",
     "checked_utc": None,
 }
+
+def submission_outcome_uncertain(exc=None):
+    result = {
+        "error": "submission_outcome_uncertain",
+        "status": "submission_uncertain",
+        "submitted": None,
+        "confirmed": False,
+        "automatic_retry_allowed": False,
+        "required_action": "reconcile_official_receipt_before_any_retry",
+    }
+    if exc is not None:
+        result["type"] = type(exc).__name__
+    return result
+
+def normalize_role_result(result):
+    """An attempted click is not proof; ambiguous outcomes must not be retried."""
+    if not isinstance(result, dict):
+        return submission_outcome_uncertain()
+    attempted = result.get("attempted_submit")
+    if (attempted is True and result.get("confirmed") is True
+            and result.get("status") == "application_received"
+            and result.get("confirmation_marker") in
+                ("application received", "thank you for applying")
+            and type(result.get("outgoing_post_count")) is int
+            and result["outgoing_post_count"] > 0):
+        return dict(result, submitted=True, automatic_retry_allowed=False)
+    if attempted is False and result.get("confirmed") is False and str(result.get("status","")).startswith("blocked_"):
+        return dict(result, submitted=False, automatic_retry_allowed=False)
+    return dict(result, **submission_outcome_uncertain())
 
 def approved_case_keys():
     raw = os.environ.get("YPAI_APPROVED_CASES", "")
@@ -284,6 +313,15 @@ class API(BaseHTTPRequestHandler):
                     "error": "case_not_explicitly_approved",
                     "submitted": False,
                 })
+            # Validate the known pre-execution errors separately. Exceptions
+            # once the runner starts cannot safely be called "not submitted".
+            try:
+                validate_role_request(params.get("role_slug"), case_key)
+                clean_person(params.get("name"), params.get("email"), params.get("country"),
+                             params.get("privacy_consent"), params.get("contributor_agreement"))
+            except (ValueError, TypeError) as exc:
+                code = 410 if str(exc) == "application_already_submitted" else 400
+                return self.reply(code, {"error": str(exc), "submitted": False})
             if not lock.acquire(blocking=False):
                 return self.reply(429, {"error": "busy"})
             try:
@@ -296,24 +334,11 @@ class API(BaseHTTPRequestHandler):
                     params.get("privacy_consent"),
                     params.get("contributor_agreement"),
                 )
-                return self.reply(200, result)
-            except ValueError as exc:
-                code = 410 if str(exc) == "application_already_submitted" else 400
-                return self.reply(code, {"error": str(exc), "submitted": False})
+                outcome = normalize_role_result(result)
+                return self.reply(502 if outcome["submitted"] is None else 200, outcome)
             except Exception as exc:
-                # The click or external POST may have happened before the
-                # exception. Never turn an ambiguous outcome into a negative
-                # receipt or authorize a repeat of the application.
                 print("role submission outcome uncertain:" + type(exc).__name__, flush=True)
-                return self.reply(502, {
-                    "error": "submission_outcome_uncertain",
-                    "type": type(exc).__name__,
-                    "status": "submission_uncertain",
-                    "submitted": None,
-                    "confirmed": False,
-                    "automatic_retry_allowed": False,
-                    "required_action": "reconcile_official_receipt_before_any_retry",
-                })
+                return self.reply(502, submission_outcome_uncertain(exc))
             finally:
                 lock.release()
 
