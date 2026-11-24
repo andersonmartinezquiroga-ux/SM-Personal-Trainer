@@ -17,6 +17,8 @@ ADAPTERS = {
     'www.wellonis.com': 'wellonis_partner_signup_readonly',
     'www.jobbers.io': 'jobbers_partner_signup_readonly',
     'jobbers.io': 'jobbers_partner_signup_readonly',
+    'www.careers-page.com': 'mobidea_careers_listing_readonly',
+    'www.instruimos.com': 'instruimos_public_jobs_readonly',
     # Exact public job path separately restricted in applicant.py; READ-ONLY.
     'agentify.teamtailor.com': 'teamtailor_listing',
 }
@@ -24,7 +26,7 @@ PHONE = re.compile(r'\b(phone|telephone|tel[eé]fono|celular|mobile|whatsapp)\b'
 CV = re.compile(r'\b(cv|resume|r[eé]sum[eé]|curriculum|curr[ií]culo|hoja de vida)\b', re.I)
 LEGAL = re.compile(r'\b(consent|consentimiento|privacy|privacidad|terms|t[eé]rminos|policy|pol[ií]tica|data protection|protecci[oó]n de datos|authorization|autorizaci[oó]n)\b', re.I)
 
-def classify_application_form(url, fields, *, challenge=False, form_visible=False, required_cv_hint=False):
+def classify_application_form(url, fields, *, challenge=False, source_blocked=False, form_visible=False, required_cv_hint=False):
     """Summarize public labels/types only. Never infer approval or submit."""
     host = urlparse(url).hostname or ''
     adapter = ADAPTERS.get(host, 'unsupported')
@@ -60,7 +62,9 @@ def classify_application_form(url, fields, *, challenge=False, form_visible=Fals
                         for typ, name, label, req in inspected)
     unknown_required_checkbox = any(typ == 'checkbox' and req for typ, _, _, req in inspected)
     legal_review = bool(legal_consent or unknown_required_checkbox)
-    if challenge:
+    if source_blocked:
+        state = 'source_access_blocked'
+    elif challenge:
         state = 'requires_human_challenge'
     elif adapter == 'unsupported':
         state = 'unsupported_source'
