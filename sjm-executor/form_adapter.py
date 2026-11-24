@@ -19,6 +19,7 @@ ADAPTERS = {
     'jobbers.io': 'jobbers_partner_signup_readonly',
     'www.careers-page.com': 'mobidea_careers_listing_readonly',
     'www.instruimos.com': 'instruimos_public_jobs_readonly',
+    'www.magneto365.com': 'magneto_listing_readonly',
     # Exact public job path separately restricted in applicant.py; READ-ONLY.
     'agentify.teamtailor.com': 'teamtailor_listing',
 }
