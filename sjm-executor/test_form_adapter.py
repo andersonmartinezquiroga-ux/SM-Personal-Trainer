@@ -3,6 +3,17 @@ import unittest
 from form_adapter import classify_application_form as classify
 
 class FormAdapterTests(unittest.TestCase):
+    def test_skulearn_coaching_agreement_blocks_submission(self):
+        r=classify("https://skulearn.com/become-a-coach",
+                   [{"name":"email","type":"email","required":True},
+                    {"name":"agreement","type":"checkbox","label":"Coaching Agreement","required":True}],
+                   form_visible=True)
+        self.assertEqual(r["adapter"],"skulearn_coach_form_readonly")
+        self.assertEqual(r["preflight_state"],"needs_specific_authorization")
+        self.assertEqual(r["required_approval_scopes"],["terms_or_privacy"])
+        self.assertFalse(r["submitted"])
+        self.assertFalse(r["automatic_submission_enabled"])
+
 
 
     def test_mobidea_instruimos_semantic_block_not_marked_ready(self):
