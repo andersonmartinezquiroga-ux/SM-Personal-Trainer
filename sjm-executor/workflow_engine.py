@@ -50,7 +50,9 @@ def prepare_workflow(url, requested_fields=None):
     if not isinstance(required_scopes, list):
         required_scopes = []
     # Never confuse a typed value with a submitted/persisted application.
-    if public.get("challenge_detected"):
+    if public.get("source_access_blocked"):
+        stage = "source_access_blocked"
+    elif public.get("challenge_detected"):
         stage = "human_challenge_required"
     elif not public.get("application_form_visible"):
         stage = "interactive_form_or_login_required"
@@ -77,7 +79,8 @@ def prepare_workflow(url, requested_fields=None):
         {"step": "receipt", "status": "not_available"}
     ]
     public["next_action"] = (
-        "owner_login_or_challenge" if stage in (
+        "skip_blocked_source_and_continue" if stage == "source_access_blocked"
+        else "owner_login_or_challenge" if stage in (
             "human_challenge_required", "interactive_form_or_login_required")
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
         else "review_form_and_authorize_submission"
