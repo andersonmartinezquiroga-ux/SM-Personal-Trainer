@@ -1,6 +1,6 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect,is_security_challenge_title,is_source_access_blocked_title,is_safe_readonly_asset,is_safe_public_ashby_query,lever_required_resume_visible
+from applicant import checked_url,inspect,is_security_challenge_title,is_source_access_blocked_title,is_safe_readonly_asset,is_safe_public_ashby_query,lever_required_resume_visible,checked_browser_location
 import json
 
 class SecurityTests(unittest.TestCase):
@@ -107,6 +107,34 @@ class SecurityTests(unittest.TestCase):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 checked_url(url)
 
+
+    def test_workana_history_query_does_not_break_canonical_public_inspection(self):
+        """Workana may rewrite location history; actual network targets stay strict."""
+        exact = "https://www.workana.com/es/job/editor-de-contenido-fitness-para-reels-y-stories-de-instagram"
+        self.assertEqual(checked_url(exact), exact)
+        self.assertEqual(checked_browser_location(exact, exact), exact)
+        for suffix in ("?utm_source=workana&ref=home", "?locale=es", "?foo=bar"):
+            with self.subTest(suffix=suffix):
+                self.assertEqual(checked_browser_location(exact + suffix, exact), exact)
+                with self.assertRaises(ValueError):
+                    checked_url(exact + suffix)
+        forbidden = (
+            exact + "?submit=1",
+            exact + "?token=example",
+            exact + "?redirect=https://evil.invalid",
+            exact + "#apply",
+            "http://www.workana.com/es/job/editor-de-contenido-fitness-para-reels-y-stories-de-instagram?ref=x",
+            "https://www.workana.com/login?ref=x",
+            "https://evil.invalid/es/job/editor-de-contenido-fitness-para-reels-y-stories-de-instagram?ref=x",
+            "https://www.workana.com/es/job/other-posting?ref=x",
+        )
+        for bad in forbidden:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                checked_browser_location(bad, exact)
+        # Other portals cannot gain query-string permission.
+        with self.assertRaises(ValueError):
+            checked_browser_location("https://www.instruimos.com/TrabajeNosotros.awp?ref=x",
+                                     "https://www.instruimos.com/TrabajeNosotros.awp")
 
     def test_marketplace_six_exact_readonly_batch(self):
         """The six registered platform entrypoints may be READ but never join/apply."""
