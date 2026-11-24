@@ -18,6 +18,20 @@ class FormAdapterTests(unittest.TestCase):
         self.assertFalse(blocked['automatic_submission_enabled'])
         self.assertFalse(blocked['submitted'])
 
+
+    def test_magneto_registered_public_form_needs_review_never_submits(self):
+        url="https://www.magneto365.com/co/empleos/asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783"
+        base=[{"name":"email","type":"email","label":"Correo electronico","required":True}]
+        result=classify(url,base,form_visible=True)
+        self.assertEqual(result["adapter"],"magneto_listing_readonly")
+        self.assertEqual(result["preflight_state"],"needs_eligibility_and_terms_review")
+        self.assertFalse(result["submitted"])
+        self.assertFalse(result["automatic_submission_enabled"])
+        legal=classify(url,base+[{"name":"terms","type":"checkbox","label":"Acepto terminos de privacidad","required":True}],form_visible=True)
+        self.assertEqual(legal["preflight_state"],"needs_specific_authorization")
+        self.assertIn("terms_or_privacy",legal["required_approval_scopes"])
+        self.assertFalse(legal["automatic_submission_enabled"])
+
     def test_jobbers_public_legal_gate(self):
         url="https://www.jobbers.io/provider-signup/"
         result=classify(url,[{"name":"email","type":"email","required":True},
