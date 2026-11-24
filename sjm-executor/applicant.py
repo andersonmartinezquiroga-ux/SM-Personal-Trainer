@@ -26,6 +26,9 @@ ALLOWED={
  # Original Jobbers online-coach lead: exact public sign-up path only; no account actions.
  "www.jobbers.io": re.compile(r"^/provider-signup/?$"),
  "jobbers.io": re.compile(r"^/provider-signup/?$"),
+ # Existing Supabase-registered Colombian opportunities. Exact public URLs, read-only.
+ "www.careers-page.com": re.compile(r"^/mobidea/job/LR8Y485X/?$"),
+ "www.instruimos.com": re.compile(r"^/TrabajeNosotros[.]awp$"),
  "mantra.fit": re.compile(r"^/careers/fitness-expert-job-in-spain/?$"),
  # Exact SJM tracked public listings. No account/session access or submissions.
  "co.linkedin.com": re.compile(r"^/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155/?$"),
@@ -94,7 +97,8 @@ STATIC_HOSTS={"jobs.lever.co","assets.lever.co","cdn.lever.co","jobs.ashbyhq.com
               "fonts.googleapis.com","fonts.gstatic.com","cdnjs.cloudflare.com",
               "code.jquery.com","static.cloudflareinsights.com","freelancer.ypai.ai","ypai.ai","www.ypai.ai",
               "www.workana.com","www.getonbrd.com","community.transperfect.com","myvirtualtrainer.co",
-              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com","conectapp.com.co","ko-fi.com","mindrift.ai","www.fiverr.com","mostaql.com","www.superprof.ae","wellonis.com","www.wellonis.com","www.jobbers.io","jobbers.io"}
+              "www.tusclases.co","agentify.teamtailor.com","www.unisco.com","personas.serviciodeempleo.gov.co","gymstart.co","mantra.fit","co.linkedin.com","public.ureed.com","conectapp.com.co","ko-fi.com","mindrift.ai","www.fiverr.com","mostaql.com","www.superprof.ae","wellonis.com","www.wellonis.com","www.jobbers.io","jobbers.io",
+              "www.careers-page.com","www.instruimos.com"}
 BLOCKED_TERMS=("password","captcha","recaptcha","verification","otp","ssn","credit card","cvv")
 
 def is_safe_readonly_asset(url,method):
