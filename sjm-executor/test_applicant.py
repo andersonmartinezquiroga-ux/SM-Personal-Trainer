@@ -1,6 +1,6 @@
 """Security checks for application inspector; real external form submission is never attempted."""
 import unittest
-from applicant import checked_url,inspect,is_security_challenge_title,is_safe_readonly_asset,is_safe_public_ashby_query,lever_required_resume_visible
+from applicant import checked_url,inspect,is_security_challenge_title,is_source_access_blocked_title,is_safe_readonly_asset,is_safe_public_ashby_query,lever_required_resume_visible
 import json
 
 class SecurityTests(unittest.TestCase):
@@ -328,6 +328,13 @@ class SecurityTests(unittest.TestCase):
         self.assertFalse(is_safe_readonly_asset("https://app.ashbyhq.com/api/images/org-theme-logo/known.png","POST"))
         self.assertFalse(is_safe_readonly_asset("http://127.0.0.1/api/images/a","GET"))
         self.assertFalse(is_safe_readonly_asset("https://cdn.ashbyprd.com/internal/admin","GET"))
+    def test_blocked_access_is_not_a_job_listing(self):
+        self.assertTrue(is_source_access_blocked_title("The URL you requested has been blocked"))
+        self.assertTrue(is_source_access_blocked_title("Access Denied"))
+        self.assertFalse(is_source_access_blocked_title("Community Manager (Remoto) - Mobidea"))
+        self.assertFalse(is_source_access_blocked_title(None))
+        self.assertFalse(is_source_access_blocked_title("Career page - job listings"))
+
     def test_detect_challenge_without_claiming_listing(self):
         self.assertTrue(is_security_challenge_title("Just a moment..."))
         self.assertTrue(is_security_challenge_title("Verify you are human"))
