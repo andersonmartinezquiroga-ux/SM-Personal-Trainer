@@ -17,6 +17,36 @@ class SecurityTests(unittest.TestCase):
 
 
 
+    def test_mobidea_instruimos_exact_public_readonly_routes(self):
+        """Supabase-listed pages must pass preflight without widening permissions."""
+        permitted=(
+            "https://www.careers-page.com/mobidea/job/LR8Y485X",
+            "https://www.instruimos.com/TrabajeNosotros.awp",
+        )
+        for url in permitted:
+            with self.subTest(url=url):
+                self.assertEqual(checked_url(url),url)
+                self.assertTrue(is_safe_readonly_asset(url,"GET"))
+                self.assertTrue(is_safe_readonly_asset(url,"HEAD"))
+                self.assertFalse(is_safe_readonly_asset(url,"POST"))
+                with self.assertRaises(ValueError):
+                    inspect(url,{"name":"PRIVATE_DATA_NEVER_SENT"})
+        forbidden=(
+            "https://www.careers-page.com/mobidea/job/OTHER",
+            "https://www.careers-page.com/mobidea/job/LR8Y485X/apply",
+            "https://www.careers-page.com/mobidea/job/LR8Y485X?submit=1",
+            "https://www.careers-page.com/mobidea/job/LR8Y485X#apply",
+            "https://www.careers-page.com/account",
+            "https://www.instruimos.com/TrabajeNosotros.awp?signup=1",
+            "https://www.instruimos.com/login",
+            "https://www.instruimos.com/TrabajeNosotros.awp/submit",
+            "http://www.instruimos.com/TrabajeNosotros.awp",
+            "https://www.instruimos.com@127.0.0.1/TrabajeNosotros.awp",
+        )
+        for url in forbidden:
+            with self.subTest(url=url),self.assertRaises(ValueError):
+                checked_url(url)
+
     def test_jobbers_exact_public_path_without_registration(self):
         for domain in ("www.jobbers.io","jobbers.io"):
             url = "https://" + domain + "/provider-signup/"
