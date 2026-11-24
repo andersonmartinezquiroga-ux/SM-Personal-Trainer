@@ -29,6 +29,8 @@ ALLOWED={
  # Existing Supabase-registered Colombian opportunities. Exact public URLs, read-only.
  "www.careers-page.com": re.compile(r"^/mobidea/job/LR8Y485X/?$"),
  "www.instruimos.com": re.compile(r"^/TrabajeNosotros[.]awp$"),
+ # Four EXISTING Supabase-vetted Magneto public listings. READ-ONLY EXACT URLs only.
+ "www.magneto365.com": re.compile(r"^/co/empleos/(?:asesor-comercial-sin-experiencia-partime-1144830|asistente-de-ventas-con-o-sin-experiencia-fusagasuga-1141783|auxiliar-de-servicio-al-cliente-sin-experiencia-por-temporada-manizales-1141475|operador-de-tienda-ara-fusagasuga-cundinamarca-1140758)/?$"),
  "mantra.fit": re.compile(r"^/careers/fitness-expert-job-in-spain/?$"),
  # Exact SJM tracked public listings. No account/session access or submissions.
  "co.linkedin.com": re.compile(r"^/jobs/view/data-annotator-spanish-colombia-audio-es-co-at-lemon-r-4467880155/?$"),
@@ -107,6 +109,13 @@ def is_safe_readonly_asset(url,method):
     if (p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD")
             or p.username or p.password or p.fragment):
         return False
+    if p.hostname=="www.magneto365.com":
+        # Fixed GET/HEAD listing paths or inert front-end static assets only.
+        # No login, profile, apply, cookies, form POST or dynamic account calls.
+        return not p.query and bool(
+            ALLOWED[p.hostname].fullmatch(p.path) or
+            p.path.startswith("/_next/static/")
+        )
     if p.hostname=="app.ashbyhq.com":
         return p.path.startswith("/api/images/")
     if p.hostname=="cdn.ashbyprd.com":
