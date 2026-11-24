@@ -5,6 +5,7 @@ never solves CAPTCHA, and only acts for an exact case_key + role mapping after t
 has independently confirmed the case is explicitly approved.
 """
 import re
+import os
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
@@ -24,6 +25,11 @@ ROLE_CONFIG = {
         "case_key": "radar:commercial:ingresos-ypai-model-evaluator-co-20261016",
         "opening": "Model Evaluator",
         "already_submitted": True,
+    },
+    "motion-performer-co": {
+        "case_key": "radar:commercial:ingresos-ypai-motion-performer-co-20261124",
+        "opening": "Motion and Gesture Performer",
+        "already_submitted": False,
     },
     "pose-keypoint-annotator-co": {
         "case_key": "radar:commercial:ingresos-ypai-pose-keypoint-co-20261016",
@@ -64,6 +70,25 @@ def role_url(role_slug):
         raise ValueError("role_not_allowlisted")
     return BASE + role_slug
 
+def verified_submit_endpoint(role_slug):
+    # Exact server-side configuration, never a client-supplied destination.
+    if role_slug != "motion-performer-co":
+        raise ValueError("role_submission_disabled")
+    endpoint = os.environ.get("YPAI_MOTION_SUBMIT_URL", "")
+    u = urlparse(endpoint)
+    if (u.scheme != "https" or u.hostname != "freelancer.ypai.ai"
+            or u.port not in (None, 443) or u.username or u.password
+            or u.query or u.fragment or not u.path or u.path == "/"
+            or not re.fullmatch(r"/[A-Za-z0-9_/-]+", u.path)):
+        raise ValueError("verified_submit_endpoint_required")
+    return endpoint
+
+def visible_role_receipt(page, opening):
+    heading = page.get_by_text("Application received", exact=True)
+    message = page.get_by_text("Thank you for applying for " + opening + ".", exact=False)
+    return (heading.count() == 1 and heading.first.is_visible()
+            and message.count() == 1 and message.first.is_visible())
+
 def apply_ypai_role(role_slug, case_key, name, email, country,
                     privacy_consent, contributor_agreement):
     cfg = validate_role_request(role_slug, case_key)
@@ -71,6 +96,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         name, email, country, privacy_consent, contributor_agreement
     )
     target = role_url(role_slug)
+    endpoint = verified_submit_endpoint(role_slug)
     out = {
         "employer": "YPAI",
         "opening": cfg["opening"],
@@ -99,6 +125,11 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         page = ctx.new_page()
         page.set_default_timeout(6500)
         posts = []
+        post_statuses = []
+        def record_post_response(response):
+            if response.request.method == "POST" and response.url == endpoint:
+                post_statuses.append(response.status)
+        page.on("response", record_post_response)
 
         def route_guard(route):
             try:
@@ -109,8 +140,8 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                     return route.abort()
                 if req.method in ("GET", "HEAD") and host in READ_HOSTS:
                     return route.continue_()
-                # Only permit state-changing traffic to the verified YPAI host.
-                if req.method == "POST" and host == "freelancer.ypai.ai":
+                # Permit exactly one verified form POST only AFTER the explicit click boundary.
+                if req.method == "POST" and req.url == endpoint and out["attempted_submit"] and not posts:
                     posts.append({"host": host, "path": u.path[:130]})
                     return route.continue_()
             except Exception:
@@ -121,7 +152,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         try:
             page.goto(target, wait_until="domcontentloaded", timeout=25000)
             page.wait_for_timeout(1400)
-            if urlparse(page.url).hostname != "freelancer.ypai.ai":
+            if page.url.rstrip("/") != target.rstrip("/"):
                 out["status"] = "blocked_unexpected_redirect"
                 return out
             if page.locator("text=Applications open").count() == 0:
@@ -228,21 +259,24 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                 out["status"] = "blocked_submit_disabled"
                 return out
 
+            # A pre-existing visible receipt is not a new submission.
+            if visible_role_receipt(page, cfg["opening"]):
+                out["status"] = "blocked_preexisting_visible_receipt"
+                return out
             # Exactly one click. Never retry automatically after ambiguity.
             out["attempted_submit"] = True
             buttons.first.click(timeout=10000, no_wait_after=True)
             try:
                 page.wait_for_timeout(5000)
-                body = (page.locator("body").inner_text() or "")[:12000].lower()
-                confirmation_markers = (
-                    "application received",
-                    "thank you for applying",
-                )
-                marker = next((m for m in confirmation_markers if m in body), None)
-                if marker:
+                if (len(posts) == 1 and len(post_statuses) == 1
+                        and 200 <= post_statuses[0] < 300
+                        and visible_role_receipt(page, cfg["opening"])
+                        and urlparse(page.url).hostname == "freelancer.ypai.ai"):
                     out["confirmed"] = True
                     out["status"] = "application_received"
-                    out["confirmation_marker"] = marker
+                    out["confirmation_marker"] = "application received"
+                    out["receipt_http_status"] = post_statuses[0]
+                    out["receipt_visible_after_click"] = True
                 else:
                     alerts = page.locator('[role="alert"],[aria-live="assertive"]')
                     out["status"] = "submission_uncertain"
