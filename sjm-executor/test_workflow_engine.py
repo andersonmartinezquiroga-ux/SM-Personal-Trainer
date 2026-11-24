@@ -62,4 +62,35 @@ class WorkflowTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare_workflow(WELLONIS)
 
+class SubmissionOutcomeTests(unittest.TestCase):
+    def test_confirmed_requires_browser_post_and_receipt(self):
+        from api_v2 import normalize_role_result
+        result = dict(attempted_submit=True, confirmed=True, status="application_received",
+                      confirmation_marker="thank you for applying", outgoing_post_count=1)
+        self.assertIs(normalize_role_result(result)["submitted"], True)
+        for change in ({"outgoing_post_count":0}, {"confirmation_marker":None},
+                       {"attempted_submit":False}, {"confirmed":False}):
+            with self.subTest(change=change):
+                outcome=normalize_role_result(dict(result, **change))
+                self.assertIsNone(outcome["submitted"])
+                self.assertFalse(outcome["automatic_retry_allowed"])
+
+    def test_uncertain_and_invalid_results_fail_closed(self):
+        from api_v2 import normalize_role_result, submission_outcome_uncertain
+        for result in (None, {}, {"attempted_submit":True,"confirmed":False,
+                                     "status":"submission_uncertain_timeout"}):
+            with self.subTest(result=result):
+                outcome=normalize_role_result(result)
+                self.assertIsNone(outcome["submitted"])
+                self.assertFalse(outcome["automatic_retry_allowed"])
+        for error in (TimeoutError(),ConnectionResetError(),ValueError()):
+            self.assertIsNone(submission_outcome_uncertain(error)["submitted"])
+
+    def test_known_pre_submit_block_never_claims_receipt(self):
+        from api_v2 import normalize_role_result
+        outcome=normalize_role_result({"attempted_submit":False,"confirmed":False,
+                                      "status":"blocked_role_not_open"})
+        self.assertIs(outcome["submitted"],False)
+        self.assertFalse(outcome["automatic_retry_allowed"])
+
 if __name__=="__main__": unittest.main()
