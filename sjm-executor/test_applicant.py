@@ -4,6 +4,18 @@ from applicant import checked_url,inspect,is_security_challenge_title,is_source_
 import json
 
 class SecurityTests(unittest.TestCase):
+    def test_skulearn_exact_public_route_only(self):
+        url="https://skulearn.com/become-a-coach"
+        self.assertEqual(checked_url(url),url)
+        self.assertTrue(is_safe_readonly_asset(url,"GET"))
+        self.assertFalse(is_safe_readonly_asset(url,"POST"))
+        with self.assertRaises(ValueError):
+            inspect(url,{"name":"NEVER_SEND_PRIVATE_DATA"})
+        for bad in ("/login","/api/apply","/become-a-coach?submit=1","/become-a-coach/submit"):
+            with self.assertRaises(ValueError):
+                checked_url("https://skulearn.com"+bad)
+            self.assertFalse(is_safe_readonly_asset("https://skulearn.com"+bad,"GET"))
+
     def test_lever_custom_mandatory_resume_label(self):
         self.assertTrue(lever_required_resume_visible(
             "Submit your application\nResume/CV ✱\nATTACH RESUME/CV\nFull name✱"))
