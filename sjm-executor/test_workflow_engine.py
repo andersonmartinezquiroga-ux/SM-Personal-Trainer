@@ -66,9 +66,12 @@ class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
         result = dict(attempted_submit=True, confirmed=True, status="application_received",
-                      confirmation_marker="thank you for applying", outgoing_post_count=1)
+                      confirmation_marker="thank you for applying", outgoing_post_count=1,
+                      receipt_visible_after_click=True, receipt_http_status=200)
         self.assertIs(normalize_role_result(result)["submitted"], True)
-        for change in ({"outgoing_post_count":0}, {"confirmation_marker":None},
+        for change in ({"outgoing_post_count":0}, {"outgoing_post_count":2},
+                       {"receipt_visible_after_click":False}, {"receipt_http_status":400},
+                       {"confirmation_marker":None},
                        {"attempted_submit":False}, {"confirmed":False}):
             with self.subTest(change=change):
                 outcome=normalize_role_result(dict(result, **change))
@@ -92,5 +95,30 @@ class SubmissionOutcomeTests(unittest.TestCase):
                                       "status":"blocked_role_not_open"})
         self.assertIs(outcome["submitted"],False)
         self.assertFalse(outcome["automatic_retry_allowed"])
+
+class MotionRoleTests(unittest.TestCase):
+    def test_exact_role_not_any_other_case(self):
+        from submit_ypai import validate_role_request
+        from applicant import checked_url
+        key="radar:commercial:ingresos-ypai-motion-performer-co-20261124"
+        url="https://freelancer.ypai.ai/jobs/openings/motion-performer-co"
+        self.assertEqual(checked_url(url),url)
+        self.assertEqual(validate_role_request("motion-performer-co",key)["opening"],
+                         "Motion and Gesture Performer")
+        with self.assertRaises(ValueError):
+            validate_role_request("motion-performer-co","another-case")
+        with self.assertRaises(ValueError):
+            checked_url(url+"/submit")
+
+    def test_endpoint_missing_or_outside_origin_fails_closed(self):
+        from submit_ypai import verified_submit_endpoint
+        with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":""}):
+            with self.assertRaises(ValueError):
+                verified_submit_endpoint("motion-performer-co")
+        for bad in ("https://example.com/submit","http://freelancer.ypai.ai/submit",
+                    "https://freelancer.ypai.ai/submit?token=x"):
+            with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":bad}):
+                with self.assertRaises(ValueError):
+                    verified_submit_endpoint("motion-performer-co")
 
 if __name__=="__main__": unittest.main()
