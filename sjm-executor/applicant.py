@@ -21,6 +21,8 @@ ALLOWED={
  # Exact publicly listed SJM source URLs. GET only; no login, payment or submission.
  "gymstart.co": re.compile(r"^/$"),
  # Wellonis Founding Coach: PUBLIC enrollment preflight, NEVER register or accept terms.
+ # Existing Skulearn coach case: exact public form, read-only.
+ "skulearn.com": re.compile(r"^/become-a-coach/?$"),
  "wellonis.com": re.compile(r"^/signup/partner/?$"),
  "www.wellonis.com": re.compile(r"^/signup/partner/?$"),
  # Original Jobbers online-coach lead: exact public sign-up path only; no account actions.
@@ -109,6 +111,9 @@ def is_safe_readonly_asset(url,method):
     if (p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD")
             or p.username or p.password or p.fragment):
         return False
+    if p.hostname=="skulearn.com":
+        # Exact public application page only; no account or API routes.
+        return not p.query and bool(ALLOWED[p.hostname].fullmatch(p.path))
     if p.hostname=="www.magneto365.com":
         # Fixed GET/HEAD listing paths or inert front-end static assets only.
         # No login, profile, apply, cookies, form POST or dynamic account calls.
