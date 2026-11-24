@@ -167,6 +167,18 @@ def is_security_challenge_title(title):
     value=(title or "").strip().lower()
     return value in ("just a moment...","just a moment","attention required!","verify you are human") or "cloudflare challenge" in value
 
+def is_source_access_blocked_title(title):
+    """Distinguish a site access-denial page from an actual job listing."""
+    if not isinstance(title, str):
+        return False
+    value = " ".join(title.strip().lower().split())
+    return value in (
+        "the url you requested has been blocked",
+        "access denied",
+        "url blocked",
+        "la url solicitada ha sido bloqueada",
+    )
+
 def lever_required_resume_visible(text):
     """Only an explicitly mandatory resume label counts; ignore generic privacy text."""
     if not isinstance(text, str):
@@ -288,6 +300,7 @@ def inspect(url, fields=None):
         result["title"]=(page.title() or "")[:180]
         result["challenge_detected"]=is_security_challenge_title(result["title"]) or (
             page.locator("iframe[src*='turnstile'], iframe[src*='recaptcha'], .cf-challenge-running, #challenge-running").count()>0)
+        result["source_access_blocked"]=is_source_access_blocked_title(result["title"])
         result["form_count"]=page.locator("form").count()
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
@@ -334,8 +347,8 @@ def inspect(url, fields=None):
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
-        result["listing_visible"]=(not result["challenge_detected"]) and bool(result["title"]) and bool(page.locator("h1,h2").count())
-        result["application_form_visible"]=(not result["challenge_detected"]) and bool(
+        result["listing_visible"]=(not result["challenge_detected"]) and (not result["source_access_blocked"]) and bool(result["title"]) and bool(page.locator("h1,h2").count())
+        result["application_form_visible"]=(not result["challenge_detected"]) and (not result["source_access_blocked"]) and bool(
             result["form_fields_total"] and (result["form_count"] or
               (source=="jobs.ashbyhq.com" and urlparse(page.url).path.endswith("/application"))))
         result["login_link_visible"]=page.locator('a[href*="/login"],a[href*="/signup"],a[href*="/auth/"]').count()>0
