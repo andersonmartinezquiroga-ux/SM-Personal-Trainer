@@ -301,11 +301,18 @@ class API(BaseHTTPRequestHandler):
                 code = 410 if str(exc) == "application_already_submitted" else 400
                 return self.reply(code, {"error": str(exc), "submitted": False})
             except Exception as exc:
-                print("role submission runner failed:" + type(exc).__name__, flush=True)
+                # The click or external POST may have happened before the
+                # exception. Never turn an ambiguous outcome into a negative
+                # receipt or authorize a repeat of the application.
+                print("role submission outcome uncertain:" + type(exc).__name__, flush=True)
                 return self.reply(502, {
-                    "error": "browser_execution_failed",
+                    "error": "submission_outcome_uncertain",
                     "type": type(exc).__name__,
-                    "submitted": False,
+                    "status": "submission_uncertain",
+                    "submitted": None,
+                    "confirmed": False,
+                    "automatic_retry_allowed": False,
+                    "required_action": "reconcile_official_receipt_before_any_retry",
                 })
             finally:
                 lock.release()
