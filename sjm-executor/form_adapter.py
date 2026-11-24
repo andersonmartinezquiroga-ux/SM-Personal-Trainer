@@ -13,6 +13,7 @@ ADAPTERS = {
     'community.transperfect.com': 'transperfect_listing',
     'www.workana.com': 'workana_listing',
     'myvirtualtrainer.co': 'partner_listing',
+    'skulearn.com': 'skulearn_coach_form_readonly',
     'wellonis.com': 'wellonis_partner_signup_readonly',
     'www.wellonis.com': 'wellonis_partner_signup_readonly',
     'www.jobbers.io': 'jobbers_partner_signup_readonly',
@@ -25,7 +26,7 @@ ADAPTERS = {
 }
 PHONE = re.compile(r'\b(phone|telephone|tel[eé]fono|celular|mobile|whatsapp)\b', re.I)
 CV = re.compile(r'\b(cv|resume|r[eé]sum[eé]|curriculum|curr[ií]culo|hoja de vida)\b', re.I)
-LEGAL = re.compile(r'\b(consent|consentimiento|privacy|privacidad|terms|t[eé]rminos|policy|pol[ií]tica|data protection|protecci[oó]n de datos|authorization|autorizaci[oó]n)\b', re.I)
+LEGAL = re.compile(r'\b(consent|consentimiento|privacy|privacidad|terms|t[eé]rminos|policy|pol[ií]tica|data protection|protecci[oó]n de datos|authorization|autorizaci[oó]n|agreement)\b', re.I)
 
 def classify_application_form(url, fields, *, challenge=False, source_blocked=False, form_visible=False, required_cv_hint=False):
     """Summarize public labels/types only. Never infer approval or submit."""
