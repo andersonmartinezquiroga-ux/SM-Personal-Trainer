@@ -352,6 +352,16 @@ def inspect(url, fields=None):
             page.locator("iframe[src*='turnstile'], iframe[src*='recaptcha'], .cf-challenge-running, #challenge-running").count()>0)
         result["source_access_blocked"]=is_source_access_blocked_title(result["title"])
         result["form_count"]=page.locator("form").count()
+        # Only public form destination metadata for the new exact YPAI case.
+        # No form values, cookies, POST requests or credentials are collected.
+        if source=="freelancer.ypai.ai" and urlparse(url).path=="/jobs/openings/motion-performer-co":
+            form=page.locator("form")
+            if form.count()==1:
+                target=form.first.evaluate("(el) => ({url:el.action, method:el.method})")
+                parsed=urlparse(target.get("url",""))
+                if parsed.scheme=="https" and parsed.hostname==source and parsed.port in (None,443) and not (parsed.username or parsed.password or parsed.query or parsed.fragment):
+                    result["public_form_action_path"]=parsed.path
+                    result["public_form_method"]=str(target.get("method","")).lower()
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
         for node in page.locator("input, select, textarea").all()[:45]:
