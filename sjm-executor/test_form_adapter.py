@@ -4,6 +4,17 @@ from form_adapter import classify_application_form as classify
 
 class FormAdapterTests(unittest.TestCase):
 
+
+    def test_jobbers_public_legal_gate(self):
+        url="https://www.jobbers.io/provider-signup/"
+        result=classify(url,[{"name":"email","type":"email","required":True},
+                            {"name":"terms","type":"checkbox",
+                             "label":"I accept Terms and Privacy","required":True}],form_visible=True)
+        self.assertEqual(result["adapter"],"jobbers_partner_signup_readonly")
+        self.assertEqual(result["preflight_state"],"needs_specific_authorization")
+        self.assertFalse(result["automatic_submission_enabled"])
+        self.assertIn("terms_or_privacy",result["required_approval_scopes"])
+
     def test_wellonis_requires_owner_terms_and_never_submits(self):
         r=classify('https://wellonis.com/signup/partner',
           [{'name':'email','type':'email','required':True},

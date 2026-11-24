@@ -16,6 +16,20 @@ class SecurityTests(unittest.TestCase):
         self.assertFalse(lever_required_resume_visible(None))
 
 
+
+    def test_jobbers_exact_public_path_without_registration(self):
+        for domain in ("www.jobbers.io","jobbers.io"):
+            url = "https://" + domain + "/provider-signup/"
+            self.assertEqual(checked_url(url),url)
+            self.assertTrue(is_safe_readonly_asset(url,"GET"))
+            self.assertFalse(is_safe_readonly_asset(url,"POST"))
+            with self.assertRaises(ValueError):
+                inspect(url, {"name": "NEVER_FILL_PERSONAL_DATA"})
+            for path in ("/login", "/account", "/provider-signup/?paid=1",
+                         "/provider-signup/#join", "/provider-signup/complete"):
+                with self.assertRaises(ValueError):
+                    checked_url("https://" + domain + path)
+
     def test_wellonis_founding_coach_public_only(self):
         "A known partner signup path is inspectable, never an account action."
         for host in ("wellonis.com","www.wellonis.com"):

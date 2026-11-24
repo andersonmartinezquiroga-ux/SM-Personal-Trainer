@@ -15,6 +15,8 @@ ADAPTERS = {
     'myvirtualtrainer.co': 'partner_listing',
     'wellonis.com': 'wellonis_partner_signup_readonly',
     'www.wellonis.com': 'wellonis_partner_signup_readonly',
+    'www.jobbers.io': 'jobbers_partner_signup_readonly',
+    'jobbers.io': 'jobbers_partner_signup_readonly',
     # Exact public job path separately restricted in applicant.py; READ-ONLY.
     'agentify.teamtailor.com': 'teamtailor_listing',
 }
