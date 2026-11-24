@@ -39,7 +39,10 @@ def normalize_role_result(result):
             and result.get("confirmation_marker") in
                 ("application received", "thank you for applying")
             and type(result.get("outgoing_post_count")) is int
-            and result["outgoing_post_count"] > 0):
+            and result["outgoing_post_count"] == 1
+            and result.get("receipt_visible_after_click") is True
+            and type(result.get("receipt_http_status")) is int
+            and 200 <= result["receipt_http_status"] < 300):
         return dict(result, submitted=True, automatic_retry_allowed=False)
     if attempted is False and result.get("confirmed") is False and str(result.get("status","")).startswith("blocked_"):
         return dict(result, submitted=False, automatic_retry_allowed=False)
@@ -311,6 +314,14 @@ class API(BaseHTTPRequestHandler):
             if not isinstance(case_key, str) or case_key not in approved_case_keys():
                 return self.reply(403, {
                     "error": "case_not_explicitly_approved",
+                    "submitted": False,
+                })
+            # No new live role can run until a durable one-time database claim
+            # has been wired to this endpoint. An environment flag alone is not
+            # authorization to replay a submission after a restart.
+            if params.get("role_slug") == "motion-performer-co":
+                return self.reply(403, {
+                    "error": "durable_claim_and_exact_approval_required",
                     "submitted": False,
                 })
             # Validate the known pre-execution errors separately. Exceptions
