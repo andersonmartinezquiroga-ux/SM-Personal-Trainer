@@ -207,6 +207,42 @@ def checked_url(url):
         raise ValueError("Workana job is not an expressly registered case URL")
     return url
 
+def checked_browser_location(final_url, requested_url):
+    """Validate Workana's post-load address without broadening permitted requests.
+
+    The requested URL, network navigations and redirects still pass checked_url,
+    which rejects ALL Workana query strings. Workana may modify browser history
+    after a successful public GET. Only a same-origin, same-path history URL
+    may be canonically reported without its query string.
+    """
+    checked_url(requested_url)
+    try:
+        return checked_url(final_url)
+    except ValueError:
+        expected = urlparse(requested_url)
+        actual = urlparse(final_url) if isinstance(final_url, str) and len(final_url) <= 1000 else None
+        if not actual or expected.hostname != "www.workana.com":
+            raise
+        if (actual.scheme != "https" or actual.netloc != expected.netloc
+                or actual.path != expected.path or actual.params or actual.fragment
+                or not actual.query or actual.username or actual.password
+                or actual.port not in (None, 443)):
+            raise
+        # Reject signals of a navigation, login, form action or sensitive token.
+        # The input URL itself and ALL outgoing navigation requests remain strict.
+        from urllib.parse import parse_qsl
+        forbidden = {
+            "apply", "submit", "login", "checkout", "payment", "redirect",
+            "redirect_uri", "return", "return_url", "next", "destination",
+            "url", "token", "access_token", "id_token", "auth", "session",
+            "password", "email", "phone", "resume", "cv", "code"
+        }
+        if any(name.lower() in forbidden for name, _ in parse_qsl(actual.query, keep_blank_values=True)):
+            raise
+        canonical = actual._replace(query="").geturl()
+        checked_url(canonical)
+        return canonical
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -273,7 +309,7 @@ def inspect(url, fields=None):
         ctx.route("**/*",route_only_known)
         page.goto(url,wait_until="domcontentloaded",timeout=25000)
         page.wait_for_timeout(1200)
-        checked_url(page.url)  # Enforce exact allowlisted final path, not only host
+        checked_browser_location(page.url, url)  # Allow only safe same-path Workana history metadata
         # Job boards often put the full application on a separate official URL.
         # FOLLOW PUBLIC GET ONLY: never click Submit and never transmit applicant data.
         result["followed_application_page"]=False
@@ -284,7 +320,7 @@ def inspect(url, fields=None):
                 checked_url(application_url)
                 page.goto(application_url,wait_until="domcontentloaded",timeout=25000)
                 page.wait_for_timeout(1400)
-                checked_url(page.url)  # Revalidate application redirect path
+                checked_browser_location(page.url, application_url)  # Keep apply redirects strictly scoped
                 result["followed_application_page"]=True
         # On a CPU-limited free Render instance, public Ashby GraphQL hydration
         # may take much longer than on GitHub Actions. Wait for the actual fields,
@@ -296,7 +332,7 @@ def inspect(url, fields=None):
             except PlaywrightTimeoutError:
                 result["public_form_rendered"]=False
             result["public_graphql_http_statuses"]=ashby_query_statuses[:10]
-        result["final_url"]=page.url
+        result["final_url"]=checked_browser_location(page.url, url if not result["followed_application_page"] else application_url)
         result["title"]=(page.title() or "")[:180]
         result["challenge_detected"]=is_security_challenge_title(result["title"]) or (
             page.locator("iframe[src*='turnstile'], iframe[src*='recaptcha'], .cf-challenge-running, #challenge-running").count()>0)
