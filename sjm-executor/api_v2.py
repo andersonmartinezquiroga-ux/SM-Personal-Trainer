@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from executor import run
 from applicant import inspect
 from workflow_engine import prepare_workflow
-from submit_ypai import apply_ypai_role, ROLE_CONFIG, validate_role_request, clean_person
+from submit_ypai import apply_ypai_role, ROLE_CONFIG, validate_role_request, clean_person, clean_motion_applicant
 from test_form import H
 
 lock = threading.Lock()
@@ -328,8 +328,9 @@ class API(BaseHTTPRequestHandler):
             # once the runner starts cannot safely be called "not submitted".
             try:
                 validate_role_request(params.get("role_slug"), case_key)
-                clean_person(params.get("name"), params.get("email"), params.get("country"),
-                             params.get("privacy_consent"), params.get("contributor_agreement"))
+                validator = clean_motion_applicant if params.get("role_slug") == "motion-performer-co" else clean_person
+                validator(params.get("name"), params.get("email"), params.get("country"),
+                          params.get("privacy_consent"), params.get("contributor_agreement"))
             except (ValueError, TypeError) as exc:
                 code = 410 if str(exc) == "application_already_submitted" else 400
                 return self.reply(code, {"error": str(exc), "submitted": False})
