@@ -45,7 +45,13 @@ def prepare_workflow(url, requested_fields=None):
     filled = public.get("filled_field_names") or []
     if not isinstance(filled, list):
         raise ValueError("invalid_draft_evidence")
-    filled = [x for x in filled if x in fields]
+    # Only explicitly requested fields read back in a network-isolated draft count.
+    filled = list(dict.fromkeys(x for x in filled if isinstance(x,str) and x in fields)) if public.get("draft_offline") is True else []
+    missing = [x for x in fields if x not in filled]
+    public["draft_verification"] = {"requested_field_names":list(fields),
+        "verified_field_names":filled,"missing_field_names":missing,
+        "all_requested_fields_verified":bool(fields) and not missing,
+        "offline":public.get("draft_offline") is True,"persisted_externally":False}
     required_scopes = summary.get("required_approval_scopes") or []
     if not isinstance(required_scopes, list):
         required_scopes = []
@@ -71,8 +77,9 @@ def prepare_workflow(url, requested_fields=None):
         {"step": "source", "status": "checked", "proof": "exact_allowlisted_https_path"},
         {"step": "investigate", "status": "checked" if public.get("listing_visible") else "needs_review"},
         {"step": "form", "status": "inspected" if public.get("application_form_visible") else "blocked"},
-        {"step": "fill", "status": "draft_only" if filled else "not_requested_or_unavailable",
-         "field_names": filled},
+        {"step": "fill", "status": ("draft_verified_offline" if fields and not missing else
+            "draft_partial_not_submitted" if fields else "not_requested_or_unavailable"),
+         "field_names": filled, "missing_field_names": missing},
         {"step": "authorization", "status": "owner_review_required",
          "scopes": required_scopes},
         {"step": "submit", "status": "not_executed"},

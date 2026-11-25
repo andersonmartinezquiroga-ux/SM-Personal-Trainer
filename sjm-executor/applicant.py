@@ -512,24 +512,58 @@ def inspect(url, fields=None):
             ctx.route('**/*', lambda route: route.abort())
             filled=[]
             unverified=[]
+            reasons={}
+            # Exact YPAI public Apply control opens a dialog locally. The
+            # browser is offline and all network requests are blocked first.
+            if source=="freelancer.ypai.ai" and result["application_form_visible"]:
+                form=page.locator("form")
+                if form.count()==1 and not form.locator('[name="name"]').is_visible():
+                    controls=page.get_by_role("button",name=re.compile(r"^apply(?: now| for this role| for this job)?$",re.I))
+                    visible=[x for x in controls.all() if x.is_visible() and x.is_enabled()
+                             and x.get_attribute("type")!="submit"]
+                    if len(visible)==1:
+                        try:
+                            visible[0].click(timeout=2500,no_wait_after=True)
+                        except PlaywrightTimeoutError:
+                            pass
+            # Restrict writes to the single visible application form. Never
+            # select an arbitrary same-named field outside that form.
+            forms=[f for f in page.locator("form").all() if f.is_visible()]
             for name,value in fields.items():
-                if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,89}",name) or any(w in name.lower() for w in BLOCKED_TERMS):
+                normalized=re.sub(r"[^a-z]","",name.lower())
+                if (not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,89}",name)
+                    or any(re.sub(r"[^a-z]","",w) in normalized for w in BLOCKED_TERMS)
+                    or any(w in normalized for w in ("consent","terms","privacy","agreement","token","passcode","documentid","cardnumber"))):
                     raise ValueError("Unsafe field name")
-                sel=page.locator(f'[name="{name}"]')
-                if sel.count()!=1 or not sel.is_visible(): continue
+                if len(forms)!=1:
+                    reasons[name]="visible_form_not_unique"
+                    continue
+                sel=forms[0].locator(f'[name="{name}"]')
+                if sel.count()!=1 or not sel.is_visible() or not sel.is_enabled():
+                    reasons[name]="field_not_unique_visible_enabled"
+                    continue
                 typ=(sel.get_attribute("type") or "").lower()
-                if typ in ("checkbox","radio","file","password","hidden","submit","button"): continue
-                if sel.evaluate("(el) => el.tagName.toLowerCase()")=="select":
-                    sel.select_option(label=value)
-                else: sel.fill(value)
-                observed=sel.input_value()
-                expected=sel.locator('option:checked').inner_text() if sel.evaluate('(el) => el.tagName.toLowerCase()')=='select' else observed
-                if expected==value:
-                    filled.append(name)
-                else:
-                    unverified.append(name)
+                if typ in ("checkbox","radio","file","password","hidden","submit","button","reset"):
+                    reasons[name]="field_requires_separate_review"
+                    continue
+                try:
+                    is_select=sel.evaluate("(el) => el.tagName.toLowerCase()")=="select"
+                    if is_select:
+                        sel.select_option(label=value,timeout=2500)
+                        observed=sel.locator('option:checked').inner_text(timeout=2500)
+                    else:
+                        sel.fill(value,timeout=2500)
+                        observed=sel.input_value(timeout=2500)
+                    if observed==value:
+                        filled.append(name)
+                    else:
+                        reasons[name]="readback_mismatch"
+                except PlaywrightTimeoutError:
+                    reasons[name]="field_action_timeout"
+            unverified=[name for name in fields if name not in filled]
             result['draft_offline']=True
             result['unverified_field_names']=unverified
+            result['draft_field_failure_reasons']=reasons
             result["filled_field_names"]=filled
             result["no_user_values_returned"]=True
         if motion_role and not fields and result["application_form_visible"] and not result["challenge_detected"]:

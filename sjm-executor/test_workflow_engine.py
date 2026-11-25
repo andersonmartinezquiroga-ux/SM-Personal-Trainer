@@ -30,12 +30,28 @@ class WorkflowTests(unittest.TestCase):
         with patch("workflow_engine.inspect",
                    return_value=source(consent_or_captcha_present=False,
                                        adapter_summary={"required_approval_scopes":[]},
-                                       filled_field_names=["name"])) as browser:
+                                       filled_field_names=["name"], draft_offline=True)) as browser:
             r=prepare_workflow(WELLONIS,{"name":"SJM"})
         browser.assert_called_once_with(WELLONIS,fields={"name":"SJM"})
         self.assertEqual(r["workflow_steps"][3]["field_names"],["name"])
         self.assertEqual(r["workflow_stage"],"draft_filled_not_submitted")
         self.assertFalse(r["submitted"])
+
+    def test_draft_readback_reports_missing_even_when_consent_required(self):
+        with patch("workflow_engine.inspect",return_value=source(
+            draft_offline=True,filled_field_names=["name","name","unrequested"])):
+            r=prepare_workflow(WELLONIS,{"name":"Example","email":"example@example.invalid"})
+        self.assertEqual(r["workflow_stage"],"owner_authorization_required")
+        self.assertEqual(r["draft_verification"]["verified_field_names"],["name"])
+        self.assertEqual(r["draft_verification"]["missing_field_names"],["email"])
+        self.assertFalse(r["draft_verification"]["all_requested_fields_verified"])
+        self.assertFalse(r["submitted"])
+
+    def test_unisolated_draft_never_counts_as_verified(self):
+        with patch("workflow_engine.inspect",return_value=source(filled_field_names=["name"])):
+            r=prepare_workflow(WELLONIS,{"name":"Example"})
+        self.assertEqual(r["draft_verification"]["verified_field_names"],[])
+        self.assertFalse(r["draft_verification"]["all_requested_fields_verified"])
 
     def test_credentials_and_terms_cannot_be_autofilled(self):
         for name in ("password","access_token","agree_terms","privacyConsent",
