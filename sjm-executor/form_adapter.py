@@ -7,6 +7,8 @@ import re
 from urllib.parse import urlparse
 
 ADAPTERS = {
+    'job-boards.greenhouse.io': 'greenhouse_exact_listing_readonly',
+    'job-boards.eu.greenhouse.io': 'greenhouse_exact_listing_readonly',
     'freelancer.ypai.ai': 'ypai_colombia',
     'jobs.lever.co': 'lever',
     'jobs.ashbyhq.com': 'ashby',

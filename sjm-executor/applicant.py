@@ -7,6 +7,9 @@ from playwright.sync_api import sync_playwright,TimeoutError as PlaywrightTimeou
 from form_adapter import classify_application_form
 
 ALLOWED={
+ # Four exact registered Greenhouse listings; public inspection only.
+ "job-boards.greenhouse.io": re.compile(r"^/agency/jobs/(?:4675669101|4787634101|4778246101)/?$"),
+ "job-boards.eu.greenhouse.io": re.compile(r"^/agency/jobs/4784908101/?$"),
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
  "jobs.ashbyhq.com": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/application)?/?$"),
  "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co|motion-performer-co|conversation-video-spanish-co)$"),
@@ -111,6 +114,8 @@ def is_safe_readonly_asset(url,method):
     if (p.scheme!="https" or p.port not in (None,443) or method not in ("GET","HEAD")
             or p.username or p.password or p.fragment):
         return False
+    if p.hostname in ("job-boards.greenhouse.io","job-boards.eu.greenhouse.io"):
+        return not p.query and bool(ALLOWED[p.hostname].fullmatch(p.path) or p.path.startswith("/_next/static/"))
     if p.hostname=="skulearn.com":
         # Exact public application page only; no account or API routes.
         return not p.query and bool(ALLOWED[p.hostname].fullmatch(p.path))

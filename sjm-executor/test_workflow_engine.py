@@ -194,6 +194,27 @@ class FinalFieldConsistencyTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class GreenhouseExactAdapterTests(unittest.TestCase):
+    def test_exact_readonly_paths(self):
+        from applicant import checked_url,is_safe_readonly_asset
+        from form_adapter import classify_application_form
+        urls=["https://job-boards.greenhouse.io/agency/jobs/4675669101",
+              "https://job-boards.greenhouse.io/agency/jobs/4787634101",
+              "https://job-boards.greenhouse.io/agency/jobs/4778246101",
+              "https://job-boards.eu.greenhouse.io/agency/jobs/4784908101"]
+        for url in urls:
+            self.assertEqual(checked_url(url),url)
+            self.assertTrue(is_safe_readonly_asset(url,"GET"))
+            self.assertFalse(is_safe_readonly_asset(url,"POST"))
+            self.assertEqual(classify_application_form(url,[])["adapter"],"greenhouse_exact_listing_readonly")
+            with self.assertRaises(ValueError):
+                checked_url(url+"?token=x")
+            with self.assertRaises(ValueError):
+                checked_url(url+"/apply")
+        with self.assertRaises(ValueError):
+            checked_url("https://job-boards.greenhouse.io/agency/jobs/123")
+        self.assertFalse(is_safe_readonly_asset("https://job-boards.greenhouse.io/api/apply","GET"))
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
