@@ -544,15 +544,24 @@ def inspect(url, fields=None):
                     except Exception:
                         country.select_option(value="CO",timeout=2000)
                 else:
-                    search=form.locator('[name="apply-country-search"]')
-                    if search.count()!=1:
-                        raise ValueError("country_picker_missing")
+                    search=form.locator('[name="apply-country-search"], #apply-country-search')
+                    probe["country_search_count"]=search.count()
+                    probe["country_options"]=[{"value":x.get_attribute("value"),"label":(x.inner_text() or "")[:90]} for x in country.locator("option").all() if "colombia" in (x.inner_text() or "").lower() or (x.get_attribute("value") or "").lower()=="co"]
+                    if search.count()!=1 or not search.is_visible():
+                        raise ValueError("country_picker_missing_or_hidden")
                     search.fill("Colombia",timeout=2500)
+                    page.wait_for_timeout(500)
                     options=page.get_by_text("Colombia",exact=True)
                     choices=[x for x in options.all() if x.is_visible() and x.evaluate("el=>el.tagName.toLowerCase()")!="option"]
+                    probe["country_visible_choices"]=len(choices)
                     if len(choices)!=1:
+                        # The search may be a combobox; inspect its actual options rather than forcing a hidden select.
+                        probe["country_picker_roles"]=[(x.inner_text() or "").strip()[:90] for x in page.get_by_role("option").all()[:15] if x.is_visible()]
                         raise ValueError("country_picker_not_unique")
                     choices[0].click(timeout=2500)
+                probe["country_selection_verified"]=country.input_value() in ("CO","co","Colombia","colombia")
+                if not probe["country_selection_verified"]:
+                    raise ValueError("country_selection_unverified")
                 probe["step"]="privacy"
                 consent=form.locator('input[type="checkbox"][name="consent"]')
                 optional=form.locator('input[type="checkbox"][name="partner_learn_consent"]')
@@ -571,6 +580,8 @@ def inspect(url, fields=None):
                     probe["step"]="offline_click_complete"
             except Exception as exc:
                 probe["diagnostic_error"]=type(exc).__name__
+                if isinstance(exc,ValueError):
+                    probe["diagnostic_reason"]=str(exc)[:100]
             result["motion_offline_diagnostic"]=probe
         ctx.close()
         browser.close()
