@@ -12,7 +12,7 @@ ALLOWED={
  "job-boards.eu.greenhouse.io": re.compile(r"^/agency/jobs/4784908101/?$"),
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
  "jobs.ashbyhq.com": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/application)?/?$"),
- "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co|motion-performer-co|conversation-video-spanish-co)$"),
+ "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co|motion-performer-co|conversation-video-spanish-co|conversational-speech-contributor-co)$"),
  # Public, exact-case jobs only. No generic domain-wide browsing.
  # Generic public Workana listing adapter: GET only; Supabase still gates EXACT case URLs.
  # Never accepts /login, /account, /apply, querystrings or unsafe redirects.
