@@ -259,6 +259,24 @@ class FullFormReadinessTests(unittest.TestCase):
         self.assertEqual(r["full_form_readiness"]["required_field_names_missing"],["city"])
         self.assertEqual(r["next_action"],"resolve_remaining_required_fields")
 
+class LocalComboboxChoiceTests(unittest.TestCase):
+    def test_only_linked_public_options_are_collected(self):
+        from applicant import inspect_local_combobox_choices
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form><input id="degree" role="combobox" aria-controls="degree-list"><div role="listbox" id="degree-list"><div role="option">Diploma</div><div role="option" aria-disabled="true">Unavailable</div></div><div role="listbox" id="other"><div role="option">Other field</div></div></form>')
+                result=inspect_local_combobox_choices(page,"degree")
+                self.assertEqual(result["labels"],["Diploma"])
+                self.assertEqual(page.locator("#degree").input_value(),"")
+                self.assertEqual(inspect_local_combobox_choices(page,"absent")["status"],"combobox_not_unique")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

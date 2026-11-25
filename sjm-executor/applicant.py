@@ -459,6 +459,36 @@ def public_field_metadata(node):
     }""".replace("\\s","\\\\s"))
 
 
+def inspect_local_combobox_choices(page, name):
+    """Read a bounded public option list from an offline, unfilled form."""
+    forms=[f for f in page.locator("form").all() if f.is_visible()]
+    if len(forms)!=1:
+        return {"status":"form_not_unique","labels":[]}
+    field=exact_draft_locator(forms[0],name)
+    if field.count()!=1 or not field.is_visible() or not field.is_enabled() or field.get_attribute("role")!="combobox":
+        return {"status":"combobox_not_unique","labels":[]}
+    try:
+        field.click(timeout=1500)
+        list_id=field.get_attribute("aria-controls") or ""
+        if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}",list_id):
+            return {"status":"unlinked_listbox","labels":[]}
+        box=page.locator(f'[id="{list_id}"][role="listbox"]')
+        box.wait_for(state="visible",timeout=1200)
+        if box.count()!=1:
+            return {"status":"listbox_not_unique","labels":[]}
+        options=box.get_by_role("option").all()
+        labels=[]
+        for option in options[:100]:
+            if option.is_visible() and option.get_attribute("aria-disabled")!="true":
+                label=option.inner_text(timeout=1000).strip()[:100]
+                if label and label not in labels:
+                    labels.append(label)
+        field.press("Escape",timeout=1000)
+        return {"status":"visible_options_observed" if labels else "no_local_options","labels":labels,"truncated":len(options)>100}
+    except PlaywrightTimeoutError:
+        return {"status":"local_options_unavailable","labels":[]}
+
+
 GREENHOUSE_DRAFT_DIAGNOSTIC_URL="https://job-boards.greenhouse.io/agency/jobs/4675669101"
 GREENHOUSE_SYNTHETIC_FIELDS={"first_name":"Example","last_name":"Applicant","email":"example@example.invalid"}
 
@@ -704,6 +734,13 @@ def inspect(url, fields=None):
             form_visible=result["application_form_visible"],
             required_cv_hint=result["required_cv"] if source=="jobs.lever.co" else False
         )
+        if source in ("job-boards.greenhouse.io","job-boards.eu.greenhouse.io") and not fields and result["application_form_visible"]:
+            ctx.set_offline(True)
+            ctx.route("**/*",lambda route:route.abort())
+            result["local_combobox_options"]={}
+            # Only fixed public, non-consent fields, no typing or selecting values.
+            for key in ("country","degree--0","discipline--0"):
+                result["local_combobox_options"][key]=inspect_local_combobox_choices(page,key)
         if fields:
             # Draft data stays in the local browser: no network activity after public inspection.
             if result['challenge_detected'] or result['source_access_blocked']:
