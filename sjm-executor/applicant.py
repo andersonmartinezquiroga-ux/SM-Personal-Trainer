@@ -512,31 +512,63 @@ def inspect(url, fields=None):
                 ctx.set_offline(True)
                 ctx.route("**/*",abort_and_record_probe)
                 probe["offline"]=True
+                probe["step"]="locate_form"
                 form=page.locator("form")
                 if form.count()!=1:
                     raise ValueError("unexpected_form")
                 form=form.first
-                form.locator('[name="name"]').fill("Offline Test")
-                form.locator('[name="email"]').fill("offline-test@example.invalid")
+                # The public listing contains a hidden dialog. Open it using
+                # the visible public apply control, never a submit control.
+                probe["initial_form_visible"]=form.is_visible()
+                if not form.locator('[name="name"]').is_visible():
+                    probe["step"]="open_public_form"
+                    candidates=page.get_by_role("button",name=re.compile(r"^apply(?: now| for this role| for this job)?$",re.I))
+                    links=page.get_by_role("link",name=re.compile(r"^apply(?: now| for this role| for this job)?$",re.I))
+                    visible=[x for x in candidates.all()+links.all() if x.is_visible() and x.get_attribute("type")!="submit"]
+                    probe["visible_apply_controls"]=len(visible)
+                    if len(visible)!=1:
+                        probe["public_button_labels"]=[(x.inner_text() or "").strip()[:70] for x in page.get_by_role("button").all()[:20] if x.is_visible()]
+                        raise ValueError("public_apply_control_not_unique")
+                    visible[0].click(timeout=3000,no_wait_after=True)
+                probe["step"]="name"
+                form.locator('[name="name"]').fill("Offline Test",timeout=3000)
+                probe["step"]="email"
+                form.locator('[name="email"]').fill("offline-test@example.invalid",timeout=3000)
+                probe["step"]="country"
                 country=form.locator('select[name="country"]')
                 if country.count()!=1:
                     raise ValueError("unexpected_country")
-                try:
-                    country.select_option(label="Colombia",timeout=2000)
-                except Exception:
-                    country.select_option(value="CO",timeout=2000)
+                if country.is_visible():
+                    try:
+                        country.select_option(label="Colombia",timeout=2000)
+                    except Exception:
+                        country.select_option(value="CO",timeout=2000)
+                else:
+                    search=form.locator('[name="apply-country-search"]')
+                    if search.count()!=1:
+                        raise ValueError("country_picker_missing")
+                    search.fill("Colombia",timeout=2500)
+                    options=page.get_by_text("Colombia",exact=True)
+                    choices=[x for x in options.all() if x.is_visible() and x.evaluate("el=>el.tagName.toLowerCase()")!="option"]
+                    if len(choices)!=1:
+                        raise ValueError("country_picker_not_unique")
+                    choices[0].click(timeout=2500)
+                probe["step"]="privacy"
                 consent=form.locator('input[type="checkbox"][name="consent"]')
                 optional=form.locator('input[type="checkbox"][name="partner_learn_consent"]')
                 if consent.count()!=1 or (optional.count() and optional.first.is_checked()):
                     raise ValueError("unexpected_consent")
-                consent.check(timeout=2000)
+                consent.check(timeout=2500)
+                probe["step"]="validate"
                 invalid=form.evaluate("""el=>Array.from(el.querySelectorAll('input,select,textarea')).filter(x=>!x.checkValidity()).map(x=>x.name||x.id)""")
                 probe["invalid_field_names"]=[str(x)[:80] for x in invalid[:10]]
                 buttons=form.locator('button[type="submit"],input[type="submit"]')
+                probe["step"]="submit_control"
                 if not invalid and buttons.count()==1 and buttons.first.is_visible() and buttons.first.is_enabled():
                     probe["clicked"]=True
                     buttons.first.click(timeout=3000,no_wait_after=True)
                     page.wait_for_timeout(1500)
+                    probe["step"]="offline_click_complete"
             except Exception as exc:
                 probe["diagnostic_error"]=type(exc).__name__
             result["motion_offline_diagnostic"]=probe
