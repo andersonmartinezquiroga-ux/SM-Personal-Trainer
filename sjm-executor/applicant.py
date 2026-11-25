@@ -799,6 +799,30 @@ def inspect(url, fields=None):
             # Only fixed public, non-consent fields, no typing or selecting values.
             for key in ("country","degree--0","discipline--0"):
                 result["local_combobox_options"][key]=inspect_local_combobox_choices(page,key)
+        if (url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co"
+                and not fields and result["application_form_visible"]
+                and not result["challenge_detected"] and not result["source_access_blocked"]):
+            # Discover public profession choices without personal data or network writes.
+            ctx.set_offline(True)
+            ctx.route("**/*",lambda route:route.abort())
+            choices={"status":"form_unavailable","labels":[]}
+            try:
+                form=page.locator("form")
+                if form.count()==1:
+                    if not form.locator('[name="name"]').is_visible():
+                        buttons=page.get_by_role("button",name=re.compile(r"^apply(?: now| for this role| for this job)?$",re.I))
+                        visible=[b for b in buttons.all() if b.is_visible() and b.is_enabled()
+                                 and b.get_attribute("type")!="submit"]
+                        if len(visible)==1:
+                            visible[0].click(timeout=2500,no_wait_after=True)
+                    if form.locator('[name="name"]').is_visible():
+                        choices=inspect_local_combobox_choices(page,"apply-profession")
+            except PlaywrightTimeoutError:
+                choices={"status":"local_options_unavailable","labels":[]}
+            result["reviewed_public_choices"]["apply-profession"]=choices["labels"]
+            result["reviewed_public_choices"]["profession_observation_status"]=choices["status"]
+            # Specialty is dependent on the exact reviewed profession. Do not guess.
+            result["reviewed_public_choices"]["specialty_observation_status"]="requires_verified_profession"
         if fields:
             # Draft data stays in the local browser: no network activity after public inspection.
             if result['challenge_detected'] or result['source_access_blocked']:
