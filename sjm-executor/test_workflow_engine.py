@@ -277,6 +277,25 @@ class LocalComboboxChoiceTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class UnlinkedComboboxTests(unittest.TestCase):
+    def test_unique_new_visible_list_and_reject_ambiguous(self):
+        from applicant import inspect_local_combobox_choices
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content("""<form><input id="degree" role="combobox" onclick="document.getElementById('opts').hidden=false"><div id="opts" role="listbox" hidden><div role="option">Diploma</div></div></form>""")
+                self.assertEqual(inspect_local_combobox_choices(page,"degree")["labels"],["Diploma"])
+                page.set_content("""<form><input id="degree" role="combobox"><div role="listbox"><div role="option">Unrelated</div></div></form>""")
+                self.assertEqual(inspect_local_combobox_choices(page,"degree")["status"],"unlinked_listbox")
+                page.set_content("""<form><input id="degree" role="combobox" onclick="document.querySelectorAll('[role=listbox]').forEach(x=>x.hidden=false)"><div role="listbox" hidden><div role="option">A</div></div><div role="listbox" hidden><div role="option">B</div></div></form>""")
+                self.assertEqual(inspect_local_combobox_choices(page,"degree")["status"],"listbox_not_unique")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

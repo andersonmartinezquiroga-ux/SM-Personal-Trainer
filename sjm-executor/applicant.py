@@ -468,12 +468,21 @@ def inspect_local_combobox_choices(page, name):
     if field.count()!=1 or not field.is_visible() or not field.is_enabled() or field.get_attribute("role")!="combobox":
         return {"status":"combobox_not_unique","labels":[]}
     try:
+        # A fallback is valid only if there was no visible list before the
+        # click and exactly one new list appears while this control is focused.
+        before=page.locator('[role="listbox"]:visible').count()
         field.click(timeout=1500)
-        list_id=field.get_attribute("aria-controls") or ""
-        if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}",list_id):
+        list_id=field.get_attribute("aria-controls") or field.get_attribute("aria-owns") or ""
+        if re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}",list_id):
+            box=page.locator(f'[id="{list_id}"][role="listbox"]')
+            box.wait_for(state="visible",timeout=1200)
+        elif before==0 and field.evaluate("el=>document.activeElement===el"):
+            box=page.locator('[role="listbox"]:visible')
+            box.first.wait_for(state="visible",timeout=1200)
+            if not field.evaluate("el=>document.activeElement===el"):
+                return {"status":"unlinked_listbox","labels":[]}
+        else:
             return {"status":"unlinked_listbox","labels":[]}
-        box=page.locator(f'[id="{list_id}"][role="listbox"]')
-        box.wait_for(state="visible",timeout=1200)
         if box.count()!=1:
             return {"status":"listbox_not_unique","labels":[]}
         options=box.get_by_role("option").all()
