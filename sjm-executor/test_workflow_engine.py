@@ -247,6 +247,18 @@ class GreenhouseDraftScopeTests(unittest.TestCase):
         self.assertFalse(approved_draft_mapping("https://job-boards.greenhouse.io/agency/jobs/4787634101",GREENHOUSE_SYNTHETIC_FIELDS))
         self.assertTrue(approved_draft_mapping(u,{}))
 
+class FullFormReadinessTests(unittest.TestCase):
+    def test_verified_subset_does_not_clear_required_fields(self):
+        with patch("workflow_engine.inspect",return_value=source(
+            draft_offline=True,filled_field_names=["name"],
+            required_fields=[{"name":"name"},{"name":"city"}],
+            unidentified_required_count=2)):
+            r=prepare_workflow(WELLONIS,{"name":"Example"})
+        self.assertTrue(r["draft_verification"]["all_requested_fields_verified"])
+        self.assertFalse(r["full_form_readiness"]["full_form_verified"])
+        self.assertEqual(r["full_form_readiness"]["required_field_names_missing"],["city"])
+        self.assertEqual(r["next_action"],"resolve_remaining_required_fields")
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

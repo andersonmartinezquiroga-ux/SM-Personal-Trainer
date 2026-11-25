@@ -52,6 +52,17 @@ def prepare_workflow(url, requested_fields=None):
         "verified_field_names":filled,"missing_field_names":missing,
         "all_requested_fields_verified":bool(fields) and not missing,
         "offline":public.get("draft_offline") is True,"persisted_externally":False}
+    # A verified subset is never equivalent to a fully completed form.
+    required = public.get("required_fields")
+    unknown = public.get("unidentified_required_count")
+    required_names = sorted(set(x["name"] for x in required if isinstance(x,dict) and isinstance(x.get("name"),str) and x["name"])) if isinstance(required,list) else []
+    pending_required = [x for x in required_names if x not in filled]
+    public["full_form_readiness"] = {
+        "required_field_names_missing":pending_required,
+        "unidentified_required_count":unknown if isinstance(unknown,int) and unknown>=0 else None,
+        "metadata_complete":isinstance(required,list) and unknown==0,
+        "full_form_verified":False
+    }
     required_scopes = summary.get("required_approval_scopes") or []
     if not isinstance(required_scopes, list):
         required_scopes = []
@@ -89,6 +100,7 @@ def prepare_workflow(url, requested_fields=None):
         "skip_blocked_source_and_continue" if stage == "source_access_blocked"
         else "owner_login_or_challenge" if stage in (
             "human_challenge_required", "interactive_form_or_login_required")
+        else "resolve_remaining_required_fields" if fields and (missing or pending_required or unknown != 0)
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
         else "review_form_and_authorize_submission"
     )

@@ -420,6 +420,8 @@ def verify_draft_field(form, url, name, value):
     if sel.count()!=1 or not sel.is_visible() or not sel.is_enabled():
         return False
     typ=(sel.get_attribute("type") or "").lower()
+    if public_field_metadata(sel)["custom_choice"]:
+        return False
     if typ in ("checkbox","radio","file","password","hidden","submit","button","reset"):
         return False
     if sel.evaluate("(el) => el.tagName.toLowerCase()")=="select":
@@ -772,6 +774,10 @@ def inspect(url, fields=None):
                     reasons[name]="field_hidden_or_disabled_requires_prior_answer"
                     continue
                 typ=(sel.get_attribute("type") or "").lower()
+                # A typed string is not evidence that a custom choice was selected.
+                if public_field_metadata(sel)["custom_choice"]:
+                    reasons[name]="field_requires_separate_review"
+                    continue
                 if typ in ("checkbox","radio","file","password","hidden","submit","button","reset"):
                     reasons[name]="field_requires_separate_review"
                     continue
