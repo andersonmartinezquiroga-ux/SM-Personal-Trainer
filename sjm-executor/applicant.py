@@ -365,6 +365,34 @@ def advance_isolated_form_step(page, current_field, next_field, button_label="Ne
     return {"verified":ok,"action":"advanced" if ok else "transition_unverified_do_not_repeat","external_submission":False}
 
 
+def select_reviewed_profession(form, answer):
+    """Resolve the observed id-based profession widget, not a hidden input.
+    Require an exact visible local option and evidence of the backing field.
+    Caller already isolated the browser from all network requests.
+    """
+    target=form.locator('input#apply-profession')
+    backing=form.locator('input[type="hidden"][name="current_role"]')
+    if target.count()!=1 or backing.count()!=1 or not target.is_visible() or not target.is_enabled():
+        return False,"field_missing_or_ambiguous"
+    try:
+        target.fill(answer,timeout=2500)
+        # A typed suggestion is not a selected profession.
+        options=form.get_by_role("option",name=answer,exact=True)
+        try:
+            options.first.wait_for(state="visible",timeout=1800)
+        except PlaywrightTimeoutError:
+            return False,"profession_requires_reviewed_local_choice"
+        visible=[o for o in options.all() if o.is_visible() and o.is_enabled()]
+        if len(visible)!=1:
+            return False,"profession_requires_reviewed_local_choice"
+        visible[0].click(timeout=2500)
+        if target.input_value(timeout=2000)==answer and backing.input_value(timeout=2000).strip():
+            return True,"profession_selection_verified"
+        return False,"readback_mismatch"
+    except PlaywrightTimeoutError:
+        return False,"field_action_timeout"
+
+
 def ordered_draft_fields(url, fields):
     """Apply only known prerequisites first; never invent missing answers."""
     if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co":
@@ -645,6 +673,13 @@ def inspect(url, fields=None):
                     raise ValueError("Unsafe field name")
                 if len(forms)!=1:
                     reasons[name]="visible_form_not_unique"
+                    continue
+                if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co" and name=="apply-profession":
+                    ok,reason=select_reviewed_profession(forms[0],value)
+                    if ok:
+                        filled.append(name)
+                    else:
+                        reasons[name]=reason
                     continue
                 sel=forms[0].locator(f'[name="{name}"]')
                 if sel.count()>0 and all((x.get_attribute("type") or "").lower()=="radio" for x in sel.all()):

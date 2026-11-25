@@ -151,6 +151,24 @@ class ConditionalDraftTests(unittest.TestCase):
         self.assertEqual(ordered_draft_fields(url,{"specialty":"Example"}),[("specialty","Example")])
         self.assertEqual(ordered_draft_fields("https://example.invalid",fields),list(fields.items()))
 
+class ProfessionWidgetTests(unittest.TestCase):
+    def test_id_based_profession_requires_exact_choice_and_backing(self):
+        from applicant import select_reviewed_profession
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content("""<form><input id="apply-profession"><input type="hidden" name="current_role"><div role="listbox"><div role="option" onclick="document.querySelector('[name=current_role]').value='local-id';document.getElementById('apply-profession').value='Personal trainer'">Personal trainer</div></div></form>""")
+                self.assertEqual(select_reviewed_profession(page.locator("form"),"Personal trainer"),(True,"profession_selection_verified"))
+                page.set_content('<form><input id="apply-profession"><input type="hidden" name="current_role"></form>')
+                self.assertEqual(select_reviewed_profession(page.locator("form"),"Personal trainer"),(False,"profession_requires_reviewed_local_choice"))
+                self.assertEqual(page.locator('[name=current_role]').input_value(),"")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
