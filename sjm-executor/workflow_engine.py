@@ -87,7 +87,7 @@ def prepare_workflow(url, requested_fields=None):
         stage = "interactive_form_or_login_required"
     elif public.get("consent_or_captcha_present") or required_scopes:
         stage = "owner_authorization_required"
-    elif fields and len(filled) != len(fields):
+    elif fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing or len(filled) != len(fields)):
         stage = "draft_partial_not_submitted"
     elif fields:
         stage = "draft_filled_not_submitted"
@@ -112,7 +112,7 @@ def prepare_workflow(url, requested_fields=None):
         "skip_blocked_source_and_continue" if stage == "source_access_blocked"
         else "owner_login_or_challenge" if stage in (
             "human_challenge_required", "interactive_form_or_login_required")
-        else "resolve_remaining_required_fields" if fields and (pending_required or unknown != 0 or unresolved_missing)
+        else "resolve_remaining_required_fields" if fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing)
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
         else "review_optional_fields_before_submission" if optional_missing
         else "review_form_and_authorize_submission"
