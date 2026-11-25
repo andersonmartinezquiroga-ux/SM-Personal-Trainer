@@ -110,6 +110,17 @@ class MotionRoleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             checked_url(url+"/submit")
 
+    def test_motion_consent_is_application_only(self):
+        from submit_ypai import clean_motion_applicant
+        args=("Example Applicant","example@example.invalid","Colombia")
+        self.assertEqual(clean_motion_applicant(*args,True,False),args[:2])
+        for privacy,contract in ((True,True),(False,False),(True,None)):
+            with self.assertRaises(ValueError):
+                clean_motion_applicant(*args,privacy,contract)
+        for invalid in ("invalid","name @example.invalid","name@example"):
+            with self.assertRaises(ValueError):
+                clean_motion_applicant("Example Applicant",invalid,"Colombia",True,False)
+
     def test_observed_motion_fields_and_optional_marketing(self):
         from submit_ypai import motion_field_schema_ok, MOTION_REVIEWED_FIELDS
         fields=sorted(MOTION_REVIEWED_FIELDS)
