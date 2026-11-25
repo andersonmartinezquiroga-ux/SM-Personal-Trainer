@@ -457,11 +457,22 @@ def public_field_metadata(node):
     }""".replace("\\s","\\\\s"))
 
 
+GREENHOUSE_DRAFT_DIAGNOSTIC_URL="https://job-boards.greenhouse.io/agency/jobs/4675669101"
+GREENHOUSE_SYNTHETIC_FIELDS={"first_name":"Example","last_name":"Applicant","email":"example@example.invalid"}
+
+def approved_draft_mapping(url,fields):
+    if not fields:
+        return True
+    if urlparse(url).hostname in ("job-boards.greenhouse.io","job-boards.eu.greenhouse.io"):
+        return url==GREENHOUSE_DRAFT_DIAGNOSTIC_URL and fields==GREENHOUSE_SYNTHETIC_FIELDS
+    return urlparse(url).hostname in ("jobs.lever.co","jobs.ashbyhq.com","freelancer.ypai.ai")
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
     fields=fields or {}
-    if fields and urlparse(url).hostname not in ("jobs.lever.co","jobs.ashbyhq.com","freelancer.ypai.ai"):
+    if not approved_draft_mapping(url,fields):
         raise ValueError("Drafting is disabled for newly approved public listing sites")
     if not isinstance(fields,dict) or len(fields)>20: raise ValueError("Invalid field mapping")
     if any(not isinstance(k,str) or not isinstance(v,str) or len(v)>3000 for k,v in fields.items()):

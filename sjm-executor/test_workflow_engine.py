@@ -237,6 +237,16 @@ class PublicFieldMetadataTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class GreenhouseDraftScopeTests(unittest.TestCase):
+    def test_only_exact_synthetic_diagnostic_enabled(self):
+        from applicant import approved_draft_mapping,GREENHOUSE_DRAFT_DIAGNOSTIC_URL,GREENHOUSE_SYNTHETIC_FIELDS
+        u=GREENHOUSE_DRAFT_DIAGNOSTIC_URL
+        self.assertTrue(approved_draft_mapping(u,dict(GREENHOUSE_SYNTHETIC_FIELDS)))
+        self.assertFalse(approved_draft_mapping(u,{"first_name":"Other"}))
+        self.assertFalse(approved_draft_mapping(u,{**GREENHOUSE_SYNTHETIC_FIELDS,"consent":"yes"}))
+        self.assertFalse(approved_draft_mapping("https://job-boards.greenhouse.io/agency/jobs/4787634101",GREENHOUSE_SYNTHETIC_FIELDS))
+        self.assertTrue(approved_draft_mapping(u,{}))
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
