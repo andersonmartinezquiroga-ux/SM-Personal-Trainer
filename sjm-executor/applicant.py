@@ -326,6 +326,45 @@ def attach_pdf_in_isolated_draft(page, field_name, filename, content):
             "external_upload":False}
 
 
+def advance_isolated_form_step(page, current_field, next_field, button_label="Next"):
+    """Advance a reviewed local wizard step only; never submit or navigate online.
+    Checkpoint is DOM evidence for the current browser session, not a receipt.
+    """
+    for key in (current_field,next_field):
+        if not isinstance(key,str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]{0,89}",key):
+            raise ValueError("invalid_step_marker")
+    if current_field==next_field or button_label not in ("Next","Continue","Siguiente","Continuar"):
+        raise ValueError("invalid_step_transition")
+    page.context.set_offline(True)
+    page.context.route("**/*",lambda route:route.abort())
+    def visible_marker(key):
+        nodes=page.locator(f'input[name="{key}"],select[name="{key}"],textarea[name="{key}"]')
+        return nodes.count()==1 and nodes.is_visible()
+    if visible_marker(next_field) and not visible_marker(current_field):
+        return {"verified":True,"action":"already_at_next_step","external_submission":False}
+    if not visible_marker(current_field) or visible_marker(next_field):
+        return {"verified":False,"action":"ambiguous_step","external_submission":False}
+    forms=[f for f in page.locator("form").all() if f.is_visible()]
+    if len(forms)!=1:
+        return {"verified":False,"action":"ambiguous_form","external_submission":False}
+    controls=[b for b in forms[0].get_by_role("button",name=button_label,exact=True).all()
+              if b.is_visible() and b.is_enabled() and b.get_attribute("type")=="button"]
+    if len(controls)!=1:
+        return {"verified":False,"action":"next_control_not_unique_or_safe","external_submission":False}
+    # Never continue past an unchecked required consent or a human challenge.
+    if forms[0].locator('input[type="checkbox"][required]:not(:checked)').count() or page.locator('iframe[src*="captcha"],iframe[src*="turnstile"]').count():
+        return {"verified":False,"action":"owner_review_required","external_submission":False}
+    if not forms[0].evaluate("""f=>Array.from(f.elements).filter(e=>e.getClientRects().length&&e.willValidate).every(e=>e.checkValidity())"""):
+        return {"verified":False,"action":"invalid_current_fields","external_submission":False}
+    try:
+        controls[0].click(timeout=2000,no_wait_after=True)
+        page.locator(f'[name="{next_field}"]').wait_for(state="visible",timeout=2500)
+    except PlaywrightTimeoutError:
+        return {"verified":False,"action":"transition_unverified_do_not_repeat","external_submission":False}
+    ok=visible_marker(next_field) and not visible_marker(current_field)
+    return {"verified":ok,"action":"advanced" if ok else "transition_unverified_do_not_repeat","external_submission":False}
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)

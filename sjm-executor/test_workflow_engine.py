@@ -117,6 +117,29 @@ class LocalAttachmentTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class LocalWizardTests(unittest.TestCase):
+    def test_reviewed_transition_idempotent_and_no_submission(self):
+        from applicant import advance_isolated_form_step
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content("""<form><section id="a"><input name="first" required value="example"><button type="button" onclick="document.getElementById('a').hidden=true;document.getElementById('b').hidden=false">Next</button></section><section id="b" hidden><input name="second"><button type="submit">Next</button></section></form>""")
+                result=advance_isolated_form_step(page,"first","second")
+                self.assertTrue(result["verified"])
+                self.assertEqual(result["action"],"advanced")
+                self.assertFalse(result["external_submission"])
+                self.assertEqual(advance_isolated_form_step(page,"first","second")["action"],"already_at_next_step")
+                page.set_content('<form><input name="first" required value="example"><input name="second" hidden><button type="submit">Next</button></form>')
+                self.assertFalse(advance_isolated_form_step(page,"first","second")["verified"])
+                with self.assertRaises(ValueError):
+                    advance_isolated_form_step(page,"first","second","Submit")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
