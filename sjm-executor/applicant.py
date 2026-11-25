@@ -362,6 +362,26 @@ def inspect(url, fields=None):
                 if parsed.scheme=="https" and parsed.hostname==source and parsed.port in (None,443) and not (parsed.username or parsed.password or parsed.query or parsed.fragment):
                     result["public_form_action_path"]=parsed.path
                     result["public_form_method"]=str(target.get("method","")).lower()
+            # Read public code only. Do not invoke a handler, fill a form, or
+            # transmit even fictional submissions to discover the destination.
+            observed=page.evaluate(r"""() => {
+                const candidates = new Set();
+                for (const script of document.scripts) {
+                    const code=script.textContent || "";
+                    for (const match of code.matchAll(/\bfetch\s*\(\s*['"]((?:https:\/\/freelancer\.ypai\.ai)?\/api\/[A-Za-z0-9_/-]+)['"]/g)) {
+                        candidates.add(match[1]);
+                    }
+                }
+                const consent=document.querySelector('form input[name="consent"]');
+                return {paths:[...candidates].slice(0,15),
+                    consent:consent ? (consent.closest('label')?.innerText ||
+                        consent.parentElement?.innerText || '').trim().slice(0,1500) : '',
+                    optional_marketing_checked:!!document.querySelector(
+                        'form input[name="partner_learn_consent"]:checked')};
+            }""")
+            result["public_inline_api_candidates"]=observed["paths"]
+            result["public_application_consent_text"]=observed["consent"]
+            result["public_optional_marketing_prechecked"]=observed["optional_marketing_checked"]
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
         for node in page.locator("input, select, textarea").all()[:45]:
