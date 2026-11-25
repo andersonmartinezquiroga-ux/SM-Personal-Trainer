@@ -174,6 +174,11 @@ def read_vetted_public_source(focus):
 
 class API(BaseHTTPRequestHandler):
     def reply(self, status, body):
+        # The runtime Git SHA distinguishes a repaired browser adapter from a
+        # previously failing release. Never trust a version supplied by a job site.
+        if self.path.split("?", 1)[0] == "/jobs/prepare" and status in (200, 502) and isinstance(body, dict):
+            release = os.environ.get("RENDER_GIT_COMMIT", "")
+            body = {**body, "adapter_version": release if re.fullmatch(r"[0-9a-f]{7,40}", release) else "unversioned"}
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
         try:
             # A peer may disconnect while headers are being written, not only
