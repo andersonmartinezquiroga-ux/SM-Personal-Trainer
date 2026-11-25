@@ -476,4 +476,37 @@ class MotionTransportGateTests(unittest.TestCase):
         handler.reply.assert_called_once_with(401,{"error":"unauthorized"})
 
 
+class OptionalDraftBlockerTests(unittest.TestCase):
+    def test_known_optional_blocker_does_not_masquerade_as_required(self):
+        with patch("workflow_engine.inspect",return_value=source(
+            fields=[{"name":"specialty","required":False}],
+            required_fields=[],unidentified_required_count=0,
+            draft_offline=True,filled_field_names=[])):
+            r=prepare_workflow(WELLONIS,{"specialty":"Example"})
+        self.assertEqual(r["draft_verification"]["optional_missing_field_names"],["specialty"])
+        self.assertEqual(r["draft_verification"]["unresolved_missing_field_names"],[])
+        self.assertEqual(r["next_action"],"review_terms_and_authorize_specific_case")
+        self.assertFalse(r["full_form_readiness"]["full_form_verified"])
+        self.assertFalse(r["submitted"])
+
+    def test_unknown_metadata_cannot_defer_missing_field(self):
+        with patch("workflow_engine.inspect",return_value=source(
+            fields=[],required_fields=[],unidentified_required_count=1,
+            draft_offline=True,filled_field_names=[])):
+            r=prepare_workflow(WELLONIS,{"specialty":"Example"})
+        self.assertEqual(r["draft_verification"]["optional_missing_field_names"],[])
+        self.assertEqual(r["next_action"],"resolve_remaining_required_fields")
+        self.assertFalse(r["submitted"])
+
+    def test_required_field_still_blocks_despite_optional_metadata(self):
+        with patch("workflow_engine.inspect",return_value=source(
+            fields=[{"name":"name","required":False}],
+            required_fields=[{"name":"name"}],unidentified_required_count=0,
+            draft_offline=True,filled_field_names=[])):
+            r=prepare_workflow(WELLONIS,{"name":"Example"})
+        self.assertEqual(r["draft_verification"]["optional_missing_field_names"],[])
+        self.assertEqual(r["next_action"],"resolve_remaining_required_fields")
+        self.assertFalse(r["submitted"])
+
+
 if __name__=="__main__": unittest.main()
