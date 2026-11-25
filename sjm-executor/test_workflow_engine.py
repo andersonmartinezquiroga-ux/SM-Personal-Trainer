@@ -131,6 +131,31 @@ class MotionRoleTests(unittest.TestCase):
         for required in ("partner_learn_consent","phone","cv","city"):
             self.assertFalse(motion_field_schema_ok(fields, ["name","email","consent",required]))
 
+    def test_claim_bridge_accepts_only_durable_positive_reservation(self):
+        from submit_ypai import reserve_motion_once
+        import json
+        claim="18c4d291-cdf2-45b4-90b9-b4057f36441a"
+        with patch.dict("os.environ",{"SUBMISSION_TOKEN":"fictional-test-credential-000000"}):
+            with patch("submit_ypai.build_opener") as opener:
+                response=opener.return_value.open.return_value.__enter__.return_value
+                response.status=200
+                response.read.return_value=json.dumps({"reserved":True,"claim_id":claim,"form_submitted":False}).encode()
+                self.assertEqual(reserve_motion_once(),claim)
+                opener.return_value.open.assert_called_once()
+            for data in ({"reserved":False},{"reserved":True,"claim_id":"invalid","form_submitted":False},{"reserved":True,"claim_id":claim,"form_submitted":True}):
+                with patch("submit_ypai.build_opener") as opener:
+                    response=opener.return_value.open.return_value.__enter__.return_value
+                    response.status=200
+                    response.read.return_value=json.dumps(data).encode()
+                    with self.assertRaises(ValueError):
+                        reserve_motion_once()
+                    opener.return_value.open.assert_called_once()
+            with patch("submit_ypai.build_opener") as opener:
+                opener.return_value.open.side_effect=TimeoutError()
+                with self.assertRaises(ValueError):
+                    reserve_motion_once()
+                opener.return_value.open.assert_called_once()
+
     def test_endpoint_missing_or_outside_origin_fails_closed(self):
         from submit_ypai import verified_submit_endpoint
         with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":""}):
