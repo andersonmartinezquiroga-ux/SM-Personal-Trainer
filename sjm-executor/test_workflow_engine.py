@@ -93,6 +93,30 @@ class ReviewedRadioTests(unittest.TestCase):
         self.assertIsNone(reviewed_radio_choice(url,"l1",yes,options+[options[1]]))
         self.assertIsNone(reviewed_radio_choice(url,"l1",yes,[dict(label=yes,enabled=False,visible=True)]))
 
+class LocalAttachmentTests(unittest.TestCase):
+    def test_pdf_attach_and_readback_without_network(self):
+        from applicant import attach_pdf_in_isolated_draft
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form><label>CV<input type="file" name="resume" accept=".pdf"></label></form>')
+                content=b"%PDF-1.4\\n% Local synthetic diagnostic only\\n%%EOF"
+                result=attach_pdf_in_isolated_draft(page,"resume","offline-test.pdf",content)
+                self.assertTrue(result["verified"])
+                self.assertFalse(result["external_upload"])
+                page.set_content('<form><input type="file" name="resume" accept=".jpg"></form>')
+                self.assertEqual(attach_pdf_in_isolated_draft(page,"resume","offline-test.pdf",content)["reason"],"pdf_not_accepted")
+                with self.assertRaises(ValueError):
+                    attach_pdf_in_isolated_draft(page,"resume","../secret.pdf",content)
+                with self.assertRaises(ValueError):
+                    attach_pdf_in_isolated_draft(page,"resume","test.pdf",b"not a PDF")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

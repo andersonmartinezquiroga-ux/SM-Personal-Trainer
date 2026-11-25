@@ -296,6 +296,36 @@ def reviewed_radio_choice(url, name, answer, options):
     return matches[0] if len(matches)==1 else None
 
 
+def attach_pdf_in_isolated_draft(page, field_name, filename, content):
+    """Attach approved in-memory PDF to a single local draft, not a submission.
+    No path/URL reading, no credentials, no network. The caller must bind the
+    document to the case and verify its authorization before using real data.
+    """
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]{0,89}",field_name):
+        raise ValueError("invalid_attachment_field")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.pdf",filename,re.I):
+        raise ValueError("invalid_attachment_name")
+    if not isinstance(content,bytes) or not content.startswith(b"%PDF-") or len(content)>5*1024*1024:
+        raise ValueError("invalid_pdf_content")
+    context=page.context
+    context.set_offline(True)
+    context.route("**/*",lambda route:route.abort())
+    forms=[f for f in page.locator("form").all() if f.is_visible()]
+    if len(forms)!=1:
+        return {"verified":False,"reason":"visible_form_not_unique","external_upload":False}
+    target=forms[0].locator(f'input[type="file"][name="{field_name}"]')
+    if target.count()!=1 or not target.is_enabled():
+        return {"verified":False,"reason":"file_field_not_unique_or_enabled","external_upload":False}
+    accept=(target.get_attribute("accept") or "").strip().lower()
+    if accept and not any(x.strip() in (".pdf","application/pdf","*/*") for x in accept.split(",")):
+        return {"verified":False,"reason":"pdf_not_accepted","external_upload":False}
+    target.set_input_files({"name":filename,"mimeType":"application/pdf","buffer":content},timeout=2500)
+    readback=target.evaluate("el=>Array.from(el.files||[]).map(f=>({name:f.name,size:f.size,type:f.type}))")
+    ok=readback==[{"name":filename,"size":len(content),"type":"application/pdf"}]
+    return {"verified":ok,"reason":"local_file_readback" if ok else "file_readback_mismatch",
+            "external_upload":False}
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -501,6 +531,15 @@ def inspect(url, fields=None):
             any(x["type"]=="file" for x in result["required_fields"]) or
             (source=="jobs.lever.co" and result["required_cv"])
         )
+        result["document_requirements"]=[]
+        for node in page.locator('input[type="file"]').all()[:15]:
+            result["document_requirements"].append({
+                "field_name":(node.get_attribute("name") or node.get_attribute("id") or "")[:90],
+                "required":node.get_attribute("required") is not None or node.get_attribute("aria-required")=="true",
+                "accept":(node.get_attribute("accept") or "")[:160],
+                "multiple":node.get_attribute("multiple") is not None,
+                "attachment_state":"not_attached"
+            })
         result["form_fields_total"]=len(result["fields"])
         result["form_inspection_status"]="complete" if result["fields"] else "incomplete_dynamic_or_no_form"
         # Public preflight evidence; absence of fields is NEVER evidence of an application.
