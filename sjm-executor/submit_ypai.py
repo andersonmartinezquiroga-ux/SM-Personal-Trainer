@@ -104,6 +104,10 @@ def verified_submit_endpoint(role_slug):
     if role_slug != "motion-performer-co":
         raise ValueError("role_submission_disabled")
     endpoint = os.environ.get("YPAI_MOTION_SUBMIT_URL", "")
+    # Observed twice during isolated click diagnostic 416. The network was
+    # disabled; neither request reached YPAI. Retain a separate explicit opt-in.
+    if endpoint != "https://freelancer.ypai.ai/api/jobs/apply":
+        raise ValueError("verified_submit_endpoint_required")
     u = urlparse(endpoint)
     if (u.scheme != "https" or u.hostname != "freelancer.ypai.ai"
             or u.port not in (None, 443) or u.username or u.password
@@ -204,6 +208,17 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                 out["status"] = "blocked_unexpected_form_count"
                 return out
             form = forms.first
+            if not form.locator('[name="name"]').is_visible():
+                pattern=re.compile(r"^apply(?: now| for this role| for this job)?$",re.I)
+                controls=page.get_by_role("button",name=pattern).all()+page.get_by_role("link",name=pattern).all()
+                visible=[x for x in controls if x.is_visible() and x.get_attribute("type")!="submit"]
+                if len(visible)!=1:
+                    out["status"]="blocked_public_apply_control_not_unique"
+                    return out
+                visible[0].click()
+            if not form.locator('[name="name"]').is_visible():
+                out["status"]="blocked_form_not_visible"
+                return out
             elements = form.locator("input,select,textarea").all()
             names = [x.get_attribute("name") for x in elements]
             required_names = [el.get_attribute("name") for el in elements
@@ -260,14 +275,29 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
             if country_input.count() != 1:
                 out["status"] = "blocked_country_not_select"
                 return out
-            try:
-                country_input.select_option(label="Colombia")
-            except Exception:
+            # Job 416 confirmed a visible custom country picker and hidden select.
+            if country_input.is_visible():
                 try:
-                    country_input.select_option(value="CO")
+                    country_input.select_option(label="Colombia")
                 except Exception:
                     out["status"] = "blocked_country_unavailable"
                     return out
+            else:
+                search=form.locator('[name="apply-country-search"], #apply-country-search')
+                if search.count()!=1 or not search.is_visible():
+                    out["status"]="blocked_country_picker_missing"
+                    return out
+                search.fill("Colombia")
+                page.wait_for_timeout(500)
+                choices=[x for x in page.get_by_text("Colombia",exact=True).all()
+                         if x.is_visible() and x.evaluate("el=>el.tagName.toLowerCase()")!="option"]
+                if len(choices)!=1:
+                    out["status"]="blocked_country_picker_not_unique"
+                    return out
+                choices[0].click()
+            if country_input.input_value() not in ("CO","co","Colombia","colombia"):
+                out["status"]="blocked_country_selection_unverified"
+                return out
 
             # Never populate optional sensitive fields either.
             for field in ("phone", "cv", "resume", "region", "website_url", "audio", "voice"):
