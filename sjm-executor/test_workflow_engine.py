@@ -431,4 +431,49 @@ class MotionRoleTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     verified_submit_endpoint("motion-performer-co")
 
+class MotionTransportGateTests(unittest.TestCase):
+    """Exercise the real HTTP handler with a mocked runner; no network or POST."""
+    def test_default_off_does_not_call_runner(self):
+        from api_v2 import API
+        from unittest.mock import Mock
+        handler=Mock()
+        handler.path="/jobs/submit-ypai-role"
+        handler.authorized_submission.return_value=True
+        handler.parse_json.return_value={
+            "role_slug":"motion-performer-co",
+            "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124"}
+        with patch.dict("os.environ",{"C360_MOTION_LIVE_ROUTE_ENABLED":""}), \
+             patch("api_v2.approved_case_keys",return_value={handler.parse_json.return_value["case_key"]}), \
+             patch("api_v2.apply_ypai_role") as runner:
+            API.do_POST(handler)
+            runner.assert_not_called()
+        handler.reply.assert_called_once_with(403,{"error":"durable_claim_and_exact_approval_required","submitted":False})
+
+    def test_enabled_transport_still_requires_case_approval(self):
+        from api_v2 import API
+        from unittest.mock import Mock
+        handler=Mock()
+        handler.path="/jobs/submit-ypai-role"
+        handler.authorized_submission.return_value=True
+        handler.parse_json.return_value={"role_slug":"motion-performer-co","case_key":"not-approved"}
+        with patch.dict("os.environ",{"C360_MOTION_LIVE_ROUTE_ENABLED":"1"}), \
+             patch("api_v2.approved_case_keys",return_value=set()), \
+             patch("api_v2.apply_ypai_role") as runner:
+            API.do_POST(handler)
+            runner.assert_not_called()
+        handler.reply.assert_called_once_with(403,{"error":"case_not_explicitly_approved","submitted":False})
+
+    def test_invalid_submission_token_stops_before_payload(self):
+        from api_v2 import API
+        from unittest.mock import Mock
+        handler=Mock()
+        handler.path="/jobs/submit-ypai-role"
+        handler.authorized_submission.return_value=False
+        with patch("api_v2.apply_ypai_role") as runner:
+            API.do_POST(handler)
+            runner.assert_not_called()
+        handler.parse_json.assert_not_called()
+        handler.reply.assert_called_once_with(401,{"error":"unauthorized"})
+
+
 if __name__=="__main__": unittest.main()
