@@ -316,10 +316,13 @@ class API(BaseHTTPRequestHandler):
                     "error": "case_not_explicitly_approved",
                     "submitted": False,
                 })
-            # No new live role can run until a durable one-time database claim
-            # has been wired to this endpoint. An environment flag alone is not
-            # authorization to replay a submission after a restart.
-            if params.get("role_slug") == "motion-performer-co":
+            # The runner now contains the durable Supabase claim bridge.
+            # Keep this route off by default until authenticated live preflight
+            # and the final reviewed form have been independently verified.
+            # Enabling this transport does NOT bypass the runner's mandatory
+            # one-time database reservation or authorize any other role.
+            if (params.get("role_slug") == "motion-performer-co"
+                    and os.environ.get("C360_MOTION_LIVE_ROUTE_ENABLED", "") != "1"):
                 return self.reply(403, {
                     "error": "durable_claim_and_exact_approval_required",
                     "submitted": False,
