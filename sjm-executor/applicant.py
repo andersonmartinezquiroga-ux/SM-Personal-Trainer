@@ -276,6 +276,22 @@ def inspect(url, fields=None):
         page.set_default_timeout(7000)
         blocked_resources=[]
         ashby_query_statuses=[]
+        motion_public_scripts=[]
+        motion_role=(source=="freelancer.ypai.ai" and
+                     urlparse(url).path=="/jobs/openings/motion-performer-co")
+        def remember_motion_public_script(response):
+            try:
+                dest=urlparse(response.url)
+                if (response.request.resource_type=="script" and
+                    response.request.method=="GET" and response.status==200 and
+                    dest.scheme=="https" and dest.hostname=="freelancer.ypai.ai" and
+                    dest.port in (None,443) and not dest.username and not dest.password and
+                    len(motion_public_scripts)<16):
+                    motion_public_scripts.append(response)
+            except Exception:
+                pass
+        if motion_role:
+            page.on("response",remember_motion_public_script)
         def record_public_graphql_status(response):
             dest=urlparse(response.url)
             if dest.hostname=="jobs.ashbyhq.com" and dest.path=="/api/non-user-graphql" and len(ashby_query_statuses)<12:
@@ -380,6 +396,28 @@ def inspect(url, fields=None):
                         'form input[name="partner_learn_consent"]:checked')};
             }""")
             result["public_inline_api_candidates"]=observed["paths"]
+            # Inspect only already-loaded public same-origin JS responses.
+            # No extra fetches, handler invocation, form clicks or POSTs.
+            script_candidates=set()
+            inspected_scripts=0
+            for response in motion_public_scripts:
+                try:
+                    length=response.headers.get("content-length","")
+                    if length.isdigit() and int(length)>2000000:
+                        continue
+                    body=response.body()
+                    if len(body)>2000000:
+                        continue
+                    inspected_scripts+=1
+                    code=body.decode("utf-8",errors="replace")
+                    for match in re.finditer(r"""["'](/api/[A-Za-z0-9_/-]{2,120})["']""",code):
+                        path=match.group(1)
+                        if re.search(r"apply|applicat|opening",path,re.I):
+                            script_candidates.add(path)
+                except Exception:
+                    continue
+            result["public_loaded_script_count"]=inspected_scripts
+            result["public_script_application_path_candidates"]=sorted(script_candidates)[:20]
             result["public_application_consent_text"]=observed["consent"]
             result["public_optional_marketing_prechecked"]=observed["optional_marketing_checked"]
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
