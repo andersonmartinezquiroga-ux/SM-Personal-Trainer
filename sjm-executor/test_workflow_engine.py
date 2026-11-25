@@ -136,7 +136,14 @@ class MotionRoleTests(unittest.TestCase):
         with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":""}):
             with self.assertRaises(ValueError):
                 verified_submit_endpoint("motion-performer-co")
-        for bad in ("https://example.com/submit","http://freelancer.ypai.ai/submit",
+        exact="https://freelancer.ypai.ai/api/jobs/apply"
+        with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":exact}):
+            self.assertEqual(verified_submit_endpoint("motion-performer-co"),exact)
+            with self.assertRaises(ValueError):
+                verified_submit_endpoint("text-annotator-co")
+        for bad in ("https://freelancer.ypai.ai/api/jobs/funnel",
+                    "https://freelancer.ypai.ai/api/client-log",
+                    "https://example.com/submit","http://freelancer.ypai.ai/submit",
                     "https://freelancer.ypai.ai/submit?token=x"):
             with patch.dict("os.environ",{"YPAI_MOTION_SUBMIT_URL":bad}):
                 with self.assertRaises(ValueError):
