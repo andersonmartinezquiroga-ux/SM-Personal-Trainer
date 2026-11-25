@@ -215,6 +215,28 @@ class GreenhouseExactAdapterTests(unittest.TestCase):
             checked_url("https://job-boards.greenhouse.io/agency/jobs/123")
         self.assertFalse(is_safe_readonly_asset("https://job-boards.greenhouse.io/api/apply","GET"))
 
+class PublicFieldMetadataTests(unittest.TestCase):
+    def test_external_labels_and_custom_widgets_without_values(self):
+        from applicant import public_field_metadata
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form><label for="degree">Education level</label><input id="degree" role="combobox" aria-required="true" value="private example"><span id="question">Language proficiency</span><input name="q" aria-labelledby="question" required><input required></form>')
+                degree=public_field_metadata(page.locator("#degree"))
+                self.assertEqual(degree["label"],"Education level")
+                self.assertEqual(degree["identity"],"id")
+                self.assertTrue(degree["custom_choice"])
+                self.assertTrue(degree["required"])
+                self.assertNotIn("private example",str(degree))
+                self.assertEqual(public_field_metadata(page.locator('[name="q"]'))["label"],"Language proficiency")
+                self.assertEqual(public_field_metadata(page.locator('input').last)["identity"],"unidentified")
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

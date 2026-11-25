@@ -437,6 +437,26 @@ def ordered_draft_fields(url, fields):
     return list(fields.items())
 
 
+def public_field_metadata(node):
+    """Read public labels and widget semantics, never entered values."""
+    return node.evaluate("""el => {
+        const clean=s=>String(s||'').replace(/\s+/g,' ').trim().slice(0,120);
+        const labels=Array.from(el.labels||[]).map(l=>clean(l.innerText)).filter(Boolean);
+        const referenced=(el.getAttribute('aria-labelledby')||'').split(/\s+/).filter(Boolean)
+            .map(id=>document.getElementById(id)).filter(Boolean).map(l=>clean(l.innerText)).filter(Boolean);
+        const name=(el.getAttribute('name')||el.id||'').slice(0,90);
+        const type=(el.getAttribute('type')||el.tagName.toLowerCase()).toLowerCase();
+        const role=clean(el.getAttribute('role'));
+        const label=clean(referenced.join(' ')||el.getAttribute('aria-label')||labels.join(' ')||el.closest('label')?.innerText||el.getAttribute('placeholder'));
+        return {name,type,label,role,
+          required:el.hasAttribute('required')||el.getAttribute('aria-required')==='true',
+          identity:el.getAttribute('name')?'name':el.id?'id':'unidentified',
+          custom_choice:role==='combobox'||el.hasAttribute('aria-autocomplete'),
+          visible:!!(el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'),
+          enabled:!el.disabled&&el.getAttribute('aria-disabled')!=='true'};
+    }""".replace("\\s","\\\\s"))
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -603,20 +623,16 @@ def inspect(url, fields=None):
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
         for node in page.locator("input, select, textarea").all()[:45]:
-            typ=(node.get_attribute("type") or node.evaluate("(el) => el.tagName.toLowerCase()") or "").lower()
-            name=(node.get_attribute("name") or node.get_attribute("id") or "")[:90]
-            required=node.get_attribute("required") is not None or node.get_attribute("aria-required")=="true"
-            label=node.evaluate("""el => {
-                const lab=el.closest("label");
-                return (lab?.innerText || el.getAttribute("aria-label") || el.getAttribute("placeholder") || "").slice(0,120)
-            }""")
-            result["fields"].append({"name":name,"type":typ,"label":label[:120],"required":bool(required)})
+            result["fields"].append(public_field_metadata(node))
         # Only public field names/labels are collected. Never return or persist entered values.
         # This lets Control 360 stop BEFORE requesting forbidden personal details.
         result["required_fields"]=[
-            {"name":x["name"],"type":x["type"],"label":x["label"][:95]}
-            for x in result["fields"] if x["required"]
-        ][:20]
+            {"name":x["name"],"type":x["type"],"label":x["label"][:95],
+             "identity":x["identity"],"custom_choice":x["custom_choice"],
+             "visible":x["visible"],"enabled":x["enabled"]}
+            for x in result["fields"] if x["required"] and x["name"]
+        ][:40]
+        result["unidentified_required_count"]=sum(1 for x in result["fields"] if x["required"] and not x["name"])
         req_text=" ".join((x["name"]+" "+x["label"]).lower()
                           for x in result["required_fields"])
         result["required_phone"]=any(
