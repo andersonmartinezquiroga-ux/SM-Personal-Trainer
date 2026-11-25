@@ -411,6 +411,8 @@ def verify_draft_field(form, url, name, value):
         target=form.locator('input#apply-profession')
         backing=form.locator('input[type="hidden"][name="current_role"]')
         return target.count()==1 and backing.count()==1 and target.is_visible() and target.is_enabled() and target.input_value(timeout=1500)==value and bool(backing.input_value(timeout=1500).strip())
+    if url==GREENHOUSE_DRAFT_DIAGNOSTIC_URL and name in GREENHOUSE_CHOICE_IDS:
+        return greenhouse_choice_verified(form,name,value)
     sel=exact_draft_locator(form,name)
     if sel.count()>0 and all((x.get_attribute("type") or "").lower()=="radio" for x in sel.all()):
         options=sel.all()
@@ -501,11 +503,58 @@ def inspect_local_combobox_choices(page, name):
 GREENHOUSE_DRAFT_DIAGNOSTIC_URL="https://job-boards.greenhouse.io/agency/jobs/4675669101"
 GREENHOUSE_SYNTHETIC_FIELDS={"first_name":"Example","last_name":"Applicant","email":"example@example.invalid"}
 
+# Exact public option identifiers obtained from the official job-board API.
+GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS={
+    "question_7532304101":"Colombia",
+    "question_8412132101":"I am not located in the United States of America currently"
+}
+GREENHOUSE_CHOICE_IDS={"question_7532304101":"44515238101","question_8412132101":"56217483101"}
+
+def greenhouse_choice_verified(form,name,value):
+    if GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS.get(name)!=value:
+        return False
+    target=exact_draft_locator(form,name)
+    # The visible ID and separate hidden name can coexist. Inspect separately.
+    visible=[x for x in target.all() if x.is_visible() and x.is_enabled()]
+    hidden=form.locator(f'input[type="hidden"][name="{name}"]')
+    return len(visible)==1 and hidden.count()==1 and hidden.input_value(timeout=1500)==GREENHOUSE_CHOICE_IDS[name]
+
+def select_greenhouse_public_choice(page,form,name,value):
+    if GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS.get(name)!=value:
+        return False,"field_requires_separate_review"
+    target=exact_draft_locator(form,name)
+    visible=[x for x in target.all() if x.is_visible() and x.is_enabled()]
+    if len(visible)!=1 or visible[0].get_attribute("role")!="combobox":
+        return False,"field_missing_or_ambiguous"
+    field=visible[0]
+    try:
+        before=page.locator('[role="listbox"]:visible').count()
+        field.click(timeout=1500)
+        field.fill(value,timeout=1500)
+        linked=field.get_attribute("aria-controls") or field.get_attribute("aria-owns") or ""
+        if re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}",linked):
+            box=page.locator(f'[id="{linked}"][role="listbox"]')
+        elif before==0 and field.evaluate("el=>document.activeElement===el"):
+            box=page.locator('[role="listbox"]:visible')
+        else:
+            return False,"field_requires_separate_review"
+        box.first.wait_for(state="visible",timeout=1800)
+        if box.count()!=1:
+            return False,"field_requires_separate_review"
+        option=box.get_by_role("option",name=value,exact=True)
+        option.first.wait_for(state="visible",timeout=1800)
+        if option.count()!=1 or not option.is_visible() or option.get_attribute("aria-disabled")=="true":
+            return False,"select_label_missing_or_ambiguous"
+        option.click(timeout=1500)
+        return (True,"verified") if greenhouse_choice_verified(form,name,value) else (False,"readback_mismatch")
+    except PlaywrightTimeoutError:
+        return False,"field_action_timeout"
+
 def approved_draft_mapping(url,fields):
     if not fields:
         return True
     if urlparse(url).hostname in ("job-boards.greenhouse.io","job-boards.eu.greenhouse.io"):
-        return url==GREENHOUSE_DRAFT_DIAGNOSTIC_URL and fields==GREENHOUSE_SYNTHETIC_FIELDS
+        return url==GREENHOUSE_DRAFT_DIAGNOSTIC_URL and fields in (GREENHOUSE_SYNTHETIC_FIELDS,GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS)
     return urlparse(url).hostname in ("jobs.lever.co","jobs.ashbyhq.com","freelancer.ypai.ai")
 
 
@@ -786,6 +835,13 @@ def inspect(url, fields=None):
                     continue
                 if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co" and name=="apply-profession":
                     ok,reason=select_reviewed_profession(forms[0],value)
+                    if ok:
+                        filled.append(name)
+                    else:
+                        reasons[name]=reason
+                    continue
+                if url==GREENHOUSE_DRAFT_DIAGNOSTIC_URL and name in GREENHOUSE_CHOICE_IDS:
+                    ok,reason=select_greenhouse_public_choice(page,forms[0],name,value)
                     if ok:
                         filled.append(name)
                     else:

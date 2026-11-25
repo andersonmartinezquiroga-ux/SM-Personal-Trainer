@@ -296,6 +296,29 @@ class UnlinkedComboboxTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class GreenhouseOfficialChoiceTests(unittest.TestCase):
+    def test_exact_public_identifier_required_after_selection(self):
+        from applicant import select_greenhouse_public_choice,greenhouse_choice_verified,approved_draft_mapping,GREENHOUSE_DRAFT_DIAGNOSTIC_URL,GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS
+        from playwright.sync_api import sync_playwright
+        name="question_7532304101"
+        self.assertTrue(approved_draft_mapping(GREENHOUSE_DRAFT_DIAGNOSTIC_URL,GREENHOUSE_CHOICE_DIAGNOSTIC_FIELDS))
+        self.assertFalse(approved_draft_mapping(GREENHOUSE_DRAFT_DIAGNOSTIC_URL,{name:"Other"}))
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content("""<form><input id="question_7532304101" role="combobox" aria-controls="options"><input type="hidden" name="question_7532304101"><div id="options" role="listbox"><div role="option" onclick="document.querySelector('input[type=hidden]').value='44515238101'">Colombia</div></div></form>""")
+                form=page.locator("form")
+                self.assertFalse(greenhouse_choice_verified(form,name,"Colombia"))
+                self.assertTrue(select_greenhouse_public_choice(page,form,name,"Colombia")[0])
+                self.assertTrue(greenhouse_choice_verified(form,name,"Colombia"))
+                page.locator('input[type="hidden"]').evaluate("el=>el.value='wrong'")
+                self.assertFalse(greenhouse_choice_verified(form,name,"Colombia"))
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
