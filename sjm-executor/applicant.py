@@ -393,6 +393,36 @@ def select_reviewed_profession(form, answer):
         return False,"field_action_timeout"
 
 
+def exact_draft_locator(form, name):
+    """Resolve an observed field name or ID; never choose among duplicates."""
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,89}",name):
+        raise ValueError("invalid_field_identity")
+    return form.locator(f'input[name="{name}"],textarea[name="{name}"],select[name="{name}"],input[id="{name}"],textarea[id="{name}"],select[id="{name}"]')
+
+
+def verify_draft_field(form, url, name, value):
+    """Recheck after all actions, because later fields may reset earlier values."""
+    if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co" and name=="apply-profession":
+        target=form.locator('input#apply-profession')
+        backing=form.locator('input[type="hidden"][name="current_role"]')
+        return target.count()==1 and backing.count()==1 and target.is_visible() and target.is_enabled() and target.input_value(timeout=1500)==value and bool(backing.input_value(timeout=1500).strip())
+    sel=exact_draft_locator(form,name)
+    if sel.count()>0 and all((x.get_attribute("type") or "").lower()=="radio" for x in sel.all()):
+        options=sel.all()
+        metadata=[{"label":x.evaluate("""el=>Array.from(el.labels||[]).map(l=>l.innerText.trim()).join(' ')"""),"visible":x.is_visible(),"enabled":x.is_enabled()} for x in options]
+        idx=reviewed_radio_choice(url,name,value,metadata)
+        return idx is not None and options[idx].is_checked() and sum(x.is_checked() for x in options)==1
+    if sel.count()!=1 or not sel.is_visible() or not sel.is_enabled():
+        return False
+    typ=(sel.get_attribute("type") or "").lower()
+    if typ in ("checkbox","radio","file","password","hidden","submit","button","reset"):
+        return False
+    if sel.evaluate("(el) => el.tagName.toLowerCase()")=="select":
+        selected=sel.locator("option:checked")
+        return selected.count()==1 and selected.inner_text(timeout=1500)==value
+    return sel.input_value(timeout=1500)==value
+
+
 def ordered_draft_fields(url, fields):
     """Apply only known prerequisites first; never invent missing answers."""
     if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co":
@@ -681,7 +711,7 @@ def inspect(url, fields=None):
                     else:
                         reasons[name]=reason
                     continue
-                sel=forms[0].locator(f'[name="{name}"]')
+                sel=exact_draft_locator(forms[0],name)
                 if sel.count()>0 and all((x.get_attribute("type") or "").lower()=="radio" for x in sel.all()):
                     # Only a reviewed, non-consent question may be selected.
                     # The DOM is offline; no account creation or external write.
@@ -731,6 +761,17 @@ def inspect(url, fields=None):
                         reasons[name]="readback_mismatch"
                 except PlaywrightTimeoutError:
                     reasons[name]="field_action_timeout"
+            # End-of-draft consistency check. Never claim a value survives a
+            # dependent change unless it is still present in the final DOM.
+            final_forms=[f for f in page.locator("form").all() if f.is_visible()]
+            for name in filled[:]:
+                try:
+                    valid=len(final_forms)==1 and verify_draft_field(final_forms[0],url,name,fields[name])
+                except PlaywrightTimeoutError:
+                    valid=False
+                if not valid:
+                    filled.remove(name)
+                    reasons[name]="final_readback_changed_or_unavailable"
             unverified=[name for name in fields if name not in filled]
             result['draft_offline']=True
             result['unverified_field_names']=unverified

@@ -169,6 +169,31 @@ class ProfessionWidgetTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class FinalFieldConsistencyTests(unittest.TestCase):
+    def test_id_lookup_ambiguity_and_final_readback(self):
+        from applicant import exact_draft_locator,verify_draft_field
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form><input id="city" value="Example"><select name="education"><option selected>Diploma</option></select></form>')
+                form=page.locator("form")
+                url="https://example.invalid"
+                self.assertEqual(exact_draft_locator(form,"city").count(),1)
+                self.assertTrue(verify_draft_field(form,url,"city","Example"))
+                self.assertTrue(verify_draft_field(form,url,"education","Diploma"))
+                page.locator("#city").fill("Changed")
+                self.assertFalse(verify_draft_field(form,url,"city","Example"))
+                page.set_content('<form><input id="city" value="Example"><input name="city" value="Example"></form>')
+                self.assertFalse(verify_draft_field(page.locator("form"),url,"city","Example"))
+                page.set_content('<form><input type="hidden" name="city" value="Example"></form>')
+                self.assertFalse(verify_draft_field(page.locator("form"),url,"city","Example"))
+            finally:
+                ctx.close()
+                browser.close()
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result
