@@ -78,6 +78,21 @@ class WorkflowTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare_workflow(WELLONIS)
 
+class ReviewedRadioTests(unittest.TestCase):
+    def test_exact_reviewed_nonconsent_group(self):
+        from applicant import reviewed_radio_choice
+        url="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co"
+        yes="Yes, Spanish is my first language"
+        no="No, Spanish is not my first language"
+        options=[dict(label=no,enabled=True,visible=True),dict(label=yes,enabled=True,visible=True)]
+        self.assertEqual(reviewed_radio_choice(url,"l1",yes,options),1)
+        self.assertEqual(reviewed_radio_choice(url,"l1",no,options),0)
+        self.assertIsNone(reviewed_radio_choice(url,"consent",yes,options))
+        self.assertIsNone(reviewed_radio_choice(url+"/other","l1",yes,options))
+        self.assertIsNone(reviewed_radio_choice(url,"l1","Yes",options))
+        self.assertIsNone(reviewed_radio_choice(url,"l1",yes,options+[options[1]]))
+        self.assertIsNone(reviewed_radio_choice(url,"l1",yes,[dict(label=yes,enabled=False,visible=True)]))
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

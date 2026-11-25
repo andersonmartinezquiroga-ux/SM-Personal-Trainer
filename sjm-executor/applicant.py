@@ -282,6 +282,20 @@ def navigate_public_page(page, url):
     checked_browser_location(page.url,url)
 
 
+def reviewed_radio_choice(url, name, answer, options):
+    """Resolve only a reviewed non-consent radio group, using exact labels.
+    Unknown groups and ambiguous or disabled choices require human review.
+    """
+    if url != "https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co" or name != "l1":
+        return None
+    approved={"Yes, Spanish is my first language","No, Spanish is not my first language"}
+    if answer not in approved or not isinstance(options,list):
+        return None
+    matches=[i for i,opt in enumerate(options) if opt.get("label")==answer
+             and opt.get("enabled") is True and opt.get("visible") is True]
+    return matches[0] if len(matches)==1 else None
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -539,6 +553,25 @@ def inspect(url, fields=None):
                     reasons[name]="visible_form_not_unique"
                     continue
                 sel=forms[0].locator(f'[name="{name}"]')
+                if sel.count()>0 and all((x.get_attribute("type") or "").lower()=="radio" for x in sel.all()):
+                    # Only a reviewed, non-consent question may be selected.
+                    # The DOM is offline; no account creation or external write.
+                    options=sel.all()
+                    metadata=[{"label":x.evaluate("""el=>Array.from(el.labels||[]).map(l=>l.innerText.trim()).join(' ')"""),
+                               "visible":x.is_visible(),"enabled":x.is_enabled()} for x in options]
+                    idx=reviewed_radio_choice(url,name,value,metadata)
+                    if idx is None:
+                        reasons[name]="radio_requires_review_or_unique_label"
+                        continue
+                    try:
+                        options[idx].check(timeout=2500)
+                        if options[idx].is_checked() and sum(x.is_checked() for x in options)==1:
+                            filled.append(name)
+                        else:
+                            reasons[name]="radio_readback_mismatch"
+                    except PlaywrightTimeoutError:
+                        reasons[name]="field_action_timeout"
+                    continue
                 if sel.count()!=1 or not sel.is_visible() or not sel.is_enabled():
                     reasons[name]="field_not_unique_visible_enabled"
                     continue
