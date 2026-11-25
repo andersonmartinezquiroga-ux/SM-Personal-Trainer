@@ -57,6 +57,18 @@ def prepare_workflow(url, requested_fields=None):
     unknown = public.get("unidentified_required_count")
     required_names = sorted(set(x["name"] for x in required if isinstance(x,dict) and isinstance(x.get("name"),str) and x["name"])) if isinstance(required,list) else []
     pending_required = [x for x in required_names if x not in filled]
+    # Only explicitly optional fields with complete public metadata may be
+    # deferred. Unknown field identities are not silently treated as optional.
+    metadata = public.get("fields")
+    known_optional = {
+        x["name"] for x in metadata
+        if isinstance(x,dict) and isinstance(x.get("name"),str)
+        and x.get("required") is False
+    } if isinstance(metadata,list) and isinstance(required,list) and unknown==0 else set()
+    optional_missing = [x for x in missing if x in known_optional and x not in required_names]
+    unresolved_missing = [x for x in missing if x not in optional_missing]
+    public["draft_verification"]["optional_missing_field_names"] = optional_missing
+    public["draft_verification"]["unresolved_missing_field_names"] = unresolved_missing
     public["full_form_readiness"] = {
         "required_field_names_missing":pending_required,
         "unidentified_required_count":unknown if isinstance(unknown,int) and unknown>=0 else None,
@@ -100,8 +112,9 @@ def prepare_workflow(url, requested_fields=None):
         "skip_blocked_source_and_continue" if stage == "source_access_blocked"
         else "owner_login_or_challenge" if stage in (
             "human_challenge_required", "interactive_form_or_login_required")
-        else "resolve_remaining_required_fields" if fields and (missing or pending_required or unknown != 0)
+        else "resolve_remaining_required_fields" if fields and (pending_required or unknown != 0 or unresolved_missing)
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
+        else "review_optional_fields_before_submission" if optional_missing
         else "review_form_and_authorize_submission"
     )
     public["external_submission"] = False
