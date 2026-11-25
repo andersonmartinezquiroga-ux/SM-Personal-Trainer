@@ -9,7 +9,7 @@ from form_adapter import classify_application_form
 ALLOWED={
  "jobs.lever.co": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/apply)?/?$"),
  "jobs.ashbyhq.com": re.compile(r"^/[A-Za-z0-9_-]+/[a-zA-Z0-9-]{25,}(?:/application)?/?$"),
- "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co|motion-performer-co)$"),
+ "freelancer.ypai.ai": re.compile(r"^/jobs/openings/(?:model-evaluator-co|data-annotator-co|text-annotator-co|pose-keypoint-annotator-co|motion-performer-co|conversation-video-spanish-co)$"),
  # Public, exact-case jobs only. No generic domain-wide browsing.
  # Generic public Workana listing adapter: GET only; Supabase still gates EXACT case URLs.
  # Never accepts /login, /account, /apply, querystrings or unsafe redirects.
@@ -480,7 +480,13 @@ def inspect(url, fields=None):
             required_cv_hint=result["required_cv"] if source=="jobs.lever.co" else False
         )
         if fields:
+            # Draft data stays in the local browser: no network activity after public inspection.
+            if result['challenge_detected'] or result['source_access_blocked']:
+                raise ValueError('Draft blocked by source or human challenge')
+            ctx.set_offline(True)
+            ctx.route('**/*', lambda route: route.abort())
             filled=[]
+            unverified=[]
             for name,value in fields.items():
                 if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,89}",name) or any(w in name.lower() for w in BLOCKED_TERMS):
                     raise ValueError("Unsafe field name")
@@ -491,7 +497,14 @@ def inspect(url, fields=None):
                 if sel.evaluate("(el) => el.tagName.toLowerCase()")=="select":
                     sel.select_option(label=value)
                 else: sel.fill(value)
-                filled.append(name)
+                observed=sel.input_value()
+                expected=sel.locator('option:checked').inner_text() if sel.evaluate('(el) => el.tagName.toLowerCase()')=='select' else observed
+                if expected==value:
+                    filled.append(name)
+                else:
+                    unverified.append(name)
+            result['draft_offline']=True
+            result['unverified_field_names']=unverified
             result["filled_field_names"]=filled
             result["no_user_values_returned"]=True
         if motion_role and not fields and result["application_form_visible"] and not result["challenge_detected"]:
