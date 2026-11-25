@@ -257,6 +257,31 @@ def checked_browser_location(final_url, requested_url):
         checked_url(canonical)
         return canonical
 
+def navigate_public_page(page, url):
+    """Bounded read-only navigation; tolerate slow nonessential resources.
+    Never retry a submission or interact with a challenge.
+    """
+    checked_url(url)
+    try:
+        response=page.goto(url,wait_until="commit",timeout=18000)
+    except PlaywrightTimeoutError:
+        # Only the approved public GET may be retried, at most once.
+        if page.url not in ("about:blank",url):
+            checked_browser_location(page.url,url)
+        response=page.goto(url,wait_until="commit",timeout=12000)
+    checked_browser_location(page.url,url)
+    if response is not None and response.status>=400:
+        raise ValueError("Public source HTTP status "+str(response.status))
+    # Inspect DOM once it has meaningful content, without waiting for all scripts.
+    page.locator("body").wait_for(state="attached",timeout=8000)
+    try:
+        page.locator("h1,h2,form,input").first.wait_for(state="attached",timeout=5000)
+    except PlaywrightTimeoutError:
+        # The existing inspection must still validate title, challenge and fields.
+        pass
+    checked_browser_location(page.url,url)
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -337,7 +362,7 @@ def inspect(url, fields=None):
                 blocked_resources.append(metadata)
             return route.abort()
         ctx.route("**/*",route_only_known)
-        page.goto(url,wait_until="domcontentloaded",timeout=25000)
+        navigate_public_page(page,url)
         page.wait_for_timeout(1200)
         checked_browser_location(page.url, url)  # Allow only safe same-path Workana history metadata
         # Job boards often put the full application on a separate official URL.
@@ -348,7 +373,7 @@ def inspect(url, fields=None):
             if not urlparse(page.url).path.rstrip("/").endswith(apply_suffix):
                 application_url=url.rstrip("/")+apply_suffix
                 checked_url(application_url)
-                page.goto(application_url,wait_until="domcontentloaded",timeout=25000)
+                navigate_public_page(page,application_url)
                 page.wait_for_timeout(1400)
                 checked_browser_location(page.url, application_url)  # Keep apply redirects strictly scoped
                 result["followed_application_page"]=True
