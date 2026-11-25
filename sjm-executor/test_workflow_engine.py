@@ -140,6 +140,17 @@ class LocalWizardTests(unittest.TestCase):
                 ctx.close()
                 browser.close()
 
+class ConditionalDraftTests(unittest.TestCase):
+    def test_reviewed_order_without_inventing_fields(self):
+        from applicant import ordered_draft_fields
+        url="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co"
+        fields={"specialty":"Example","field_of_study":"Example","education_level":"Reviewed choice","apply-profession":"Example role"}
+        self.assertEqual([k for k,v in ordered_draft_fields(url,fields)],
+                         ["education_level","apply-profession","specialty","field_of_study"])
+        self.assertEqual(dict(ordered_draft_fields(url,fields)),fields)
+        self.assertEqual(ordered_draft_fields(url,{"specialty":"Example"}),[("specialty","Example")])
+        self.assertEqual(ordered_draft_fields("https://example.invalid",fields),list(fields.items()))
+
 class SubmissionOutcomeTests(unittest.TestCase):
     def test_confirmed_requires_browser_post_and_receipt(self):
         from api_v2 import normalize_role_result

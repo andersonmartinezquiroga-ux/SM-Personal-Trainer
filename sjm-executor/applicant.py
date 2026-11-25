@@ -365,6 +365,15 @@ def advance_isolated_form_step(page, current_field, next_field, button_label="Ne
     return {"verified":ok,"action":"advanced" if ok else "transition_unverified_do_not_repeat","external_submission":False}
 
 
+def ordered_draft_fields(url, fields):
+    """Apply only known prerequisites first; never invent missing answers."""
+    if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co":
+        first=("name","email","country","region","city","l1","english_level",
+               "education_level","apply-profession","years_experience")
+        return [(k,fields[k]) for k in first if k in fields]+[(k,v) for k,v in fields.items() if k not in first]
+    return list(fields.items())
+
+
 def inspect(url, fields=None):
     """Return public form metadata, or fill a non-submitted draft. Never sends an external application."""
     url=checked_url(url)
@@ -570,6 +579,13 @@ def inspect(url, fields=None):
             any(x["type"]=="file" for x in result["required_fields"]) or
             (source=="jobs.lever.co" and result["required_cv"])
         )
+        # Public choices only, never the selected value or applicant inputs.
+        result["reviewed_public_choices"]={}
+        if url=="https://freelancer.ypai.ai/jobs/openings/conversation-video-spanish-co":
+            for key in ("education_level","english_level","years_experience"):
+                select=page.locator(f'form select[name="{key}"]')
+                if select.count()==1:
+                    result["reviewed_public_choices"][key]=select.evaluate("""el=>Array.from(el.options).filter(o=>!o.disabled&&o.value).slice(0,40).map(o=>o.textContent.trim().slice(0,100))""")
         result["document_requirements"]=[]
         for node in page.locator('input[type="file"]').all()[:15]:
             result["document_requirements"].append({
@@ -621,7 +637,7 @@ def inspect(url, fields=None):
             # Restrict writes to the single visible application form. Never
             # select an arbitrary same-named field outside that form.
             forms=[f for f in page.locator("form").all() if f.is_visible()]
-            for name,value in fields.items():
+            for name,value in ordered_draft_fields(url,fields):
                 normalized=re.sub(r"[^a-z]","",name.lower())
                 if (not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]{0,89}",name)
                     or any(re.sub(r"[^a-z]","",w) in normalized for w in BLOCKED_TERMS)
@@ -650,8 +666,13 @@ def inspect(url, fields=None):
                     except PlaywrightTimeoutError:
                         reasons[name]="field_action_timeout"
                     continue
-                if sel.count()!=1 or not sel.is_visible() or not sel.is_enabled():
-                    reasons[name]="field_not_unique_visible_enabled"
+                if sel.count()!=1:
+                    reasons[name]="field_missing_or_ambiguous"
+                    continue
+                if not sel.is_visible() or not sel.is_enabled():
+                    # A conditional field is not a failed write and must not be
+                    # forced visible. Report the real state and possible prerequisites.
+                    reasons[name]="field_hidden_or_disabled_requires_prior_answer"
                     continue
                 typ=(sel.get_attribute("type") or "").lower()
                 if typ in ("checkbox","radio","file","password","hidden","submit","button","reset"):
@@ -660,6 +681,10 @@ def inspect(url, fields=None):
                 try:
                     is_select=sel.evaluate("(el) => el.tagName.toLowerCase()")=="select"
                     if is_select:
+                        labels=sel.evaluate("""el=>Array.from(el.options).filter(o=>!o.disabled&&o.value).map(o=>o.textContent.trim())""")
+                        if labels.count(value)!=1:
+                            reasons[name]="select_label_missing_or_ambiguous"
+                            continue
                         sel.select_option(label=value,timeout=2500)
                         observed=sel.locator('option:checked').inner_text(timeout=2500)
                     else:
