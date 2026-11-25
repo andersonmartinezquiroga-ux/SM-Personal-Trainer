@@ -494,6 +494,52 @@ def inspect(url, fields=None):
                 filled.append(name)
             result["filled_field_names"]=filled
             result["no_user_values_returned"]=True
+        if motion_role and not fields and result["application_form_visible"] and not result["challenge_detected"]:
+            # Strictly local diagnostic. All requests are aborted and Chromium is
+            # offline BEFORE any synthetic value or form interaction. The result
+            # contains request method/path only, never values, cookies or bodies.
+            probe={"offline":False,"clicked":False,"requests":[],"external_submission":False}
+            def abort_and_record_probe(route):
+                req=route.request
+                try:
+                    parsed=urlparse(req.url)
+                    if req.method in ("POST","PUT","PATCH") and parsed.hostname=="freelancer.ypai.ai" and not parsed.username and not parsed.password:
+                        if len(probe["requests"])<8:
+                            probe["requests"].append({"method":req.method,"path":parsed.path[:150]})
+                finally:
+                    route.abort()
+            try:
+                ctx.set_offline(True)
+                ctx.route("**/*",abort_and_record_probe)
+                probe["offline"]=True
+                form=page.locator("form")
+                if form.count()!=1:
+                    raise ValueError("unexpected_form")
+                form=form.first
+                form.locator('[name="name"]').fill("Offline Test")
+                form.locator('[name="email"]').fill("offline-test@example.invalid")
+                country=form.locator('select[name="country"]')
+                if country.count()!=1:
+                    raise ValueError("unexpected_country")
+                try:
+                    country.select_option(label="Colombia",timeout=2000)
+                except Exception:
+                    country.select_option(value="CO",timeout=2000)
+                consent=form.locator('input[type="checkbox"][name="consent"]')
+                optional=form.locator('input[type="checkbox"][name="partner_learn_consent"]')
+                if consent.count()!=1 or (optional.count() and optional.first.is_checked()):
+                    raise ValueError("unexpected_consent")
+                consent.check(timeout=2000)
+                invalid=form.evaluate("""el=>Array.from(el.querySelectorAll('input,select,textarea')).filter(x=>!x.checkValidity()).map(x=>x.name||x.id)""")
+                probe["invalid_field_names"]=[str(x)[:80] for x in invalid[:10]]
+                buttons=form.locator('button[type="submit"],input[type="submit"]')
+                if not invalid and buttons.count()==1 and buttons.first.is_visible() and buttons.first.is_enabled():
+                    probe["clicked"]=True
+                    buttons.first.click(timeout=3000,no_wait_after=True)
+                    page.wait_for_timeout(1500)
+            except Exception as exc:
+                probe["diagnostic_error"]=type(exc).__name__
+            result["motion_offline_diagnostic"]=probe
         ctx.close()
         browser.close()
     return result
