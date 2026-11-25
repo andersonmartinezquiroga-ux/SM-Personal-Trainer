@@ -72,6 +72,18 @@ def clean_person(name, email, country, privacy_consent, contributor_agreement):
         raise ValueError("consent_or_contributor_agreement_not_approved")
     return name.strip(), email.strip()
 
+def clean_motion_applicant(name, email, country, privacy_consent, contributor_agreement):
+    # This case authorizes only application processing, not future contributor terms.
+    if privacy_consent is not True or contributor_agreement is not False:
+        raise ValueError("motion_application_only_consent_required")
+    if not isinstance(name,str) or not (3 <= len(name.strip()) <= MAX_NAME):
+        raise ValueError("full_name_invalid")
+    if not isinstance(email,str) or len(email)>160 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[A-Za-z]{2,}",email):
+        raise ValueError("applicant_email_invalid")
+    if country!="Colombia":
+        raise ValueError("country_not_approved")
+    return name.strip(),email.strip()
+
 def validate_role_request(role_slug, case_key):
     cfg = ROLE_CONFIG.get(role_slug)
     if not cfg:
@@ -109,7 +121,8 @@ def visible_role_receipt(page, opening):
 def apply_ypai_role(role_slug, case_key, name, email, country,
                     privacy_consent, contributor_agreement):
     cfg = validate_role_request(role_slug, case_key)
-    name, email = clean_person(
+    validator = clean_motion_applicant if role_slug == "motion-performer-co" else clean_person
+    name, email = validator(
         name, email, country, privacy_consent, contributor_agreement
     )
     target = role_url(role_slug)
@@ -122,7 +135,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         "country": "Colombia",
         "personal_data_fields": ["name", "email", "country"],
         "consent_to_processing": True,
-        "contributor_terms_approved": True,
+        "contributor_terms_approved": contributor_agreement is True,
         "cv_uploaded": False,
         "phone_provided": False,
         "voice_or_images_uploaded": False,
