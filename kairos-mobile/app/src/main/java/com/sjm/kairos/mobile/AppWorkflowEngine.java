@@ -95,9 +95,14 @@ final class AppWorkflowEngine {
             return;
         }
         try{
-            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            svc.startActivity(launch);
-            h.postDelayed(()->worker.executeStep(0),1100L);
+            // Do not reset a visible app or disturb an existing screen.
+            if(worker.foreground()!=null){
+                h.postDelayed(()->worker.executeStep(0),400L);
+            }else{
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                svc.startActivity(launch);
+                h.postDelayed(()->worker.executeStep(0),1100L);
+            }
         }catch(RuntimeException e){cb.onDone(false,"WORKFLOW_LAUNCH_DENIED");}
     }
 
@@ -140,6 +145,10 @@ final class AppWorkflowEngine {
             finish(false,"WORKFLOW_OWNER_PAUSED");
             return;
         }
+        if(isCommunicationActive()){
+            finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");
+            return;
+        }
         AccessibilityNodeInfo root=foreground();
         if(root!=null){
             AccessibilityNodeInfo video=findMatchingVideo(root,request);
@@ -172,6 +181,10 @@ final class AppWorkflowEngine {
         if(finished)return;
         if(CommandReceiptStore.isPaused(service)){
             finish(false,"WORKFLOW_OWNER_PAUSED");
+            return;
+        }
+        if(isCommunicationActive()){
+            finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");
             return;
         }
         AccessibilityNodeInfo root=foreground();
@@ -294,6 +307,10 @@ final class AppWorkflowEngine {
             finish(false,"WORKFLOW_OWNER_PAUSED");
             return;
         }
+        if(isCommunicationActive()){
+            finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");
+            return;
+        }
         if(foreground()!=null){
             finish(true,"YOUTUBE_VIDEO_LINK_OPENED_FOREGROUND_CONFIRMED_PLAYBACK_UNVERIFIED");
             return;
@@ -382,6 +399,12 @@ final class AppWorkflowEngine {
                             arguments.putCharSequence(
                               AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,value);
                             accepted=node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,arguments);
+                            if(accepted){
+                                // Acknowledgement alone is not proof that the field contains the text.
+                                // Observe locally, never repeat an already accepted write.
+                                handler.postDelayed(()->verifyWrittenText(index,selector,value,0),400L);
+                                return;
+                            }
                         }else if("ime_search".equals(action) &&
                                  android.os.Build.VERSION.SDK_INT>=30){
                             // Search through the focused editable field, not a brittle
@@ -410,14 +433,34 @@ final class AppWorkflowEngine {
         actionRetryStep=-1;
         actionRetries=0;
         // Do not claim the business task succeeded; each action is acknowledged separately.
-        if(index+1>=steps.length()){
-            handler.postDelayed(()->{
-                if(foreground()!=null)
-                    finish(true,"WORKFLOW_ACTIONS_ACCEPTED_FOREGROUND_CONFIRMED_"+steps.length());
-                else finish(false,"WORKFLOW_FINAL_FOREGROUND_UNVERIFIED");
-            },delay);
+        // Reuse the guarded foreground/voice/pause checks even at the final step.
+        handler.postDelayed(()->executeStep(index+1),delay);
+    }
+
+    private void verifyWrittenText(int index,String selector,String expected,int attempt){
+        if(finished)return;
+        if(CommandReceiptStore.isPaused(service)){
+            finish(false,"WORKFLOW_OWNER_PAUSED");return;
+        }
+        if(isCommunicationActive()){
+            finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");return;
+        }
+        AccessibilityNodeInfo root=foreground();
+        AccessibilityNodeInfo node=root==null?null:findOne(root,selector,false);
+        // text: selectors can cease matching after the write. Fail closed instead
+        // of choosing another editable field or disclosing text to the backend.
+        if(node!=null && node.isVisibleToUser() && node.isEnabled() &&
+           node.isEditable() && !node.isPassword() &&
+           target.equals(String.valueOf(node.getPackageName())) &&
+           expected.contentEquals(node.getText()==null?"":node.getText())){
+            actionRetryStep=-1; actionRetries=0; foregroundRetries=0;
+            handler.postDelayed(()->executeStep(index+1),350L);
+            return;
+        }
+        if(attempt<5){
+            handler.postDelayed(()->verifyWrittenText(index,selector,expected,attempt+1),400L);
         }else{
-            handler.postDelayed(()->executeStep(index+1),delay);
+            finish(false,"WORKFLOW_WRITE_ACCEPTED_READBACK_UNVERIFIED_STEP_"+index);
         }
     }
 
