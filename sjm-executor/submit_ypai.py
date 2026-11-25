@@ -8,6 +8,9 @@ import re
 import os
 from datetime import datetime, timezone
 from urllib.parse import urlparse
+import json
+import uuid
+from urllib.request import Request, build_opener, HTTPRedirectHandler
 from playwright.sync_api import sync_playwright, TimeoutError as BrowserTimeout
 
 ROLE_CONFIG = {
@@ -115,6 +118,33 @@ def verified_submit_endpoint(role_slug):
             or not re.fullmatch(r"/[A-Za-z0-9_/-]+", u.path)):
         raise ValueError("verified_submit_endpoint_required")
     return endpoint
+
+class ClaimNoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+def reserve_motion_once():
+    """Consume the unique database reservation before the only possible click.
+    A lost response is terminal for automatic retry; the DB might have reserved it."""
+    token=os.environ.get("SUBMISSION_TOKEN","")
+    if len(token)<25 or len(token)>512:
+        raise ValueError("submission_credential_unavailable")
+    req=Request(
+        "https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_c360_motion_claim_bridge_v1",
+        data=b"{}",method="POST",
+        headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"})
+    try:
+        with build_opener(ClaimNoRedirect()).open(req,timeout=12) as response:
+            raw=response.read(4097)
+            if response.status!=200 or len(raw)>4096:
+                raise ValueError("claim_outcome_uncertain")
+            data=json.loads(raw)
+        if not isinstance(data,dict) or data.get("reserved") is not True or data.get("form_submitted") is not False:
+            raise ValueError("claim_denied")
+        return str(uuid.UUID(data["claim_id"]))
+    except Exception:
+        # Never retry and never include credentials, response body or personal data.
+        raise ValueError("claim_denied_or_uncertain_no_retry") from None
 
 def visible_role_receipt(page, opening):
     heading = page.get_by_text("Application received", exact=True)
@@ -337,6 +367,14 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
             # A pre-existing visible receipt is not a new submission.
             if visible_role_receipt(page, cfg["opening"]):
                 out["status"] = "blocked_preexisting_visible_receipt"
+                return out
+            # No local flag or caller-supplied claim is enough. The database
+            # checks the exact authenticated preflight and reserves this case once.
+            try:
+                out["submission_claim_id"]=reserve_motion_once()
+            except ValueError:
+                out["status"]="blocked_durable_claim_denied_or_uncertain"
+                out["automatic_retry_allowed"]=False
                 return out
             # Exactly one click. Never retry automatically after ambiguity.
             out["attempted_submit"] = True
