@@ -156,11 +156,11 @@ def motion_applicant_digest(name, email):
     if not isinstance(name, str) or not isinstance(email, str):
         raise ValueError("applicant_identity_missing")
     normalized_name = re.sub(
-        r"\\s+", " ", unicodedata.normalize("NFC", name.strip())
+        r"\s+", " ", unicodedata.normalize("NFC", name.strip())
     ).lower()
     normalized_email = email.strip().lower()
     return hashlib.sha256(
-        (normalized_name + "\\x00" + normalized_email).encode("utf-8")
+        (normalized_name + "\x00" + normalized_email).encode("utf-8")
     ).hexdigest()
 
 
