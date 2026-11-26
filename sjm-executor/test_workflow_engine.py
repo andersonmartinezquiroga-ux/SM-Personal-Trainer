@@ -30,7 +30,10 @@ class WorkflowTests(unittest.TestCase):
         with patch("workflow_engine.inspect",
                    return_value=source(consent_or_captcha_present=False,
                                        adapter_summary={"required_approval_scopes":[]},
-                                       filled_field_names=["name"], draft_offline=True)) as browser:
+                                       filled_field_names=["name"], draft_offline=True,
+                                       required_fields=[{"name":"name"}],
+                                       unidentified_required_count=0,
+                                       fields=[{"name":"name","required":True}])) as browser:
             r=prepare_workflow(WELLONIS,{"name":"SJM"})
         browser.assert_called_once_with(WELLONIS,fields={"name":"SJM"})
         self.assertEqual(r["workflow_steps"][3]["field_names"],["name"])
@@ -366,6 +369,56 @@ class MotionRoleTests(unittest.TestCase):
             validate_role_request("motion-performer-co","another-case")
         with self.assertRaises(ValueError):
             checked_url(url+"/submit")
+
+    def test_readonly_gate_blocks_before_chromium_and_personal_data(self):
+        from submit_ypai import apply_ypai_role
+        key="radar:commercial:ingresos-ypai-motion-performer-co-20261124"
+        with patch.dict("os.environ",{
+            "YPAI_MOTION_SUBMIT_URL":"https://freelancer.ypai.ai/api/jobs/apply",
+            "SUBMISSION_TOKEN":""}), patch("submit_ypai.sync_playwright") as chromium:
+            result=apply_ypai_role("motion-performer-co",key,"Example Applicant",
+                                    "example@example.invalid","Colombia",True,False)
+            chromium.assert_not_called()
+        self.assertEqual(result["status"],"blocked_authenticated_preflight_required")
+        self.assertFalse(result["attempted_submit"])
+        self.assertFalse(result["browser_opened"])
+        self.assertFalse(result["automatic_retry_allowed"])
+        self.assertNotIn("example@example.invalid",str(result))
+
+    def test_readonly_gate_rejects_missing_auth_and_accepts_only_exact_status(self):
+        from submit_ypai import motion_readiness_before_browser
+        from unittest.mock import patch
+        with patch.dict("os.environ",{"SUBMISSION_TOKEN":"fictional-test-credential-000000"}):
+            with patch("submit_ypai.build_opener") as opener:
+                response=opener.return_value.open.return_value.__enter__.return_value
+                response.status=200
+                response.read.return_value=json.dumps({
+                    "read_only":True,"external_submission":False,
+                    "claim_reserved":False,
+                    "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
+                    "safe_to_submit":False,
+                    "authenticated_final_form_preflight_verified":False
+                }).encode()
+                with self.assertRaisesRegex(ValueError,"authenticated_final_form_preflight_required"):
+                    motion_readiness_before_browser()
+                request=opener.return_value.open.call_args.args[0]
+                self.assertEqual(request.data,b"{}")
+                self.assertEqual(request.get_method(),"POST")
+            with patch("submit_ypai.build_opener") as opener:
+                response=opener.return_value.open.return_value.__enter__.return_value
+                response.status=200
+                response.read.return_value=json.dumps({
+                    "read_only":True,"external_submission":False,
+                    "claim_reserved":False,
+                    "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
+                    "safe_to_submit":True,
+                    "authenticated_final_form_preflight_verified":True
+                }).encode()
+                self.assertTrue(motion_readiness_before_browser())
+            with patch("submit_ypai.build_opener") as opener:
+                opener.return_value.open.side_effect=TimeoutError()
+                with self.assertRaisesRegex(ValueError,"readiness_unavailable_no_browser_no_retry"):
+                    motion_readiness_before_browser()
 
     def test_motion_consent_is_application_only(self):
         from submit_ypai import clean_motion_applicant
