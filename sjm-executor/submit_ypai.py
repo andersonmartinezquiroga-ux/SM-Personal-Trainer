@@ -146,6 +146,42 @@ def reserve_motion_once():
         # Never retry and never include credentials, response body or personal data.
         raise ValueError("claim_denied_or_uncertain_no_retry") from None
 
+def motion_readiness_before_browser():
+    """Read-only authenticated Supabase preflight, BEFORE browser or applicant data.
+
+    This separate endpoint cannot reserve a claim and accepts only {}.
+    Network ambiguity fails closed; no retry and no personal fields sent.
+    It does NOT create an authenticated YPAI browser session.
+    """
+    token = os.environ.get("SUBMISSION_TOKEN", "")
+    if not 25 <= len(token) <= 512:
+        raise ValueError("submission_credential_unavailable")
+    req = Request(
+        "https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_c360_motion_readiness_bridge_v1",
+        data=b"{}", method="POST",
+        headers={"Authorization": "Bearer " + token,
+                 "Content-Type": "application/json"})
+    try:
+        with build_opener(ClaimNoRedirect()).open(req, timeout=11) as response:
+            raw = response.read(4097)
+            if response.status != 200 or len(raw) > 4096:
+                raise ValueError("readiness_response_invalid")
+            result = json.loads(raw)
+    except Exception:
+        raise ValueError("readiness_unavailable_no_browser_no_retry") from None
+    if (not isinstance(result, dict)
+            or result.get("read_only") is not True
+            or result.get("external_submission") is not False
+            or result.get("claim_reserved") is not False
+            or result.get("case_key") !=
+                "radar:commercial:ingresos-ypai-motion-performer-co-20261124"):
+        raise ValueError("readiness_response_invalid")
+    if (result.get("safe_to_submit") is not True
+            or result.get("authenticated_final_form_preflight_verified") is not True):
+        raise ValueError("authenticated_final_form_preflight_required")
+    return True
+
+
 def visible_role_receipt(page, opening):
     heading = page.get_by_text("Application received", exact=True)
     message = page.get_by_text("Thank you for applying for " + opening + ".", exact=False)
@@ -178,6 +214,18 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         "status": "preparing",
         "checked_utc": datetime.now(timezone.utc).isoformat(),
     }
+    if role_slug == "motion-performer-co":
+        # An approved application/privacy consent is NOT an authenticated session.
+        # Reuse the live DB gate, but never pretend a public form is a reviewed one.
+        try:
+            motion_readiness_before_browser()
+        except ValueError as exc:
+            out["status"] = "blocked_authenticated_preflight_required"
+            out["blocker"] = str(exc)
+            out["automatic_retry_allowed"] = False
+            out["browser_opened"] = False
+            return out
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
         ctx = browser.new_context(
