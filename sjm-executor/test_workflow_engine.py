@@ -430,7 +430,7 @@ class MotionRoleTests(unittest.TestCase):
         from submit_ypai import motion_applicant_digest
         import hashlib
         name="Samuel Jesús Martínez Quiroga"
-        expected=hashlib.sha256((name.lower()+"\\x00"+"example@domain.test").encode("utf-8")).hexdigest()
+        expected=hashlib.sha256((name.lower()+"\x00"+"example@domain.test").encode("utf-8")).hexdigest()
         self.assertEqual(motion_applicant_digest(name,"EXAMPLE@DOMAIN.TEST"),expected)
         self.assertEqual(motion_applicant_digest("  Samuel  Jesús Martínez Quiroga  ","example@domain.test"),expected)
 
