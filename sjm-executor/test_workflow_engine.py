@@ -1,5 +1,6 @@
 """Offline regression suite: no external POST, no false receipts."""
 import unittest
+import json
 from unittest.mock import patch
 from workflow_engine import prepare_workflow, _safe_fields
 
