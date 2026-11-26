@@ -400,13 +400,19 @@ final class AppWorkflowEngine {
                     // Chrome may expose both browser chrome and nested web content.
                     // Prefer only a unique visible WebView supporting this direction.
                     // No coordinate gestures, cross-package traversal or ambiguous clicks.
-                    AccessibilityNodeInfo web=findUniqueChromeScrollableWebView(root,direction);
-                    if(web!=null)targetNode=web;
+                    targetNode=findUniqueChromeScrollableWebView(root,direction);
                 }
                 if(targetNode!=null && targetNode.isVisibleToUser() &&
                    targetNode.isEnabled() && !targetNode.isPassword() &&
                    target.equals(String.valueOf(targetNode.getPackageName()))){
                     accepted=targetNode.performAction(direction);
+                    if(!accepted && "com.android.chrome".equals(target) && selector.isEmpty()){
+                        int verticalAction=direction==AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                            ?AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.getId()
+                            :AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.getId();
+                        if(hasScrollAction(targetNode,verticalAction))
+                            accepted=targetNode.performAction(verticalAction);
+                    }
                 }
             }else if("tap_video".equals(action) && "com.google.android.youtube".equals(target)){
                 AccessibilityNodeInfo video=findMatchingVideo(root,value);
@@ -487,7 +493,10 @@ final class AppWorkflowEngine {
                         safeClickableAncestor(exact)==null && alternate==null)
                     boundedReason="TARGET_NOT_CLICKABLE";
             }else if("scroll_down".equals(action)||"scroll_up".equals(action)){
-                if(findOne(root,selector,true)==null)
+                if(("com.android.chrome".equals(target) && selector.isEmpty()
+                    ?findUniqueChromeScrollableWebView(root,"scroll_down".equals(action)
+                        ?AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)
+                    :findOne(root,selector,true))==null)
                     boundedReason="NO_VISIBLE_SCROLLABLE_CONTAINER";
             }
             } catch(RuntimeException diagnosticFailure){
@@ -612,28 +621,44 @@ final class AppWorkflowEngine {
      * Bounded, local Chrome scroll disambiguation. If two eligible WebViews
      * are present, fail closed instead of guessing which page to move.
      */
+    private static boolean hasScrollAction(AccessibilityNodeInfo node,int action){
+        for(AccessibilityNodeInfo.AccessibilityAction item:node.getActionList()){
+            if(item.getId()==action)return true;
+        }
+        return false;
+    }
+
     private AccessibilityNodeInfo findUniqueChromeScrollableWebView(
         AccessibilityNodeInfo root,int direction){
         if(root==null || !"com.android.chrome".equals(target))return null;
+        final int verticalAction=direction==AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+            ?AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.getId()
+            :AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.getId();
         ArrayDeque<AccessibilityNodeInfo> pending=new ArrayDeque<>();
         pending.add(root);
-        AccessibilityNodeInfo found=null;
-        int inspected=0;
+        AccessibilityNodeInfo web=null,other=null;
+        int webCount=0,otherCount=0,inspected=0;
         while(!pending.isEmpty() && inspected++<350){
             AccessibilityNodeInfo node=pending.removeFirst();
             if(!target.equals(String.valueOf(node.getPackageName())))continue;
+            // Chrome virtual content may advertise an action without the scrollable flag.
             if(node.isVisibleToUser() && node.isEnabled() && !node.isPassword() &&
-               "android.webkit.WebView".equals(String.valueOf(node.getClassName())) &&
-               node.isScrollable() && (node.getActions() & direction)!=0){
-                if(found!=null)return null;
-                found=node;
+               (hasScrollAction(node,direction) || hasScrollAction(node,verticalAction))){
+                if("android.webkit.WebView".equals(String.valueOf(node.getClassName()))){
+                    web=node;webCount++;
+                }else{
+                    other=node;otherCount++;
+                }
             }
             for(int i=0;i<node.getChildCount();i++){
                 AccessibilityNodeInfo child=node.getChild(i);
                 if(child!=null)pending.addLast(child);
             }
         }
-        return pending.isEmpty()?found:null;
+        // Never infer a target from a partially inspected tree or ambiguous nodes.
+        if(!pending.isEmpty() || webCount>1)return null;
+        if(webCount==1)return web;
+        return otherCount==1?other:null;
     }
 
     private static boolean equalsTarget(String prefix,String selector, AccessibilityNodeInfo node){

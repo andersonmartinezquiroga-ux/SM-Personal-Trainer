@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.29' and int(code)>=32, (version,code)
+          assert version=='0.3.30' and int(code)>=33, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -78,9 +78,9 @@ jobs:
           assert 'findChromeOmniboxAlternative' in engine and 'id:com.android.chrome:id/search_box_text' in engine
           assert 'NO_VISIBLE_SCROLLABLE_CONTAINER' in engine and 'SELECTOR_NOT_FOUND' in engine
           assert 'handler.postDelayed(()->executeStep(index+1),delay)' in engine
-          assert 'findUniqueChromeScrollableWebView' in engine and '(node.getActions() & direction)!=0' in engine
-          assert 'return pending.isEmpty()?found:null;' in engine
-          print('CHROME_SCROLL_0329 source guards PASS')
+          assert 'findUniqueChromeScrollableWebView' in engine and 'hasScrollAction(node,verticalAction)' in engine
+          assert 'if(!pending.isEmpty() || webCount>1)return null;' in engine
+          print('CHROME_SCROLL_0330 source guards PASS')
           print('NAVIGATION_READBACK_0327 source guards PASS')
           print('VOICE_SERVER_STATUS_0326 4/4 source guards PASS')
           print('VOICE_SAFE_POLL 3/3 policy markers PASS')
@@ -143,7 +143,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0329
+          name: KairosMobile-release-APK-V0330
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -154,12 +154,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.29-supabase'
+          tag='kairos-mobile-v0.3.30-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.29-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.30-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.29-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.29 · desplazamiento seguro en Chrome'               --notes 'Versión 0.3.29 (versionCode 32): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. No amplía permisos. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.30-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.30 · selección de desplazamiento accesible en Chrome'               --notes 'Versión 0.3.30 (versionCode 33): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. No amplía permisos. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
           fi
