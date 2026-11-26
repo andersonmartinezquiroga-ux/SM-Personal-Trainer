@@ -64,7 +64,8 @@ def classify_application_form(url, fields, *, challenge=False, source_blocked=Fa
     )
     legal_consent = any((typ == 'checkbox' or req) and LEGAL.search(name + ' ' + label)
                         for typ, name, label, req in inspected)
-    unknown_required_checkbox = any(typ == 'checkbox' and req for typ, _, _, req in inspected)
+    unknown_required_checkbox = any(typ in ('checkbox', 'radio') and req for typ, _, _, req in inspected)
+    incomplete_metadata = len(fields) > 45 or any(not isinstance(field, dict) for field in fields)
     legal_review = bool(legal_consent or unknown_required_checkbox)
     if source_blocked:
         state = 'source_access_blocked'
@@ -72,7 +73,7 @@ def classify_application_form(url, fields, *, challenge=False, source_blocked=Fa
         state = 'requires_human_challenge'
     elif adapter == 'unsupported':
         state = 'unsupported_source'
-    elif not form_visible or not inspected:
+    elif incomplete_metadata or not form_visible or not inspected:
         state = 'needs_interactive_form_inspection'
     elif required_phone or required_cv or legal_review:
         state = 'needs_specific_authorization'
