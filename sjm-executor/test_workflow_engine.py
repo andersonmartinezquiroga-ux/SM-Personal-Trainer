@@ -380,7 +380,7 @@ class MotionRoleTests(unittest.TestCase):
             result=apply_ypai_role("motion-performer-co",key,"Example Applicant",
                                     "example@example.invalid","Colombia",True,False)
             chromium.assert_not_called()
-        self.assertEqual(result["status"],"blocked_authenticated_preflight_required")
+        self.assertEqual(result["status"],"blocked_owner_final_form_review_required")
         self.assertFalse(result["attempted_submit"])
         self.assertFalse(result["browser_opened"])
         self.assertFalse(result["automatic_retry_allowed"])
@@ -398,9 +398,9 @@ class MotionRoleTests(unittest.TestCase):
                     "claim_reserved":False,
                     "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
                     "safe_to_submit":False,
-                    "authenticated_final_form_preflight_verified":False
+                    "final_form_preflight_verified":False
                 }).encode()
-                with self.assertRaisesRegex(ValueError,"authenticated_final_form_preflight_required"):
+                with self.assertRaisesRegex(ValueError,"owner_reviewed_exact_final_form_preflight_required"):
                     motion_readiness_before_browser()
                 request=opener.return_value.open.call_args.args[0]
                 self.assertEqual(request.data,b"{}")
@@ -413,7 +413,7 @@ class MotionRoleTests(unittest.TestCase):
                     "claim_reserved":False,
                     "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
                     "safe_to_submit":True,
-                    "authenticated_final_form_preflight_verified":True
+                    "final_form_preflight_verified":True
                 }).encode()
                 self.assertTrue(motion_readiness_before_browser())
             with patch("submit_ypai.build_opener") as opener:
