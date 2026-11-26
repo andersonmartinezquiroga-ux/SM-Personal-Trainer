@@ -428,7 +428,14 @@ public class KairosAccessibility extends AccessibilityService {
                 "POLL_OFFERED_"+command.optString("type","unknown")+"_"+commandId.substring(0,8));
             // During voice, external app/url actions remain deferred. An approved
             // own-KAIRÓS local test can run; it may foreground only our APK.
-            if(hasActiveCommunication() && !VoiceActionPolicy.allowedDuringCommunication(command.optString("type",""))){
+            AudioManager voiceAudio=getSystemService(AudioManager.class);
+            boolean concurrentChrome=voiceAudio!=null &&
+                voiceAudio.getMode()==AudioManager.MODE_IN_COMMUNICATION &&
+                "app_workflow".equals(command.optString("type","")) &&
+                AppWorkflowEngine.canRunDuringInternetVoice(command.optJSONObject("payload"));
+            if(hasActiveCommunication() &&
+                !VoiceActionPolicy.allowedDuringCommunication(command.optString("type","")) &&
+                !concurrentChrome){
                 CommandReceiptStore.markBridge(this,"VOICE_BUSY_DEFERRED_"+commandId.substring(0,8));
                 CommandReceiptStore.mark(this,"Acción de pantalla pospuesta hasta terminar voz");
                 return;
