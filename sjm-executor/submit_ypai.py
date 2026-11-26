@@ -6,6 +6,8 @@ has independently confirmed the case is explicitly approved.
 """
 import re
 import os
+import hashlib
+import unicodedata
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 import json
@@ -146,11 +148,27 @@ def reserve_motion_once():
         # Never retry and never include credentials, response body or personal data.
         raise ValueError("claim_denied_or_uncertain_no_retry") from None
 
-def motion_readiness_before_browser():
+def motion_applicant_digest(name, email):
+    """One-way identity fingerprint shared with the human review portal.
+
+    Raw name and email are NEVER sent to the readiness endpoint.
+    """
+    if not isinstance(name, str) or not isinstance(email, str):
+        raise ValueError("applicant_identity_missing")
+    normalized_name = re.sub(
+        r"\\s+", " ", unicodedata.normalize("NFC", name.strip())
+    ).lower()
+    normalized_email = email.strip().lower()
+    return hashlib.sha256(
+        (normalized_name + "\\x00" + normalized_email).encode("utf-8")
+    ).hexdigest()
+
+
+def motion_readiness_before_browser(name, email):
     """Read-only authenticated Supabase preflight, BEFORE browser or applicant data.
 
-    This separate endpoint cannot reserve a claim and accepts only {}.
-    Network ambiguity fails closed; no retry and no personal fields sent.
+    This endpoint cannot reserve a claim; accepts only an identity SHA-256 digest.
+    Network ambiguity fails closed; no retry and no raw personal fields sent.
     It does NOT create an authenticated YPAI browser session.
     """
     token = os.environ.get("SUBMISSION_TOKEN", "")
@@ -158,7 +176,8 @@ def motion_readiness_before_browser():
         raise ValueError("submission_credential_unavailable")
     req = Request(
         "https://dfqjwlsgqetyxdrsuviy.supabase.co/functions/v1/sjm_c360_motion_readiness_bridge_v1",
-        data=b"{}", method="POST",
+        data=json.dumps({"identity_digest": motion_applicant_digest(name, email)},
+                        separators=(",", ":")).encode("utf-8"), method="POST",
         headers={"Authorization": "Bearer " + token,
                  "Content-Type": "application/json"})
     try:
@@ -177,7 +196,8 @@ def motion_readiness_before_browser():
                 "radar:commercial:ingresos-ypai-motion-performer-co-20261124"):
         raise ValueError("readiness_response_invalid")
     if (result.get("safe_to_submit") is not True
-            or result.get("final_form_preflight_verified") is not True):
+            or result.get("final_form_preflight_verified") is not True
+            or result.get("identity_digest_matches_reviewed_applicant") is not True):
         raise ValueError("owner_reviewed_exact_final_form_preflight_required")
     return True
 
@@ -218,7 +238,7 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         # An approved application/privacy consent is NOT a reviewed final form.
         # YPAI permits public onboarding; don't invent a prior login or owner review.
         try:
-            motion_readiness_before_browser()
+            motion_readiness_before_browser(name, email)
         except ValueError as exc:
             out["status"] = "blocked_owner_final_form_review_required"
             out["blocker"] = str(exc)
