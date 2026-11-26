@@ -43,6 +43,32 @@ final class AppWorkflowEngine {
                mode==AudioManager.MODE_IN_COMMUNICATION;
     }
 
+    static boolean canRunDuringInternetVoice(JSONObject payload) {
+        if(!validate(payload))return false;
+        String pkg=payload.optString("package","");
+        JSONArray sequence=payload.optJSONArray("steps");
+        for(int i=0;i<sequence.length();i++){
+            JSONObject step=sequence.optJSONObject(i);
+            if(!VoiceActionPolicy.allowedConcurrentNavigationStep(pkg,
+                step.optString("action",""),step.optString("selector","")))return false;
+        }
+        return true;
+    }
+
+    private boolean blocksNavigationForVoice() {
+        AudioManager mgr=service.getSystemService(AudioManager.class);
+        if(mgr==null)return true;
+        int mode=mgr.getMode();
+        if(mode==AudioManager.MODE_IN_CALL)return true;
+        if(mode!=AudioManager.MODE_IN_COMMUNICATION)return false;
+        for(int i=0;i<steps.length();i++){
+            JSONObject step=steps.optJSONObject(i);
+            if(step==null || !VoiceActionPolicy.allowedConcurrentNavigationStep(target,
+                step.optString("action",""),step.optString("selector","")))return true;
+        }
+        return false;
+    }
+
     static boolean validate(JSONObject payload) {
         if(payload==null || payload.length()!=2 ||
            !payload.has("package") || !payload.has("steps"))return false;
@@ -81,7 +107,7 @@ final class AppWorkflowEngine {
         Intent launch=svc.getPackageManager().getLaunchIntentForPackage(pkg);
         if(launch==null) {cb.onDone(false,"WORKFLOW_APP_UNAVAILABLE");return;}
         AppWorkflowEngine worker=new AppWorkflowEngine(svc,h,pkg,payload.optJSONArray("steps"),cb);
-        if(worker.isCommunicationActive()){
+        if(worker.blocksNavigationForVoice()){
             cb.onDone(false,"WORKFLOW_VOICE_BUSY_NOT_EXECUTED");
             return;
         }
@@ -360,7 +386,7 @@ final class AppWorkflowEngine {
         }
         // A voice call may start after the command was received. Recheck
         // before EVERY UI step rather than blindly continuing a prior plan.
-        if(isCommunicationActive()){
+        if(blocksNavigationForVoice()){
             finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");return;
         }
         AccessibilityNodeInfo root=foreground();
@@ -512,7 +538,7 @@ final class AppWorkflowEngine {
         if(CommandReceiptStore.isPaused(service)){
             finish(false,"WORKFLOW_OWNER_PAUSED");return;
         }
-        if(isCommunicationActive()){
+        if(blocksNavigationForVoice()){
             finish(false,"WORKFLOW_VOICE_BUSY_INTERRUPTED_SAFELY");return;
         }
         AccessibilityNodeInfo root=foreground();
