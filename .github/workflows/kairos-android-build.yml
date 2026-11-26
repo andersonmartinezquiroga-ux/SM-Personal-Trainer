@@ -32,7 +32,7 @@ jobs:
       - name: Pruebas de navegación segura
         run: |
           mkdir -p build/policy-test
-          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/OwnedUrlProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/OwnedUrlProofPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/VoiceActionPolicy.java app/src/test/java/com/sjm/kairos/mobile/VoiceActionPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/AppWorkflowPolicy.java app/src/test/java/com/sjm/kairos/mobile/AppWorkflowPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/OwnedDiagnosticProof.java app/src/test/java/com/sjm/kairos/mobile/OwnedDiagnosticProofSelfTest.java app/src/main/java/com/sjm/kairos/mobile/OwnedUrlProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/OwnedUrlProofPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/VoiceActionPolicy.java app/src/test/java/com/sjm/kairos/mobile/VoiceActionPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/AppWorkflowPolicy.java app/src/test/java/com/sjm/kairos/mobile/AppWorkflowPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
           # Verificar que ningún componente informe una versión Android literal y anticuada.
           python3 - <<'PY'
           import pathlib,re
@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.33' and int(code)>=36, (version,code)
+          assert version=='0.3.34' and int(code)>=37, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -88,6 +88,8 @@ jobs:
           assert 'verifyOwnedChromeDestination' in worker and 'OWNED_URL_ADDRESS_AND_WEBVIEW_OBSERVED_CONTENT_UNVERIFIED' in worker
           assert 'open.setPackage("com.android.chrome")' in worker
           assert 'return queue.isEmpty()?found:null;' in engine
+          assert 'verifySjmDiagnostic' in engine and 'OwnedDiagnosticProof.URL' in engine
+          print('OWNED_DIAGNOSTIC_0334 source guards PASS')
           print('OWNED_DESTINATION_0333 source guards PASS')
           print('CHROME_SCROLL_0332 source guards PASS')
           print('NAVIGATION_READBACK_0327 source guards PASS')
@@ -96,6 +98,7 @@ jobs:
           print('ANDROID_VERSION_SYNC 2/2 PASS: packageManager authoritative in UI and accessibility')
           PY
           javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/ScrollProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/ScrollProofPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticProofSelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.OwnedUrlProofPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.ScrollProofPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.VoiceActionPolicySelfTest
@@ -155,7 +158,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0333
+          name: KairosMobile-release-APK-V0334
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -166,12 +169,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.33-supabase'
+          tag='kairos-mobile-v0.3.34-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.33-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.34-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.33-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.33 · verificación de destino SJM'               --notes 'Versión 0.3.33 (versionCode 36): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.34-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.34 · lectura local de diagnóstico SJM'               --notes 'Versión 0.3.34 (versionCode 37): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
           fi
