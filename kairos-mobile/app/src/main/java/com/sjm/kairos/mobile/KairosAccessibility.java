@@ -472,6 +472,13 @@ public class KairosAccessibility extends AccessibilityService {
                         verifyAppForeground(key,commandId,expected,0);
                         return;
                     }
+                    if("open_url".equals(command.optString("type",""))) {
+                        JSONObject body=command.optJSONObject("payload");
+                        String expected=body==null?"":body.optString("url","");
+                        verifyingForeground=true;
+                        verifyOwnedChromeDestination(key,commandId,expected,0);
+                        return;
+                    }
                     storeAndConfirm(key,commandId,"completed",result);
                 } catch(Exception e) {
                     String reason;
@@ -522,6 +529,52 @@ public class KairosAccessibility extends AccessibilityService {
             }
         },attempt==0?950L:650L);
     }
+    /** Only compare the approved address locally. Never export browsing history or page text. */
+    private void verifyOwnedChromeDestination(String key,String commandId,String expected,int attempt){
+        handler.postDelayed(()->{
+            if(!active || !verifyingForeground)return;
+            if(CommandReceiptStore.isPaused(this) || hasActiveCommunication()){
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"failed","OWNED_URL_VERIFICATION_INTERRUPTED");
+                return;
+            }
+            boolean addressMatched=false,webContent=false;
+            try{
+                AccessibilityNodeInfo root=getRootInActiveWindow();
+                if(root!=null && "com.android.chrome".equals(String.valueOf(root.getPackageName()))){
+                    List<AccessibilityNodeInfo> bars=root.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar");
+                    if(bars!=null && bars.size()==1){
+                        AccessibilityNodeInfo bar=bars.get(0);
+                        if(bar!=null && bar.isVisibleToUser() && !bar.isPassword() &&
+                            !bar.isFocused() && "com.android.chrome".equals(String.valueOf(bar.getPackageName())))
+                            addressMatched=OwnedUrlProofPolicy.matches(expected,bar.getText()==null?"":bar.getText().toString());
+                    }
+                    java.util.ArrayDeque<AccessibilityNodeInfo> nodes=new java.util.ArrayDeque<>();
+                    nodes.add(root);
+                    for(int checked=0;!nodes.isEmpty() && checked<350;checked++){
+                        AccessibilityNodeInfo n=nodes.removeFirst();
+                        if(!"com.android.chrome".equals(String.valueOf(n.getPackageName())) || n.isPassword())continue;
+                        if(n.isVisibleToUser() && "android.webkit.WebView".equals(String.valueOf(n.getClassName()))){
+                            webContent=true;break;
+                        }
+                        for(int i=0;i<n.getChildCount();i++){
+                            AccessibilityNodeInfo child=n.getChild(i);
+                            if(child!=null)nodes.addLast(child);
+                        }
+                    }
+                }
+            }catch(RuntimeException ignored){addressMatched=false;webContent=false;}
+            if(addressMatched && webContent){
+                verifyingForeground=false;
+                storeAndConfirm(key,commandId,"completed","OWNED_URL_ADDRESS_AND_WEBVIEW_OBSERVED_CONTENT_UNVERIFIED");
+                return;
+            }
+            if(attempt<10){verifyOwnedChromeDestination(key,commandId,expected,attempt+1);return;}
+            verifyingForeground=false;
+            storeAndConfirm(key,commandId,"failed",addressMatched?"OWNED_URL_WEB_CONTENT_UNVERIFIED":"OWNED_URL_DESTINATION_UNVERIFIED");
+        },attempt==0?1200L:650L);
+    }
+
     /** Guarda un recibo duradero ANTES de intentar enviarlo por la red. */
     private void storeAndConfirm(String key,String commandId,String result,String detail) {
         String limited=detail==null?"":detail.substring(0,Math.min(detail.length(),280));
@@ -610,6 +663,7 @@ public class KairosAccessibility extends AccessibilityService {
             if(!SjmNavigationPolicy.isAllowedUrl(uri.toString()))
                 throw new SecurityException("Página no autorizada");
             Intent open=new Intent(Intent.ACTION_VIEW,uri);
+            open.setPackage("com.android.chrome");
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(open);
             return "Enlace SJM enviado a Android; pantalla no comprobada";
