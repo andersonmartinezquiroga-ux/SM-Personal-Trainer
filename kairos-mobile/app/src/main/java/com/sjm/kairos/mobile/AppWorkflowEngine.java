@@ -392,11 +392,21 @@ final class AppWorkflowEngine {
             }else if("back".equals(action)){
                 accepted=service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
             }else if("scroll_up".equals(action)||"scroll_down".equals(action)){
+                final int direction="scroll_down".equals(action)
+                    ?AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                    :AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD;
                 AccessibilityNodeInfo targetNode=findOne(root,selector,true);
-                if(targetNode!=null){
-                    accepted=targetNode.performAction("scroll_down".equals(action)
-                        ?AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
-                        :AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+                if("com.android.chrome".equals(target) && selector.isEmpty()){
+                    // Chrome may expose both browser chrome and nested web content.
+                    // Prefer only a unique visible WebView supporting this direction.
+                    // No coordinate gestures, cross-package traversal or ambiguous clicks.
+                    AccessibilityNodeInfo web=findUniqueChromeScrollableWebView(root,direction);
+                    if(web!=null)targetNode=web;
+                }
+                if(targetNode!=null && targetNode.isVisibleToUser() &&
+                   targetNode.isEnabled() && !targetNode.isPassword() &&
+                   target.equals(String.valueOf(targetNode.getPackageName()))){
+                    accepted=targetNode.performAction(direction);
                 }
             }else if("tap_video".equals(action) && "com.google.android.youtube".equals(target)){
                 AccessibilityNodeInfo video=findMatchingVideo(root,value);
@@ -596,6 +606,34 @@ final class AppWorkflowEngine {
             current=current.getParent();
         }
         return null;
+    }
+
+    /**
+     * Bounded, local Chrome scroll disambiguation. If two eligible WebViews
+     * are present, fail closed instead of guessing which page to move.
+     */
+    private AccessibilityNodeInfo findUniqueChromeScrollableWebView(
+        AccessibilityNodeInfo root,int direction){
+        if(root==null || !"com.android.chrome".equals(target))return null;
+        ArrayDeque<AccessibilityNodeInfo> pending=new ArrayDeque<>();
+        pending.add(root);
+        AccessibilityNodeInfo found=null;
+        int inspected=0;
+        while(!pending.isEmpty() && inspected++<350){
+            AccessibilityNodeInfo node=pending.removeFirst();
+            if(!target.equals(String.valueOf(node.getPackageName())))continue;
+            if(node.isVisibleToUser() && node.isEnabled() && !node.isPassword() &&
+               "android.webkit.WebView".equals(String.valueOf(node.getClassName())) &&
+               node.isScrollable() && (node.getActions() & direction)!=0){
+                if(found!=null)return null;
+                found=node;
+            }
+            for(int i=0;i<node.getChildCount();i++){
+                AccessibilityNodeInfo child=node.getChild(i);
+                if(child!=null)pending.addLast(child);
+            }
+        }
+        return pending.isEmpty()?found:null;
     }
 
     private static boolean equalsTarget(String prefix,String selector, AccessibilityNodeInfo node){
