@@ -429,10 +429,10 @@ class MotionRoleTests(unittest.TestCase):
     def test_reviewed_identity_digest_normalizes_spaces_and_accents(self):
         from submit_ypai import motion_applicant_digest
         import hashlib
-        name="Samuel Jesús Martínez Quiroga"
+        name="José Miguel Ejemplo"
         expected=hashlib.sha256((name.lower()+"\x00"+"example@domain.test").encode("utf-8")).hexdigest()
         self.assertEqual(motion_applicant_digest(name,"EXAMPLE@DOMAIN.TEST"),expected)
-        self.assertEqual(motion_applicant_digest("  Samuel  Jesús Martínez Quiroga  ","example@domain.test"),expected)
+        self.assertEqual(motion_applicant_digest("  José Miguel Ejemplo  ","example@domain.test"),expected)
 
     def test_motion_consent_is_application_only(self):
         from submit_ypai import clean_motion_applicant
