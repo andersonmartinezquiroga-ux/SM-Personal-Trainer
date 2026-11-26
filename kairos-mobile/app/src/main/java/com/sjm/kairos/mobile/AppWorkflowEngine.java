@@ -818,6 +818,7 @@ final class AppWorkflowEngine {
                 }
             }
         }
-        return found;
+        // A truncated tree cannot establish uniqueness: an unseen duplicate may exist.
+        return queue.isEmpty()?found:null;
     }
 }
