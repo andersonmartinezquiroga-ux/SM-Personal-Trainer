@@ -438,6 +438,14 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
                 return out
             # No local flag or caller-supplied claim is enough. The database
             # checks the exact authenticated preflight and reserves this case once.
+            # The owner review expires quickly. Revalidate the exact applicant
+            # after browser preparation, before consuming the durable claim.
+            try:
+                motion_readiness_before_browser(name, email)
+            except ValueError:
+                out["status"]="blocked_owner_review_changed_during_preparation"
+                out["automatic_retry_allowed"]=False
+                return out
             try:
                 out["submission_claim_id"]=reserve_motion_once()
             except ValueError:
