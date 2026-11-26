@@ -332,6 +332,27 @@ final class AppWorkflowEngine {
         return root!=null && root.getPackageName()!=null &&
                target.equals(String.valueOf(root.getPackageName())) ? root:null;
     }
+    /**
+     * Chrome's new-tab page and its focused omnibox have different Android
+     * resource ids. Only resolve the known Chrome search_box_text control when
+     * the owner-approved selector is Chrome's exact url_bar id. Never match
+     * another package or a generic editable field.
+     */
+    private AccessibilityNodeInfo findChromeOmniboxAlternative(
+        AccessibilityNodeInfo root,String requestedSelector,boolean requireEditable){
+        if(!"com.android.chrome".equals(target) ||
+           !"id:com.android.chrome:id/url_bar".equals(requestedSelector))
+            return null;
+        AccessibilityNodeInfo candidate=findOne(
+            root,"id:com.android.chrome:id/search_box_text",false);
+        if(candidate==null || !candidate.isVisibleToUser() ||
+           !candidate.isEnabled() || candidate.isPassword() ||
+           !target.equals(String.valueOf(candidate.getPackageName())))
+            return null;
+        if(requireEditable)return candidate.isEditable()?candidate:null;
+        return safeClickableAncestor(candidate)==null?null:candidate;
+    }
+
     private void executeStep(int index){
         if(finished)return;
         if(CommandReceiptStore.isPaused(service)){
@@ -385,6 +406,10 @@ final class AppWorkflowEngine {
                 }
             }else if("tap".equals(action)||"type".equals(action)||"ime_search".equals(action)){
                 AccessibilityNodeInfo node=findOne(root,selector,false);
+                if("type".equals(action) && (node==null || !node.isEditable()))
+                    node=findChromeOmniboxAlternative(root,selector,true);
+                if("tap".equals(action) && node==null)
+                    node=findChromeOmniboxAlternative(root,selector,false);
                 if(node!=null && node.isVisibleToUser() && node.isEnabled() &&
                    !node.isPassword() && target.equals(String.valueOf(node.getPackageName()))){
                     if("tap".equals(action)){
@@ -393,6 +418,16 @@ final class AppWorkflowEngine {
                         AccessibilityNodeInfo button=safeClickableAncestor(node);
                         if(button!=null)
                             accepted=button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        if(!accepted){
+                            // Retry only the alternate named Chrome new-tab search box.
+                            // Never use arbitrary coordinates or other fields.
+                            AccessibilityNodeInfo alternative=
+                                findChromeOmniboxAlternative(root,selector,false);
+                            AccessibilityNodeInfo altButton=alternative==null?null:
+                                safeClickableAncestor(alternative);
+                            if(altButton!=null)
+                                accepted=altButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        }
                     }else if(node.isEditable()){
                         if("type".equals(action)){
                             Bundle arguments=new Bundle();
@@ -427,7 +462,25 @@ final class AppWorkflowEngine {
                 handler.postDelayed(()->executeStep(index),650L);
                 return;
             }
-            finish(false,"WORKFLOW_ACTION_REJECTED_STEP_"+index);
+            String boundedReason="ACTION_REFUSED";
+            if("tap".equals(action) || "type".equals(action)){
+                AccessibilityNodeInfo exact=findOne(root,selector,false);
+                AccessibilityNodeInfo alternate=findChromeOmniboxAlternative(
+                    root,selector,"type".equals(action));
+                if(exact==null && alternate==null)
+                    boundedReason="SELECTOR_NOT_FOUND";
+                else if("type".equals(action) && exact!=null && !exact.isEditable()
+                        && alternate==null)
+                    boundedReason="TARGET_NOT_EDITABLE";
+                else if("tap".equals(action) && exact!=null &&
+                        safeClickableAncestor(exact)==null && alternate==null)
+                    boundedReason="TARGET_NOT_CLICKABLE";
+            }else if("scroll_down".equals(action)||"scroll_up".equals(action)){
+                if(findOne(root,selector,true)==null)
+                    boundedReason="NO_VISIBLE_SCROLLABLE_CONTAINER";
+            }
+            // Reason codes only. No screen text, URLs or private data leave Android.
+            finish(false,"WORKFLOW_ACTION_REJECTED_STEP_"+index+"_"+boundedReason);
             return;
         }
         actionRetryStep=-1;
@@ -447,6 +500,8 @@ final class AppWorkflowEngine {
         }
         AccessibilityNodeInfo root=foreground();
         AccessibilityNodeInfo node=root==null?null:findOne(root,selector,false);
+        if(root!=null && (node==null || !node.isEditable()))
+            node=findChromeOmniboxAlternative(root,selector,true);
         // text: selectors can cease matching after the write. Fail closed instead
         // of choosing another editable field or disclosing text to the backend.
         if(node!=null && node.isVisibleToUser() && node.isEnabled() &&
