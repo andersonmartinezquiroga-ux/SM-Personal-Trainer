@@ -1,6 +1,9 @@
 package com.sjm.kairos.mobile;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.GestureDescription;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +18,7 @@ import java.util.ArrayDeque;
 
 /**
  * Executes a bounded, owner-approved workflow on an explicitly named app.
- * No screen dumps, screenshots, arbitrary coordinates, passwords, purchases,
+ * No screen dumps, screenshots, remotely supplied coordinates, passwords, purchases,
  * message sending, or permission-setting actions. All matching stays on-device.
  */
 final class AppWorkflowEngine {
@@ -399,7 +402,7 @@ final class AppWorkflowEngine {
                 if("com.android.chrome".equals(target) && selector.isEmpty()){
                     // Chrome may expose both browser chrome and nested web content.
                     // Prefer only a unique visible WebView supporting this direction.
-                    // No coordinate gestures, cross-package traversal or ambiguous clicks.
+                    // No cross-package traversal or ambiguous clicks; bounded fallback below.
                     targetNode=findUniqueChromeScrollableWebView(root,direction);
                 }
                 if(targetNode!=null && targetNode.isVisibleToUser() &&
@@ -478,6 +481,12 @@ final class AppWorkflowEngine {
                 handler.postDelayed(()->executeStep(index),650L);
                 return;
             }
+            // The owner explicitly authorized only vertical scrolling inside Chrome.
+            // The fallback is local, bounded, and cannot accept remote coordinates.
+            if("com.android.chrome".equals(target) && selector.isEmpty() &&
+               ("scroll_down".equals(action)||"scroll_up".equals(action))){
+                if(dispatchChromeScroll(index,"scroll_down".equals(action)))return;
+            }
             String boundedReason="ACTION_REFUSED";
             try {
             if("tap".equals(action) || "type".equals(action)){
@@ -512,6 +521,55 @@ final class AppWorkflowEngine {
         // Do not claim the business task succeeded; each action is acknowledged separately.
         // Reuse the guarded foreground/voice/pause checks even at the final step.
         handler.postDelayed(()->executeStep(index+1),delay);
+    }
+
+    private boolean dispatchChromeScroll(int index,boolean down){
+        if(finished || !"com.android.chrome".equals(target) ||
+           CommandReceiptStore.isPaused(service) || isCommunicationActive())return false;
+        AccessibilityNodeInfo current=foreground();
+        if(current==null || !current.isVisibleToUser())return false;
+        AccessibilityNodeInfo input=current.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+        if(input!=null && (input.isPassword() || input.isEditable()))return false;
+        Rect bounds=new Rect();
+        current.getBoundsInScreen(bounds);
+        android.util.DisplayMetrics dm=service.getResources().getDisplayMetrics();
+        if(!bounds.intersect(0,0,dm.widthPixels,dm.heightPixels) ||
+           bounds.width()<120 || bounds.height()<240)return false;
+        float x=bounds.exactCenterX();
+        float upper=bounds.top+bounds.height()*0.35f;
+        float lower=bounds.top+bounds.height()*0.72f;
+        Path path=new Path();
+        path.moveTo(x,down?lower:upper);
+        path.lineTo(x,down?upper:lower);
+        GestureDescription gesture=new GestureDescription.Builder()
+            .addStroke(new GestureDescription.StrokeDescription(path,0,420)).build();
+        // Recheck immediately before dispatch. A successful callback verifies
+        // Android completed the gesture, not the actual page displacement.
+        if(foreground()==null || CommandReceiptStore.isPaused(service) ||
+           isCommunicationActive())return false;
+        boolean submitted=service.dispatchGesture(gesture,new AccessibilityService.GestureResultCallback(){
+            @Override public void onCompleted(GestureDescription g){
+                if(finished)return;
+                actionRetryStep=-1;actionRetries=0;
+                if(CommandReceiptStore.isPaused(service) || isCommunicationActive() ||
+                   foreground()==null){
+                    finish(false,"CHROME_SCROLL_GESTURE_COMPLETED_CONTEXT_CHANGED");return;
+                }
+                if(index+1>=steps.length()){
+                    finish(true,"CHROME_SCROLL_GESTURE_COMPLETED_FOREGROUND_CONFIRMED_MOVEMENT_UNVERIFIED");
+                }else{
+                    handler.postDelayed(()->executeStep(index+1),550L);
+                }
+            }
+            @Override public void onCancelled(GestureDescription g){
+                finish(false,"CHROME_SCROLL_GESTURE_CANCELLED");
+            }
+        },handler);
+        if(submitted)handler.postDelayed(()->{
+            if(!finished && actionRetryStep==index)
+                finish(false,"CHROME_SCROLL_GESTURE_CALLBACK_TIMEOUT");
+        },4000L);
+        return submitted;
     }
 
     private void verifyWrittenText(int index,String selector,String expected,int attempt){
