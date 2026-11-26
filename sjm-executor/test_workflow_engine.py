@@ -387,7 +387,7 @@ class MotionRoleTests(unittest.TestCase):
         self.assertNotIn("example@example.invalid",str(result))
 
     def test_readonly_gate_rejects_missing_auth_and_accepts_only_exact_status(self):
-        from submit_ypai import motion_readiness_before_browser
+        from submit_ypai import motion_readiness_before_browser, motion_applicant_digest
         from unittest.mock import patch
         with patch.dict("os.environ",{"SUBMISSION_TOKEN":"fictional-test-credential-000000"}):
             with patch("submit_ypai.build_opener") as opener:
@@ -398,12 +398,16 @@ class MotionRoleTests(unittest.TestCase):
                     "claim_reserved":False,
                     "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
                     "safe_to_submit":False,
-                    "final_form_preflight_verified":False
+                    "final_form_preflight_verified":False,
+                    "identity_digest_matches_reviewed_applicant":False
                 }).encode()
                 with self.assertRaisesRegex(ValueError,"owner_reviewed_exact_final_form_preflight_required"):
-                    motion_readiness_before_browser()
+                    motion_readiness_before_browser("Example Applicant","example@example.invalid")
                 request=opener.return_value.open.call_args.args[0]
-                self.assertEqual(request.data,b"{}")
+                self.assertEqual(json.loads(request.data)["identity_digest"],
+                    motion_applicant_digest("Example Applicant","example@example.invalid"))
+                self.assertNotIn(b"Example Applicant",request.data)
+                self.assertNotIn(b"example@example.invalid",request.data)
                 self.assertEqual(request.get_method(),"POST")
             with patch("submit_ypai.build_opener") as opener:
                 response=opener.return_value.open.return_value.__enter__.return_value
@@ -413,13 +417,22 @@ class MotionRoleTests(unittest.TestCase):
                     "claim_reserved":False,
                     "case_key":"radar:commercial:ingresos-ypai-motion-performer-co-20261124",
                     "safe_to_submit":True,
-                    "final_form_preflight_verified":True
+                    "final_form_preflight_verified":True,
+                    "identity_digest_matches_reviewed_applicant":True
                 }).encode()
-                self.assertTrue(motion_readiness_before_browser())
+                self.assertTrue(motion_readiness_before_browser("Example Applicant","example@example.invalid"))
             with patch("submit_ypai.build_opener") as opener:
                 opener.return_value.open.side_effect=TimeoutError()
                 with self.assertRaisesRegex(ValueError,"readiness_unavailable_no_browser_no_retry"):
-                    motion_readiness_before_browser()
+                    motion_readiness_before_browser("Example Applicant","example@example.invalid")
+
+    def test_reviewed_identity_digest_normalizes_spaces_and_accents(self):
+        from submit_ypai import motion_applicant_digest
+        import hashlib
+        name="Samuel Jesús Martínez Quiroga"
+        expected=hashlib.sha256((name.lower()+"\\x00"+"example@domain.test").encode("utf-8")).hexdigest()
+        self.assertEqual(motion_applicant_digest(name,"EXAMPLE@DOMAIN.TEST"),expected)
+        self.assertEqual(motion_applicant_digest("  Samuel  Jesús Martínez Quiroga  ","example@domain.test"),expected)
 
     def test_motion_consent_is_application_only(self):
         from submit_ypai import clean_motion_applicant
