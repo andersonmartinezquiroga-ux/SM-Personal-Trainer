@@ -388,7 +388,7 @@ public class KairosAccessibility extends AccessibilityService {
             if(now-lastRegistered>8*60_000L){
                 JSONArray capabilities=new JSONArray();
                 capabilities.put("notify");capabilities.put("open_app");capabilities.put("open_url");
-                capabilities.put("app_workflow"); // Active only in this corrected APK.
+                capabilities.put("app_workflow");capabilities.put("concurrent_chrome"); // Active only in this corrected APK.
                 JSONObject registration=new JSONObject()
                     .put("action","register").put("version",1)
                     .put("appVersion",getPackageManager().getPackageInfo(getPackageName(),0).versionName)
@@ -405,7 +405,9 @@ public class KairosAccessibility extends AccessibilityService {
                 CommandReceiptStore.markBridge(this,"VOICE_POLL_SAFE_ONLY");
             stage="POLL";
             // The authenticated server rejects new screen jobs while busy.
-            JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key,voiceBusy);
+            AudioManager pollAudio=getSystemService(AudioManager.class);
+            boolean voip=pollAudio!=null && pollAudio.getMode()==AudioManager.MODE_IN_COMMUNICATION;
+            JSONObject pending=BridgeHttp.call("/_api/kairos/phone_command_poll","GET",null,key,voiceBusy,voip);
             if(!pending.optBoolean("ok",false)) {
                 CommandReceiptStore.markBridge(this,"POLL_REJECTED");
                 return;
@@ -428,7 +430,14 @@ public class KairosAccessibility extends AccessibilityService {
                 "POLL_OFFERED_"+command.optString("type","unknown")+"_"+commandId.substring(0,8));
             // During voice, external app/url actions remain deferred. An approved
             // own-KAIRÓS local test can run; it may foreground only our APK.
-            if(hasActiveCommunication() && !VoiceActionPolicy.allowedDuringCommunication(command.optString("type",""))){
+            AudioManager voiceAudio=getSystemService(AudioManager.class);
+            boolean concurrentChrome=voiceAudio!=null &&
+                voiceAudio.getMode()==AudioManager.MODE_IN_COMMUNICATION &&
+                "app_workflow".equals(command.optString("type","")) &&
+                AppWorkflowEngine.canRunDuringInternetVoice(command.optJSONObject("payload"));
+            if(hasActiveCommunication() &&
+                !VoiceActionPolicy.allowedDuringCommunication(command.optString("type","")) &&
+                !concurrentChrome){
                 CommandReceiptStore.markBridge(this,"VOICE_BUSY_DEFERRED_"+commandId.substring(0,8));
                 CommandReceiptStore.mark(this,"Acción de pantalla pospuesta hasta terminar voz");
                 return;

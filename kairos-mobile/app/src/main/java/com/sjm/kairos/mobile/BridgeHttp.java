@@ -18,6 +18,11 @@ final class BridgeHttp {
     /** Signed poll can transmit only a transient busy/free boolean, never audio. */
     static JSONObject call(String endpoint, String method, JSONObject body, String executorKey,
                            Boolean voiceBusy) throws Exception {
+        return call(endpoint,method,body,executorKey,voiceBusy,false);
+    }
+
+    static JSONObject call(String endpoint,String method,JSONObject body,String executorKey,
+                           Boolean voiceBusy,boolean concurrentChrome) throws Exception {
         if (!endpoint.startsWith("/_api/kairos/") || endpoint.contains(".."))
             throw new IOException("Endpoint no permitido");
         String requestUrl = BASE + "?path=" + java.net.URLEncoder.encode(endpoint, "UTF-8");
@@ -25,6 +30,7 @@ final class BridgeHttp {
             if (!"/_api/kairos/phone_command_poll".equals(endpoint) || !"GET".equals(method))
                 throw new IOException("Estado de voz solo permitido para sondeo autenticado");
             requestUrl += "&voice=" + (voiceBusy.booleanValue() ? "busy" : "free");
+            if(voiceBusy.booleanValue() && concurrentChrome)requestUrl += "&concurrent=chrome";
         }
         HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
         connection.setInstanceFollowRedirects(false);
