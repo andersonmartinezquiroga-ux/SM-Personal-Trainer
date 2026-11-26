@@ -463,6 +463,7 @@ final class AppWorkflowEngine {
                 return;
             }
             String boundedReason="ACTION_REFUSED";
+            try {
             if("tap".equals(action) || "type".equals(action)){
                 AccessibilityNodeInfo exact=findOne(root,selector,false);
                 AccessibilityNodeInfo alternate=findChromeOmniboxAlternative(
@@ -478,6 +479,10 @@ final class AppWorkflowEngine {
             }else if("scroll_down".equals(action)||"scroll_up".equals(action)){
                 if(findOne(root,selector,true)==null)
                     boundedReason="NO_VISIBLE_SCROLLABLE_CONTAINER";
+            }
+            } catch(RuntimeException diagnosticFailure){
+                // A stale accessibility node must not prevent the terminal receipt.
+                boundedReason="DIAGNOSTIC_UNAVAILABLE";
             }
             // Reason codes only. No screen text, URLs or private data leave Android.
             finish(false,"WORKFLOW_ACTION_REJECTED_STEP_"+index+"_"+boundedReason);
