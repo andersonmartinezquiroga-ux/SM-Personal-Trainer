@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.27' and int(code)>=30, (version,code)
+          assert version=='0.3.28' and int(code)>=31, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -75,6 +75,8 @@ jobs:
           assert 'WORKFLOW_WRITE_ACCEPTED_READBACK_UNVERIFIED_STEP_' in engine
           assert 'expected.contentEquals' in engine
           assert 'worker.foreground()!=null' in engine
+          assert 'findChromeOmniboxAlternative' in engine and 'id:com.android.chrome:id/search_box_text' in engine
+          assert 'NO_VISIBLE_SCROLLABLE_CONTAINER' in engine and 'SELECTOR_NOT_FOUND' in engine
           assert 'handler.postDelayed(()->executeStep(index+1),delay)' in engine
           print('NAVIGATION_READBACK_0327 source guards PASS')
           print('VOICE_SERVER_STATUS_0326 4/4 source guards PASS')
@@ -138,7 +140,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0327
+          name: KairosMobile-release-APK-V0328
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -149,12 +151,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.27-supabase'
+          tag='kairos-mobile-v0.3.28-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.27-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.28-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.27-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.27 · navegación y comprobación de escritura'               --notes 'Versión 0.3.27 (versionCode 30): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. No amplía permisos. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.28-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.28 · navegación y comprobación de escritura'               --notes 'Versión 0.3.28 (versionCode 30): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. No amplía permisos. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
           fi
