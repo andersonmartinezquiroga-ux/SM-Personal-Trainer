@@ -177,8 +177,8 @@ def motion_readiness_before_browser():
                 "radar:commercial:ingresos-ypai-motion-performer-co-20261124"):
         raise ValueError("readiness_response_invalid")
     if (result.get("safe_to_submit") is not True
-            or result.get("authenticated_final_form_preflight_verified") is not True):
-        raise ValueError("authenticated_final_form_preflight_required")
+            or result.get("final_form_preflight_verified") is not True):
+        raise ValueError("owner_reviewed_exact_final_form_preflight_required")
     return True
 
 
@@ -215,12 +215,12 @@ def apply_ypai_role(role_slug, case_key, name, email, country,
         "checked_utc": datetime.now(timezone.utc).isoformat(),
     }
     if role_slug == "motion-performer-co":
-        # An approved application/privacy consent is NOT an authenticated session.
-        # Reuse the live DB gate, but never pretend a public form is a reviewed one.
+        # An approved application/privacy consent is NOT a reviewed final form.
+        # YPAI permits public onboarding; don't invent a prior login or owner review.
         try:
             motion_readiness_before_browser()
         except ValueError as exc:
-            out["status"] = "blocked_authenticated_preflight_required"
+            out["status"] = "blocked_owner_final_form_review_required"
             out["blocker"] = str(exc)
             out["automatic_retry_allowed"] = False
             out["browser_opened"] = False
