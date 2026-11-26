@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityEvent;
+import android.os.SystemClock;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -32,6 +34,55 @@ final class AppWorkflowEngine {
     private int foregroundRetries;
     private int actionRetryStep=-1;
     private int actionRetries;
+    // Only a currently executing, owner-authorized Chrome scroll can collect
+    // one directional event. No text, screenshots or event payload are exported.
+    private static AppWorkflowEngine pendingChromeScroll;
+    private long scrollStartedAt;
+    private boolean scrollDown;
+    private boolean scrollObserved;
+
+    private void armChromeScroll(boolean down){
+        scrollDown=down; scrollObserved=false; scrollStartedAt=SystemClock.uptimeMillis();
+        pendingChromeScroll=this;
+    }
+    private void disarmChromeScroll(){
+        if(pendingChromeScroll==this)pendingChromeScroll=null;
+    }
+    static void observeScrollEvent(AccessibilityEvent event){
+        AppWorkflowEngine worker=pendingChromeScroll;
+        if(worker==null || worker.finished || event==null ||
+           event.getEventType()!=AccessibilityEvent.TYPE_VIEW_SCROLLED ||
+           !"com.android.chrome".contentEquals(event.getPackageName()==null?"":event.getPackageName()) ||
+           android.os.Build.VERSION.SDK_INT<28)return;
+        if(!ScrollProofPolicy.matches(worker.scrollDown,event.getScrollDeltaY(),
+            event.getEventTime()-worker.scrollStartedAt))return;
+        if(CommandReceiptStore.isPaused(worker.service) || worker.isCommunicationActive() ||
+           worker.foreground()==null)return;
+        // Require a web-content event, not movement of Chrome's toolbar or keyboard.
+        AccessibilityNodeInfo source=event.getSource();
+        for(int depth=0;source!=null && depth<8;depth++){
+            if(!"com.android.chrome".contentEquals(source.getPackageName()==null?"":source.getPackageName()) || source.isPassword())return;
+            if("android.webkit.WebView".contentEquals(source.getClassName()==null?"":source.getClassName())){
+                worker.scrollObserved=true;return;
+            }
+            source=source.getParent();
+        }
+    }
+    private void verifyChromeScroll(int index,int attempt){
+        if(finished)return;
+        if(CommandReceiptStore.isPaused(service) || isCommunicationActive() || foreground()==null){
+            finish(false,"CHROME_SCROLL_CONTEXT_CHANGED");return;
+        }
+        if(scrollObserved){
+            disarmChromeScroll(); actionRetryStep=-1;actionRetries=0;
+            if(index+1>=steps.length())finish(true,"CHROME_SCROLL_DIRECTIONAL_WEB_EVENT_OBSERVED");
+            else handler.postDelayed(()->executeStep(index+1),350L);
+        }else if(attempt<6){
+            handler.postDelayed(()->verifyChromeScroll(index,attempt+1),350L);
+        }else{
+            finish(false,"CHROME_SCROLL_GESTURE_COMPLETED_FOREGROUND_CONFIRMED_MOVEMENT_UNVERIFIED");
+        }
+    }
 
     private AppWorkflowEngine(AccessibilityService svc, Handler h,
                               String pkg, JSONArray instructions, Completion callback) {
@@ -328,6 +379,7 @@ final class AppWorkflowEngine {
     private void finish(boolean ok,String detail) {
         if(finished)return;
         finished=true;
+        disarmChromeScroll();
         completion.onDone(ok,detail);
     }
     private AccessibilityNodeInfo foreground(){
@@ -408,6 +460,7 @@ final class AppWorkflowEngine {
                 if(targetNode!=null && targetNode.isVisibleToUser() &&
                    targetNode.isEnabled() && !targetNode.isPassword() &&
                    target.equals(String.valueOf(targetNode.getPackageName()))){
+                    if("com.android.chrome".equals(target) && selector.isEmpty())armChromeScroll("scroll_down".equals(action));
                     accepted=targetNode.performAction(direction);
                     if(!accepted && "com.android.chrome".equals(target) && selector.isEmpty()){
                         int verticalAction=direction==AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
@@ -474,6 +527,7 @@ final class AppWorkflowEngine {
             accepted=false;
         }
         if(!accepted){
+            disarmChromeScroll();
             // Controls can appear after the screen begins to render.
             // Never repeat an action that was already accepted by Android.
             if(actionRetryStep!=index){actionRetryStep=index;actionRetries=0;}
@@ -518,6 +572,10 @@ final class AppWorkflowEngine {
         }
         actionRetryStep=-1;
         actionRetries=0;
+        if(pendingChromeScroll==this){
+            handler.postDelayed(()->verifyChromeScroll(index,0),350L);
+            return;
+        }
         // Do not claim the business task succeeded; each action is acknowledged separately.
         // Reuse the guarded foreground/voice/pause checks even at the final step.
         handler.postDelayed(()->executeStep(index+1),delay);
@@ -547,6 +605,7 @@ final class AppWorkflowEngine {
         // Android completed the gesture, not the actual page displacement.
         if(foreground()==null || CommandReceiptStore.isPaused(service) ||
            isCommunicationActive())return false;
+        armChromeScroll(down);
         boolean submitted=service.dispatchGesture(gesture,new AccessibilityService.GestureResultCallback(){
             @Override public void onCompleted(GestureDescription g){
                 if(finished)return;
@@ -555,11 +614,7 @@ final class AppWorkflowEngine {
                    foreground()==null){
                     finish(false,"CHROME_SCROLL_GESTURE_COMPLETED_CONTEXT_CHANGED");return;
                 }
-                if(index+1>=steps.length()){
-                    finish(true,"CHROME_SCROLL_GESTURE_COMPLETED_FOREGROUND_CONFIRMED_MOVEMENT_UNVERIFIED");
-                }else{
-                    handler.postDelayed(()->executeStep(index+1),550L);
-                }
+                handler.postDelayed(()->verifyChromeScroll(index,0),350L);
             }
             @Override public void onCancelled(GestureDescription g){
                 finish(false,"CHROME_SCROLL_GESTURE_CANCELLED");
@@ -569,6 +624,7 @@ final class AppWorkflowEngine {
             if(!finished && actionRetryStep==index)
                 finish(false,"CHROME_SCROLL_GESTURE_CALLBACK_TIMEOUT");
         },4000L);
+        if(!submitted)disarmChromeScroll();
         return submitted;
     }
 

@@ -632,7 +632,10 @@ public class KairosAccessibility extends AccessibilityService {
         }
         throw new SecurityException("Comando no autorizado");
     }
-    @Override public void onAccessibilityEvent(AccessibilityEvent event) { /* No lee la pantalla. */ }
+    @Override public void onAccessibilityEvent(AccessibilityEvent event) {
+        // Ignore all events except the currently authorized Chrome scroll proof.
+        try { AppWorkflowEngine.observeScrollEvent(event); } catch(RuntimeException ignored) {}
+    }
     @Override public void onInterrupt() {
         CommandReceiptStore.markBridge(this,"ACCESSIBILITY_INTERRUPTED");
     }

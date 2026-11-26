@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.31' and int(code)>=34, (version,code)
+          assert version=='0.3.32' and int(code)>=35, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -82,12 +82,17 @@ jobs:
           assert 'if(!pending.isEmpty() || webCount>1)return null;' in engine
           assert 'dispatchChromeScroll' in engine and 'CHROME_SCROLL_GESTURE_COMPLETED_FOREGROUND_CONFIRMED_MOVEMENT_UNVERIFIED' in engine
           assert 'canPerformGestures="true"' in (root/'src/main/res/xml/kairos_accessibility.xml').read_text()
-          print('CHROME_SCROLL_0331 source guards PASS')
+          assert 'CHROME_SCROLL_DIRECTIONAL_WEB_EVENT_OBSERVED' in engine
+          assert 'observeScrollEvent(event)' in worker
+          assert 'typeViewScrolled' in (root/'src/main/res/xml/kairos_accessibility.xml').read_text()
+          print('CHROME_SCROLL_0332 source guards PASS')
           print('NAVIGATION_READBACK_0327 source guards PASS')
           print('VOICE_SERVER_STATUS_0326 4/4 source guards PASS')
           print('VOICE_SAFE_POLL 3/3 policy markers PASS')
           print('ANDROID_VERSION_SYNC 2/2 PASS: packageManager authoritative in UI and accessibility')
           PY
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/ScrollProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/ScrollProofPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.ScrollProofPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.VoiceActionPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.LastResultTextSelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.AppWorkflowPolicySelfTest
@@ -145,7 +150,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0331
+          name: KairosMobile-release-APK-V0332
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -156,12 +161,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.31-supabase'
+          tag='kairos-mobile-v0.3.32-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.31-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.32-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.31-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.31 · gesto vertical limitado a Chrome'               --notes 'Versión 0.3.31 (versionCode 34): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.32-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.32 · verificación de desplazamiento local'               --notes 'Versión 0.3.32 (versionCode 35): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
           fi

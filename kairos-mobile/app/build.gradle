@@ -6,8 +6,8 @@ android {
         applicationId 'com.sjm.kairos.mobile'
         minSdk 26
         targetSdk 35
-        versionCode 34
-        versionName '0.3.31'
+        versionCode 35
+        versionName '0.3.32'
     }
     signingConfigs {
         release {
