@@ -77,6 +77,34 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(r["workflow_stage"],"human_challenge_required")
         self.assertFalse(r["external_submission"])
 
+    def test_tusclases_partial_wizard_metadata_cannot_be_complete(self):
+        url = "https://www.tusclases.co/anunciarse/profesor-particular"
+        result = source(
+            consent_or_captcha_present=False,
+            adapter_summary={"adapter":"tusclases_teacher_wizard_readonly",
+                             "required_approval_scopes":[]},
+            fields=[{"name":"title","required":False}],
+            required_fields=[],unidentified_required_count=0,
+            draft_offline=True,filled_field_names=["title"])
+        with patch("workflow_engine.inspect",return_value=result):
+            r=prepare_workflow(url,{"title":"Offline example"})
+        self.assertEqual(r["workflow_stage"],"interactive_form_or_login_required")
+        self.assertEqual(r["next_action"],"inspect_remaining_wizard_steps")
+        self.assertFalse(r["full_form_readiness"]["metadata_complete"])
+        self.assertFalse(r["full_form_readiness"]["full_form_verified"])
+        self.assertFalse(r["submitted"])
+
+    def test_tusclases_wizard_challenge_still_blocks(self):
+        url = "https://www.tusclases.co/anunciarse/profesor-particular"
+        with patch("workflow_engine.inspect",return_value=source(
+                challenge_detected=True,
+                adapter_summary={"adapter":"tusclases_teacher_wizard_readonly",
+                                 "required_approval_scopes":[]})):
+            r=prepare_workflow(url)
+        self.assertEqual(r["workflow_stage"],"human_challenge_required")
+        self.assertEqual(r["next_action"],"owner_login_or_challenge")
+        self.assertFalse(r["external_submission"])
+
     def test_no_false_success_on_inspector_invariant_failure(self):
         with patch("workflow_engine.inspect",return_value=source(submitted=True)):
             with self.assertRaises(ValueError):

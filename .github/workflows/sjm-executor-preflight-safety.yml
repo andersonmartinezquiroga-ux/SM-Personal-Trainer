@@ -6,6 +6,8 @@ on:
     paths:
       - 'sjm-executor/applicant.py'
       - 'sjm-executor/form_adapter.py'
+      - 'sjm-executor/workflow_engine.py'
+      - 'sjm-executor/test_workflow_engine.py'
       - 'sjm-executor/test_applicant.py'
       - 'sjm-executor/test_form_adapter.py'
       - 'sjm-executor/api_v2.py'
@@ -29,7 +31,7 @@ jobs:
       - name: Run all security and form adapter tests (OFFLINE)
         working-directory: sjm-executor
         run: |
-          python -m unittest -v test_applicant test_form_adapter test_submit_ypai test_pulse_ack
+          python -m unittest -v test_applicant test_form_adapter test_submit_ypai test_pulse_ack test_workflow_engine.WorkflowTests
       - name: Record non-submission evidence
         if: success()
         run: |
