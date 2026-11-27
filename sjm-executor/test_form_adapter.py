@@ -144,5 +144,32 @@ class FormAdapterTests(unittest.TestCase):
         self.assertNotIn('somebody@example.com',str(r))
         self.assertNotIn('email',str(r))
 
+    def test_tusclases_multistep_never_ready_from_partial_snapshot(self):
+        url = 'https://www.tusclases.co/anunciarse/profesor-particular'
+        fields = [{'name':'email','type':'email','required':True}]
+        result = classify(url, fields, form_visible=True)
+        self.assertEqual(result['adapter'], 'tusclases_teacher_wizard_readonly')
+        self.assertEqual(result['preflight_state'], 'needs_interactive_form_inspection')
+        self.assertFalse(result['submitted'])
+        self.assertFalse(result['automatic_submission_enabled'])
+
+    def test_tusclases_consent_and_challenge_are_preserved(self):
+        url = 'https://www.tusclases.co/anunciarse/profesor-particular'
+        fields = [{'name':'privacy','type':'checkbox','label':'Política de datos','required':True}]
+        result = classify(url, fields, form_visible=True)
+        self.assertIn('terms_or_privacy', result['required_approval_scopes'])
+        self.assertFalse(result['automatic_submission_enabled'])
+        self.assertEqual(classify(url,fields,challenge=True,form_visible=True)['preflight_state'],
+                         'requires_human_challenge')
+        self.assertEqual(classify(url,fields,source_blocked=True,form_visible=True)['preflight_state'],
+                         'source_access_blocked')
+
+    def test_tusclases_exact_public_route_only(self):
+        for url in ('https://www.tusclases.co/acceso-area-personal.aspx',
+                    'https://www.tusclases.co/anunciarse/profesor-particular?next=submit',
+                    'http://www.tusclases.co/anunciarse/profesor-particular',
+                    'https://www.tusclases.co.evil.invalid/anunciarse/profesor-particular'):
+            self.assertEqual(classify(url,[],form_visible=False)['adapter'],'unsupported')
+
 if __name__=='__main__':
     unittest.main()
