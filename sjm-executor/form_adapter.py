@@ -34,6 +34,16 @@ def classify_application_form(url, fields, *, challenge=False, source_blocked=Fa
     """Summarize public labels/types only. Never infer approval or submit."""
     host = urlparse(url).hostname or ''
     adapter = ADAPTERS.get(host, 'unsupported')
+    # This public wizard is multistep; its first DOM snapshot is not a
+    # complete listing form. Match the exact public route, never account
+    # or publication endpoints. No draft fill or submission is enabled.
+    parsed = urlparse(url)
+    tusclases = (parsed.scheme == 'https'
+                 and parsed.netloc == 'www.tusclases.co'
+                 and parsed.path.rstrip('/') == '/anunciarse/profesor-particular'
+                 and not parsed.query and not parsed.fragment)
+    if tusclases:
+        adapter = 'tusclases_teacher_wizard_readonly'
     fields = fields if isinstance(fields, list) else []
     inspected = []
     for field in fields[:45]:
@@ -73,6 +83,8 @@ def classify_application_form(url, fields, *, challenge=False, source_blocked=Fa
         state = 'requires_human_challenge'
     elif adapter == 'unsupported':
         state = 'unsupported_source'
+    elif tusclases:
+        state = 'needs_interactive_form_inspection'
     elif incomplete_metadata or not form_visible or not inspected:
         state = 'needs_interactive_form_inspection'
     elif required_phone or required_cv or legal_review:
