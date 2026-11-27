@@ -2,7 +2,7 @@ name: SJM Executor - safe preflight regression (no submissions)
 on:
   workflow_dispatch:
   push:
-    branches: [sjm-executor-render]
+    branches: [sjm-executor-render, 'lab/tusclases-readonly-20261126']
     paths:
       - 'sjm-executor/applicant.py'
       - 'sjm-executor/form_adapter.py'
