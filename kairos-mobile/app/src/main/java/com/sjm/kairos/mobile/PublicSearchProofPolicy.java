@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 final class PublicSearchProofPolicy {
     static final String BAR="id:com.android.chrome:id/url_bar";
     static final String QUERY="PRUEBA KAIROS 360";
+    static final String TEST_URL="https://www.google.com/search?q=PRUEBA+KAIROS+360";
     static boolean matchesAddress(CharSequence text){
         if(text==null||text.length()>2048)return false;
         try{

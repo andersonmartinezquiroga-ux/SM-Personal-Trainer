@@ -596,6 +596,12 @@ final class AppWorkflowEngine {
         String action=step.optString("action","");
         String selector=step.optString("selector","");
         String value=step.optString("value","");
+        // Submit only the existing exact public test, after verified local writing.
+        // No IME submission followed by a second navigation.
+        if("ime_search".equals(action)&&index==2&&isExactPublicSearchTest()){
+            submitExactPublicSearch(root);
+            return;
+        }
         boolean accepted=false;
         long delay=550L;
         try{
@@ -796,6 +802,28 @@ final class AppWorkflowEngine {
     }
     /** Local bounded observation only: no repeated submission, focus changes,
      * raw screen text, or unrelated results exported to the server. */
+    private AccessibilityNodeInfo exactSearchBar(AccessibilityNodeInfo root){
+        if(root==null)return null;
+        java.util.List<AccessibilityNodeInfo> bars=root.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar");
+        if(bars==null||bars.size()!=1)return null;
+        AccessibilityNodeInfo bar=bars.get(0);
+        return bar.isVisibleToUser()&&bar.isEnabled()&&!bar.isPassword()&&
+            "com.android.chrome".equals(String.valueOf(bar.getPackageName()))?bar:null;
+    }
+    private void submitExactPublicSearch(AccessibilityNodeInfo root){
+        if(!diagnosticContextAllowed()){finish(false,"PUBLIC_SEARCH_CONTEXT_INTERRUPTED");return;}
+        try{
+            AccessibilityNodeInfo bar=exactSearchBar(root);
+            if(bar==null||!bar.isEditable()||!PublicSearchProofPolicy.isCompactQuery(bar.getText())){
+                finish(false,"PUBLIC_SEARCH_WRITE_STATE_CHANGED_BEFORE_SUBMISSION");return;
+            }
+            Intent open=new Intent(Intent.ACTION_VIEW,Uri.parse(PublicSearchProofPolicy.TEST_URL));
+            open.setPackage("com.android.chrome");
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            service.startActivity(open);
+            handler.postDelayed(()->verifyPublicSearchResult(0),1200L);
+        }catch(RuntimeException e){finish(false,"PUBLIC_SEARCH_EXPLICIT_LAUNCH_DENIED");}
+    }
     private void verifyPublicSearchResult(int attempt){
         if(finished)return;
         if(!diagnosticContextAllowed()){finish(false,"PUBLIC_SEARCH_CONTEXT_INTERRUPTED");return;}
@@ -804,7 +832,7 @@ final class AppWorkflowEngine {
         int tabs=0;
         if(root!=null){
             try{
-                AccessibilityNodeInfo bar=findOne(root,PublicSearchProofPolicy.BAR,false);
+                AccessibilityNodeInfo bar=exactSearchBar(root);
                 if(bar!=null&&!bar.isFocused()&&!bar.isPassword()){
                     address=PublicSearchProofPolicy.matchesAddress(bar.getText());
                     compact=PublicSearchProofPolicy.isCompactQuery(bar.getText());
@@ -836,7 +864,7 @@ final class AppWorkflowEngine {
                 }
             }catch(RuntimeException ignored){}
         }
-        if(attempt>=10){finish(false,PublicSearchProofPolicy.failure(address,compact,heading,tabs));return;}
+        if(attempt>=16){finish(false,PublicSearchProofPolicy.failure(address,compact,heading,tabs));return;}
         handler.postDelayed(()->verifyPublicSearchResult(attempt+1),650L);
     }
 
