@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.36' and int(code)>=39, (version,code)
+          assert version=='0.3.37' and int(code)==40, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -173,12 +173,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.36-supabase'
+          tag='kairos-mobile-v0.3.37-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.36-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.37-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.36-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.36 · lectura compatible SJM'               --notes 'Versión 0.3.36 (versionCode 39): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.37-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.37 · controles accesibles y avisos comprobables'               --notes 'Versión 0.3.37 (versionCode 40): reconocimiento exacto por texto o descripción accesible y comprobación local del registro de notificaciones. Las pruebas de laboratorio no certifican funcionamiento físico en Motorola; requiere validación real.'               --prerelease
           fi
