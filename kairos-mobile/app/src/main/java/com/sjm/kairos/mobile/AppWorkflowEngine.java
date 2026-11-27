@@ -91,6 +91,7 @@ final class AppWorkflowEngine {
     }
     private void verifyChromeScroll(int index,int attempt){
         if(finished)return;
+        if(fixtureActive){verifyScrollFixture(attempt);return;}
         if(CommandReceiptStore.isPaused(service) || isCommunicationActive() || foreground()==null){
             finish(false,"CHROME_SCROLL_CONTEXT_CHANGED");return;
         }
@@ -140,7 +141,7 @@ final class AppWorkflowEngine {
             String selector=step.optString("selector","");
             String value=step.optString("value","");
             if(!AppWorkflowPolicy.isAllowedStep(action,selector,value))return false;
-            if(("verify_sjm_diagnostic".equals(action) || "run_sjm_diagnostic".equals(action)) &&
+            if(("verify_sjm_diagnostic".equals(action) || "run_sjm_diagnostic".equals(action) || "run_sjm_scroll_fixture".equals(action)) &&
                (!"com.android.chrome".equals(target) || sequence.length()!=1))return false;
             if(("youtube_play_video".equals(action) ||
                  "youtube_search_play".equals(action)) &&
@@ -170,6 +171,9 @@ final class AppWorkflowEngine {
         if(onlyStep!=null && "youtube_search_play".equals(onlyStep.optString("action",""))){
             worker.searchAndPlayYoutube(onlyStep.optString("value",""));
             return;
+        }
+        if(onlyStep!=null && "run_sjm_scroll_fixture".equals(onlyStep.optString("action",""))){
+            worker.startScrollFixture();return;
         }
         if(onlyStep!=null && "run_sjm_diagnostic".equals(onlyStep.optString("action",""))){
             worker.startOwnedDiagnostic();return;
@@ -442,6 +446,79 @@ final class AppWorkflowEngine {
     private boolean diagnosticContextAllowed(){
         return !finished && !CommandReceiptStore.isPaused(service) && !isCommunicationActive();
     }
+    private boolean fixtureActive=false;
+    private AccessibilityNodeInfo fixtureWeb;
+    private int fixtureWindow=-1;
+    private int fixtureAddressState(AccessibilityNodeInfo root){
+        if(root==null)return -1;
+        try{
+            java.util.List<AccessibilityNodeInfo> bars=root.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar");
+            if(bars==null||bars.isEmpty())return 0;
+            if(bars.size()!=1)return -1;
+            AccessibilityNodeInfo bar=bars.get(0);
+            if(bar.isPassword()||bar.isFocused()||!"com.android.chrome".equals(String.valueOf(bar.getPackageName())))return -1;
+            if(!bar.isVisibleToUser())return 0;
+            return OwnedUrlProofPolicy.matches(OwnedScrollFixturePolicy.URL,bar.getText()==null?"":bar.getText().toString())?1:-1;
+        }catch(RuntimeException e){return -1;}
+    }
+    private int fixtureMarkers(AccessibilityNodeInfo root){
+        if(root==null)return -1;
+        ArrayDeque<AccessibilityNodeInfo> q=new ArrayDeque<>();
+        q.add(root);int inspected=0,mask=0;
+        while(!q.isEmpty()&&inspected++<500){
+            AccessibilityNodeInfo n=q.removeFirst();
+            if(n.isPassword()||!"com.android.chrome".equals(String.valueOf(n.getPackageName())))continue;
+            if(n.isVisibleToUser()&&!n.isEditable()&&insideChromeWebView(n)){
+                mask|=OwnedScrollFixturePolicy.marker(n.getText())|OwnedScrollFixturePolicy.marker(n.getContentDescription());
+            }
+            for(int j=0;j<n.getChildCount();j++){
+                AccessibilityNodeInfo child=n.getChild(j);
+                if(child!=null){if(q.size()>=500)return -1;q.addLast(child);}
+            }
+        }
+        return q.isEmpty()?mask:-1;
+    }
+    private void startScrollFixture(){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_SCROLL_CONTEXT_INTERRUPTED");return;}
+        try{
+            Intent open=new Intent(Intent.ACTION_VIEW,Uri.parse(OwnedScrollFixturePolicy.URL));
+            open.setPackage("com.android.chrome");
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            service.startActivity(open);
+            handler.postDelayed(()->awaitScrollFixture(0),1200L);
+        }catch(RuntimeException e){finish(false,"SJM_SCROLL_FIXTURE_LAUNCH_DENIED");}
+    }
+    private void awaitScrollFixture(int attempt){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_SCROLL_CONTEXT_INTERRUPTED");return;}
+        AccessibilityNodeInfo root=foreground();
+        if(root!=null&&fixtureAddressState(root)==1&&fixtureMarkers(root)==1){
+            AccessibilityNodeInfo web=findUniqueVisibleChromeWebView(root);
+            if(web!=null){
+                fixtureActive=true;fixtureWeb=web;fixtureWindow=root.getWindowId();
+                if(!dispatchChromeScroll(0,true))finish(false,"SJM_SCROLL_FIXTURE_GESTURE_NOT_ACCEPTED");
+                return;
+            }
+        }
+        if(attempt>=12){finish(false,"SJM_SCROLL_FIXTURE_INITIAL_STATE_UNVERIFIED");return;}
+        handler.postDelayed(()->awaitScrollFixture(attempt+1),650L);
+    }
+    private void verifyScrollFixture(int attempt){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_SCROLL_CONTEXT_INTERRUPTED");return;}
+        AccessibilityNodeInfo root=foreground();
+        if(root==null||root.getWindowId()!=fixtureWindow){finish(false,"SJM_SCROLL_FIXTURE_WINDOW_CHANGED");return;}
+        int address=fixtureAddressState(root);
+        if(address<0){finish(false,"SJM_SCROLL_FIXTURE_ADDRESS_CHANGED");return;}
+        AccessibilityNodeInfo web=findUniqueVisibleChromeWebView(root);
+        // Initial exact URL and marker observed before a single gesture.
+        // When Chrome hides its toolbar require the identical web node and window.
+        boolean same=web!=null&&web.equals(fixtureWeb);
+        if(OwnedScrollFixturePolicy.proven(address,same,fixtureMarkers(root))){
+            finish(true,"SJM_SCROLL_FIXTURE_DOWN_MARKER_OBSERVED");return;
+        }
+        if(attempt>=12){finish(false,"SJM_SCROLL_FIXTURE_MOVEMENT_UNVERIFIED");return;}
+        handler.postDelayed(()->verifyScrollFixture(attempt+1),400L);
+    }
+
     private boolean exactDiagnosticUrl(AccessibilityNodeInfo root){
         if(root==null)return false;
         try{
