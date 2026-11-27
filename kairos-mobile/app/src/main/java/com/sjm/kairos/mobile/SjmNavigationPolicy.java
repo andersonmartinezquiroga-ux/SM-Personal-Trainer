@@ -39,7 +39,7 @@ public final class SjmNavigationPolicy {
                 && uri.getUserInfo() == null
                 && uri.getRawQuery() == null
                 && uri.getRawFragment() == null
-                && ((HOST.equalsIgnoreCase(uri.getHost()) && PAGES.contains(uri.getRawPath()))
+                && (OwnedScrollFixturePolicy.URL.equals(url) || (HOST.equalsIgnoreCase(uri.getHost()) && PAGES.contains(uri.getRawPath()))
                     || (uri.getHost() != null
                         && VERIFIED_ROOT_HOSTS.contains(uri.getHost().toLowerCase(java.util.Locale.ROOT))
                         && "/".equals(uri.getRawPath())));
