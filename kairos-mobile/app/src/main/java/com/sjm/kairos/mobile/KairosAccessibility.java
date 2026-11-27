@@ -460,6 +460,10 @@ public class KairosAccessibility extends AccessibilityService {
                         });
                         return;
                     }
+                    if("notify".equals(command.optString("type",""))) {
+                        startVerifiedNotification(key,commandId,command.optJSONObject("payload"));
+                        return;
+                    }
                     String result=executeCommand(command);
                     if("open_app".equals(command.optString("type",""))) {
                         JSONObject body=command.optJSONObject("payload");
@@ -623,31 +627,65 @@ public class KairosAccessibility extends AccessibilityService {
         }
     }
 
+    /** One notification per server job, with local OS registration evidence only. */
+    private void startVerifiedNotification(String key,String commandId,JSONObject payload){
+        NotificationManager manager=getSystemService(NotificationManager.class);
+        if(manager==null || !manager.areNotificationsEnabled()){
+            storeAndConfirm(key,commandId,"failed","NOTIFICATIONS_DISABLED");return;
+        }
+        if(payload==null){storeAndConfirm(key,commandId,"failed","NOTIFICATION_PAYLOAD_INVALID");return;}
+        String message=payload.optString("message","");
+        if(message.length()<3 || message.length()>280){
+            storeAndConfirm(key,commandId,"failed","NOTIFICATION_PAYLOAD_INVALID");return;
+        }
+        boolean silent=hasActiveCommunication();
+        String channel=silent?SILENT_ALERT_CHANNEL:ALERT_CHANNEL;
+        NotificationChannel configured=manager.getNotificationChannel(channel);
+        if(configured==null || configured.getImportance()==NotificationManager.IMPORTANCE_NONE){
+            storeAndConfirm(key,commandId,"failed","NOTIFICATION_CHANNEL_DISABLED");return;
+        }
+        if(silent)CommandReceiptStore.markBridge(this,"VOICE_NOTIFY_SILENT");
+        String tag=OwnNotificationProof.tag(commandId);
+        Notification n=new Notification.Builder(this,channel)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("KAIRÓS 360 · Aviso")
+            .setContentText(message)
+            .setStyle(new Notification.BigTextStyle().bigText(message))
+            .setAutoCancel(true).build();
+        verifyingForeground=true;
+        try{
+            manager.notify(tag,OwnNotificationProof.ID,n);
+            verifyPostedNotification(key,commandId,tag,channel,0);
+        }catch(RuntimeException e){
+            verifyingForeground=false;
+            storeAndConfirm(key,commandId,"failed","NOTIFICATION_POST_REJECTED");
+        }
+    }
+    private void verifyPostedNotification(String key,String commandId,String tag,String channel,int attempt){
+        handler.postDelayed(()->{
+            if(!active || !verifyingForeground)return;
+            try{
+                NotificationManager manager=getSystemService(NotificationManager.class);
+                if(manager!=null && manager.areNotificationsEnabled()){
+                    for(android.service.notification.StatusBarNotification item:manager.getActiveNotifications()){
+                        if(OwnNotificationProof.matches(getPackageName(),tag,channel,
+                           item.getPackageName(),item.getTag(),item.getId(),item.getNotification().getChannelId())){
+                            verifyingForeground=false;
+                            storeAndConfirm(key,commandId,"completed","OWN_NOTIFICATION_OS_REGISTERED_USER_VIEW_UNVERIFIED");return;
+                        }
+                    }
+                }
+            }catch(RuntimeException ignored){}
+            if(attempt<4){verifyPostedNotification(key,commandId,tag,channel,attempt+1);return;}
+            verifyingForeground=false;
+            storeAndConfirm(key,commandId,"failed","NOTIFICATION_REQUESTED_OS_REGISTRATION_UNVERIFIED");
+        },350L);
+    }
+
     private String executeCommand(JSONObject command) throws Exception {
         String type=command.optString("type","");
         JSONObject payload=command.optJSONObject("payload");
         if(payload==null)throw new SecurityException("Sin datos");
-        if(type.equals("notify")){
-            // No afirmar entrega cuando Android tiene los avisos deshabilitados.
-            NotificationManager notificationManager=getSystemService(NotificationManager.class);
-            if (notificationManager == null || !notificationManager.areNotificationsEnabled())
-                throw new IllegalStateException("Notificaciones deshabilitadas en Android");
-            // Las alertas durante voz son visibles pero no hacen sonido ni
-            // interrumpen al usuario. Las órdenes de navegación siguen diferidas.
-            boolean silentDuringVoice=hasActiveCommunication();
-            if(silentDuringVoice)
-                CommandReceiptStore.markBridge(this,"VOICE_NOTIFY_SILENT");
-            String message=payload.optString("message","");
-            if(message.length()<3 || message.length()>280)throw new SecurityException("Texto no permitido");
-            Notification n=new Notification.Builder(this,silentDuringVoice?SILENT_ALERT_CHANNEL:ALERT_CHANNEL)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("KAIRÓS 360 · Aviso")
-                .setContentText(message)
-                .setStyle(new Notification.BigTextStyle().bigText(message))
-                .setAutoCancel(true).build();
-            notificationManager.notify((int)(System.currentTimeMillis()%20000)+202,n);
-            return "Aviso solicitado al sistema de notificaciones Android";
-        }
         if(type.equals("open_app")){
             String pkg=payload.optString("package","");
             if(!SjmNavigationPolicy.isAllowedApp(pkg))

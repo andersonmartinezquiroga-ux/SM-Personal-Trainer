@@ -25,9 +25,10 @@ jobs:
           mkdir -p build/policy-test
           P=app/src/main/java/com/sjm/kairos/mobile
           T=app/src/test/java/com/sjm/kairos/mobile
-          javac -d build/policy-test "$P/OwnedDiagnosticControlPolicy.java" "$T/OwnedDiagnosticControlPolicySelfTest.java" "$P/OwnedDiagnosticProof.java" "$P/AppWorkflowPolicy.java" "$T/OwnedDiagnosticProofSelfTest.java"
+          javac -d build/policy-test "$P/OwnNotificationProof.java" "$T/OwnNotificationProofSelfTest.java" "$P/OwnedDiagnosticControlPolicy.java" "$T/OwnedDiagnosticControlPolicySelfTest.java" "$P/OwnedDiagnosticProof.java" "$P/AppWorkflowPolicy.java" "$T/OwnedDiagnosticProofSelfTest.java"
           java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticControlPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticProofSelfTest
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnNotificationProofSelfTest
       - name: Preparar SDK Android
         shell: bash
         run: |
