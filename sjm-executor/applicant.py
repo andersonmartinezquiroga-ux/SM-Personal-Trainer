@@ -461,6 +461,64 @@ def public_field_metadata(node):
     }""".replace("\\s","\\\\s"))
 
 
+def visible_tusclases_wizard_fields(page):
+    """Bounded public metadata only; exclude hidden, disabled and action controls."""
+    return page.evaluate("""() => {
+      const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
+      return inputs.filter(el => el.getClientRects().length &&
+        getComputedStyle(el).visibility !== 'hidden' && !el.disabled &&
+        el.getAttribute('aria-disabled') !== 'true' &&
+        !['hidden','submit','button','reset','password','file'].includes((el.type||'').toLowerCase())
+      ).slice(0,45).map(el => ({
+        name: (el.getAttribute('name')||el.id||'').slice(0,90),
+        type: (el.getAttribute('type')||el.tagName.toLowerCase()).slice(0,32),
+        label: (el.getAttribute('aria-label')||
+          Array.from(el.labels||[]).map(l=>l.innerText).join(' ')||
+          el.getAttribute('placeholder')||'').trim().slice(0,120),
+        required: el.hasAttribute('required')||el.getAttribute('aria-required')==='true',
+        identity:el.getAttribute('name')?'name':el.id?'id':'unidentified',
+        custom_choice: el.getAttribute('role')==='combobox'||el.hasAttribute('aria-autocomplete'),
+        visible:true,enabled:true
+      }));
+    }""")
+
+
+def tusclases_local_text_probe(page, context):
+    """Verify the two observed non-personal fields using synthetic text offline."""
+    result={"offline":False,"verified_field_names":[],"external_submission":False}
+    context.set_offline(True)
+    context.route("**/*",lambda route:route.abort())
+    result["offline"]=True
+    targets={
+        "ctl00$m$txttitulo":("input",'SJM offline diagnostic'),
+        "ctl00$m$txtdescripcion":("textarea",'Synthetic local draft, never published.')
+    }
+    forms=[f for f in page.locator("form").all() if f.is_visible()]
+    if len(forms)!=1:
+        result["status"]="visible_form_not_unique"
+        return result
+    form=forms[0]
+    try:
+        for name,(tag,value) in targets.items():
+            node=form.locator(f'{tag}[name="{name}"]')
+            if node.count()!=1 or not node.is_visible() or not node.is_enabled():
+                result["status"]="field_missing_or_ambiguous"
+                return result
+            if tag=="input" and (node.get_attribute("type") or "text").lower()!="text":
+                result["status"]="unexpected_field_type"
+                return result
+        for name,(tag,value) in targets.items():
+            form.locator(f'{tag}[name="{name}"]').fill(value,timeout=1500)
+        result["verified_field_names"]=[
+            name for name,(tag,value) in targets.items()
+            if form.locator(f'{tag}[name="{name}"]').input_value(timeout=1500)==value
+        ]
+        result["status"]="local_text_verified" if len(result["verified_field_names"])==2 else "partial_readback"
+    except PlaywrightTimeoutError:
+        result["status"]="local_field_action_timeout"
+    return result
+
+
 def inspect_local_combobox_choices(page, name):
     """Read a bounded public option list from an offline, unfilled form."""
     forms=[f for f in page.locator("form").all() if f.is_visible()]
@@ -723,8 +781,16 @@ def inspect(url, fields=None):
             result["public_optional_marketing_prechecked"]=observed["optional_marketing_checked"]
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
-        for node in page.locator("input, select, textarea").all()[:45]:
-            result["fields"].append(public_field_metadata(node))
+        if (url=="https://www.tusclases.co/anunciarse/profesor-particular"
+                and urlparse(page.url).hostname=="www.tusclases.co"
+                and urlparse(page.url).path.rstrip("/") == "/anunciarse/profesor-particular"
+                and not result["challenge_detected"] and not result["source_access_blocked"]):
+            # Do not let hidden wizard fields consume the first 45 controls.
+            # This is a public initial-step snapshot, not full-form evidence.
+            result["fields"]=visible_tusclases_wizard_fields(page)
+        else:
+            for node in page.locator("input, select, textarea").all()[:45]:
+                result["fields"].append(public_field_metadata(node))
         # Only public field names/labels are collected. Never return or persist entered values.
         # This lets Control 360 stop BEFORE requesting forbidden personal details.
         result["required_fields"]=[
@@ -792,6 +858,12 @@ def inspect(url, fields=None):
             form_visible=result["application_form_visible"],
             required_cv_hint=result["required_cv"] if source=="jobs.lever.co" else False
         )
+        if (url=="https://www.tusclases.co/anunciarse/profesor-particular"
+                and page.url.rstrip("/") == url and not fields
+                and result["application_form_visible"]
+                and not result["challenge_detected"] and not result["source_access_blocked"]):
+            # Local readback diagnostic only. No login, terms, identity, submit or publish.
+            result["tusclases_text_probe"]=tusclases_local_text_probe(page,ctx)
         if source in ("job-boards.greenhouse.io","job-boards.eu.greenhouse.io") and not fields and result["application_form_visible"]:
             ctx.set_offline(True)
             ctx.route("**/*",lambda route:route.abort())

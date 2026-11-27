@@ -150,6 +150,52 @@ class LocalAttachmentTests(unittest.TestCase):
                 browser.close()
 
 class LocalWizardTests(unittest.TestCase):
+    def test_tusclases_exact_text_probe_offline_no_submission(self):
+        from applicant import tusclases_local_text_probe
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form><input name="ctl00$m$txttitulo"><textarea name="ctl00$m$txtdescripcion"></textarea>'
+                    '<input name="ctl00$m$txtemail"><input type="checkbox" name="ctl00$m$chkcondiciones">'
+                    '<button type="submit">Publicar</button></form>')
+                out=tusclases_local_text_probe(page,ctx)
+                self.assertEqual(out["status"],"local_text_verified")
+                self.assertEqual(len(out["verified_field_names"]),2)
+                self.assertTrue(out["offline"])
+                self.assertFalse(out["external_submission"])
+                self.assertEqual(page.locator('input[name="ctl00$m$txtemail"]').input_value(),"")
+                self.assertFalse(page.locator('input[type="checkbox"]').is_checked())
+            finally:
+                ctx.close()
+                browser.close()
+
+
+    def test_tusclases_visible_metadata_skips_hidden_and_values(self):
+        from applicant import visible_tusclases_wizard_fields
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True,args=["--no-sandbox"])
+            ctx=browser.new_context(offline=True,service_workers="block")
+            try:
+                page=ctx.new_page()
+                page.set_content('<form>' + '<input type="hidden" name="token" value="SECRET">'*60 +
+                    '<label>Title<input name="title" required value="PRIVATE"></label>'
+                    '<input name="hidden" style="display:none">'
+                    '<input name="password" type="password">'
+                    '<input name="disabled" disabled>'
+                    '<button type="submit">Publish</button></form>')
+                rows=visible_tusclases_wizard_fields(page)
+                self.assertEqual([row["name"] for row in rows],["title"])
+                self.assertTrue(rows[0]["required"])
+                self.assertNotIn("PRIVATE",str(rows))
+                self.assertNotIn("SECRET",str(rows))
+            finally:
+                ctx.close()
+                browser.close()
+
     def test_reviewed_transition_idempotent_and_no_submission(self):
         from applicant import advance_isolated_form_step
         from playwright.sync_api import sync_playwright
