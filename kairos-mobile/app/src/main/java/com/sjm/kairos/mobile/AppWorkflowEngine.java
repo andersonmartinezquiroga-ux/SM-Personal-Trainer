@@ -794,35 +794,49 @@ final class AppWorkflowEngine {
             PublicSearchProofPolicy.BAR.equals(b.optString("selector"))&&PublicSearchProofPolicy.QUERY.equals(b.optString("value"))&&
             "ime_search".equals(c.optString("action"))&&PublicSearchProofPolicy.BAR.equals(c.optString("selector"));
     }
+    /** Local bounded observation only: no repeated submission, focus changes,
+     * raw screen text, or unrelated results exported to the server. */
     private void verifyPublicSearchResult(int attempt){
         if(finished)return;
         if(!diagnosticContextAllowed()){finish(false,"PUBLIC_SEARCH_CONTEXT_INTERRUPTED");return;}
         AccessibilityNodeInfo root=foreground();
+        boolean address=false,compact=false,heading=false;
+        int tabs=0;
         if(root!=null){
             try{
                 AccessibilityNodeInfo bar=findOne(root,PublicSearchProofPolicy.BAR,false);
-                if(bar!=null&&!bar.isFocused()&&!bar.isPassword()&&
-                    PublicSearchProofPolicy.matchesAddress(bar.getText())){
-                    ArrayDeque<AccessibilityNodeInfo> queue=new ArrayDeque<>();
-                    queue.add(root);
-                    int count=0;
-                    while(!queue.isEmpty()&&count++<500){
-                        AccessibilityNodeInfo n=queue.removeFirst();
-                        if(!target.equals(String.valueOf(n.getPackageName()))||n.isPassword())continue;
-                        if(n.isVisibleToUser()&&!n.isEditable()&&insideChromeWebView(n)&&
-                            (PublicSearchProofPolicy.isResultHeading(n.getText())||
-                             PublicSearchProofPolicy.isResultHeading(n.getContentDescription()))){
-                            finish(true,"PUBLIC_SEARCH_TYPED_READBACK_AND_RESULT_HEADING_OBSERVED");return;
-                        }
-                        for(int i=0;i<n.getChildCount();i++){
-                            AccessibilityNodeInfo child=n.getChild(i);
-                            if(child!=null&&queue.size()<500)queue.addLast(child);
+                if(bar!=null&&!bar.isFocused()&&!bar.isPassword()){
+                    address=PublicSearchProofPolicy.matchesAddress(bar.getText());
+                    compact=PublicSearchProofPolicy.isCompactQuery(bar.getText());
+                }
+                ArrayDeque<AccessibilityNodeInfo> queue=new ArrayDeque<>();
+                queue.add(root);
+                int count=0;
+                while(!queue.isEmpty()&&count++<500){
+                    AccessibilityNodeInfo n=queue.removeFirst();
+                    if(!target.equals(String.valueOf(n.getPackageName()))||n.isPassword())continue;
+                    if(n.isVisibleToUser()&&!n.isEditable()&&insideChromeWebView(n)){
+                        heading|=PublicSearchProofPolicy.isResultHeading(n.getText())||
+                                 PublicSearchProofPolicy.isResultHeading(n.getContentDescription());
+                        tabs|=PublicSearchProofPolicy.resultTabMask(n.getText())|
+                              PublicSearchProofPolicy.resultTabMask(n.getContentDescription());
+                    }
+                    for(int j=0;j<n.getChildCount();j++){
+                        AccessibilityNodeInfo child=n.getChild(j);
+                        if(child!=null){
+                            if(queue.size()>=500){finish(false,"PUBLIC_SEARCH_TREE_LIMIT");return;}
+                            queue.addLast(child);
                         }
                     }
                 }
+                if(!queue.isEmpty()){finish(false,"PUBLIC_SEARCH_TREE_LIMIT");return;}
+                if(PublicSearchProofPolicy.isVerified(address,heading,tabs)){
+                    finish(true,heading?"PUBLIC_SEARCH_TYPED_READBACK_AND_RESULT_HEADING_OBSERVED":
+                        "PUBLIC_SEARCH_TYPED_READBACK_AND_RESULT_TABS_OBSERVED");return;
+                }
             }catch(RuntimeException ignored){}
         }
-        if(attempt>=10){finish(false,"PUBLIC_SEARCH_DESTINATION_OR_RESULT_HEADING_UNVERIFIED");return;}
+        if(attempt>=10){finish(false,PublicSearchProofPolicy.failure(address,compact,heading,tabs));return;}
         handler.postDelayed(()->verifyPublicSearchResult(attempt+1),650L);
     }
 

@@ -1,0 +1,29 @@
+name: KAIRÓS · laboratorio prueba búsqueda
+on:
+  push:
+    branches: [kairos-lab-search-observation-0338]
+permissions:
+  contents: read
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: kairos-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verificar evidencia exacta de resultados
+        run: |
+          mkdir -p build/policy-test
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/PublicSearchProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/PublicSearchProofPolicySelfTest.java
+          java -cp build/policy-test com.sjm.kairos.mobile.PublicSearchProofPolicySelfTest
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compilar Android sin publicación
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac

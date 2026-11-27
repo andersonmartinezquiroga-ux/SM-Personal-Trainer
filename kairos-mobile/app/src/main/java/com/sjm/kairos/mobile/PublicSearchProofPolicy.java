@@ -29,4 +29,25 @@ final class PublicSearchProofPolicy {
     static boolean isResultHeading(CharSequence text){
         return text!=null&&("Resultados de búsqueda".contentEquals(text)||"Search results".contentEquals(text));
     }
+    static boolean isCompactQuery(CharSequence text){return text!=null&&QUERY.contentEquals(text);}
+    static int resultTabMask(CharSequence text){
+        if(text==null)return 0;
+        String label=text.toString();
+        switch(label){
+            case "Todos":case "All":return 1;
+            case "Imágenes":case "Images":return 2;
+            case "Videos":case "Vídeos":return 4;
+            case "Noticias":case "News":return 8;
+            case "Herramientas":case "Tools":return 16;
+            default:return 0;
+        }
+    }
+    static boolean isVerified(boolean address,boolean heading,int tabs){
+        return address&&(heading||Integer.bitCount(tabs&31)>=3);
+    }
+    static String failure(boolean address,boolean compact,boolean heading,int tabs){
+        if(!address&&compact)return "PUBLIC_SEARCH_COMPACT_QUERY_ADDRESS_UNVERIFIED";
+        if(!address)return "PUBLIC_SEARCH_EXACT_ADDRESS_UNVERIFIED";
+        return "PUBLIC_SEARCH_ADDRESS_OBSERVED_RESULT_CONTENT_UNVERIFIED";
+    }
 }
