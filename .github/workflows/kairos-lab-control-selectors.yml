@@ -1,0 +1,42 @@
+name: KAIRÓS · validación de laboratorio sin publicación
+on:
+  push:
+    branches: [kairos-lab-control-selectors-0336]
+    paths: ['kairos-mobile/**', '.github/workflows/kairos-lab-control-selectors.yml']
+permissions:
+  contents: read
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: kairos-mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Probar reconocimiento exacto de controles e informes
+        run: |
+          mkdir -p build/policy-test
+          P=app/src/main/java/com/sjm/kairos/mobile
+          T=app/src/test/java/com/sjm/kairos/mobile
+          javac -d build/policy-test "$P/OwnedDiagnosticControlPolicy.java" "$T/OwnedDiagnosticControlPolicySelfTest.java" "$P/OwnedDiagnosticProof.java" "$P/AppWorkflowPolicy.java" "$T/OwnedDiagnosticProofSelfTest.java"
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticControlPolicySelfTest
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticProofSelfTest
+      - name: Preparar SDK Android
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Compilar código Android de laboratorio
+        run: gradle --no-daemon :app:compileDebugJavaWithJavac
