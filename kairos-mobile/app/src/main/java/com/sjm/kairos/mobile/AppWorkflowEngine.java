@@ -486,6 +486,7 @@ final class AppWorkflowEngine {
         }
         AccessibilityNodeInfo root=foreground();
         if(root==null){finish(false,"SJM_DIAGNOSTIC_CHROME_NOT_VISIBLE");return;}
+        String reason="SJM_DIAGNOSTIC_REPORT_NOT_VERIFIED";
         try{
             java.util.List<AccessibilityNodeInfo> bars=root.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar");
             if(bars==null || bars.size()!=1){finish(false,"SJM_DIAGNOSTIC_DESTINATION_UNVERIFIED");return;}
@@ -506,6 +507,8 @@ final class AppWorkflowEngine {
                 if(n.isVisibleToUser() && !n.isEditable() && insideChromeWebView(n)){
                     CharSequence t=n.getText();
                     if(t!=null && t.length()<=1800)proof.observe(t.toString());
+                    CharSequence d=n.getContentDescription();
+                    if(d!=null && d.length()<=1800)proof.observe(d.toString());
                 }
                 for(int i=0;i<n.getChildCount();i++){
                     AccessibilityNodeInfo child=n.getChild(i);
@@ -513,12 +516,13 @@ final class AppWorkflowEngine {
                 }
             }
             String receipt=proof.receipt();
+            reason=(!nodes.isEmpty() || truncated)?"SJM_DIAGNOSTIC_TREE_LIMIT":proof.failureCode();
             if(receipt!=null && nodes.isEmpty() && !truncated && diagnosticContextAllowed() && exactDiagnosticUrl(foreground())){
                 finish(true,receipt);return;
             }
         }catch(RuntimeException ignored){}
         if(attempt<5){handler.postDelayed(()->verifySjmDiagnostic(attempt+1),500L);return;}
-        finish(false,"SJM_DIAGNOSTIC_REPORT_NOT_VERIFIED");
+        finish(false,reason);
     }
     private boolean insideChromeWebView(AccessibilityNodeInfo node){
         for(int depth=0;node!=null && depth<16;depth++){

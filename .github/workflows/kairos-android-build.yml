@@ -40,7 +40,7 @@ jobs:
           gradle=(root/'build.gradle').read_text()
           version=re.search(r"versionName\s+'([^']+)'",gradle).group(1)
           code=re.search(r"versionCode\s+(\d+)",gradle).group(1)
-          assert version=='0.3.35' and int(code)>=38, (version,code)
+          assert version=='0.3.36' and int(code)>=39, (version,code)
           files=[
               root/'src/main/java/com/sjm/kairos/mobile/MainActivity.java',
               root/'src/main/java/com/sjm/kairos/mobile/KairosAccessibility.java'
@@ -90,7 +90,8 @@ jobs:
           assert 'return queue.isEmpty()?found:null;' in engine
           assert 'verifySjmDiagnostic' in engine and 'OwnedDiagnosticProof.URL' in engine
           assert 'startOwnedDiagnostic' in engine and 'advanceOwnedDiagnostic' in engine and 'verifySjmDiagnostic(0),400L' in engine
-          print('OWNED_DIAGNOSTIC_0335 source guards PASS')
+          assert 'getContentDescription()' in engine and 'SJM_DIAGNOSTIC_TREE_LIMIT' in engine
+          print('OWNED_DIAGNOSTIC_0336 source guards PASS')
           print('OWNED_DESTINATION_0333 source guards PASS')
           print('CHROME_SCROLL_0332 source guards PASS')
           print('NAVIGATION_READBACK_0327 source guards PASS')
@@ -159,7 +160,7 @@ jobs:
         run: rm -f release-signing.p12 build/signing-response.json
       - uses: actions/upload-artifact@v4
         with:
-          name: KairosMobile-release-APK-V0335
+          name: KairosMobile-release-APK-V0336
           path: kairos-mobile/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
@@ -170,12 +171,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag='kairos-mobile-v0.3.35-supabase'
+          tag='kairos-mobile-v0.3.36-supabase'
           apk='app/build/outputs/apk/release/app-release.apk'
           test -s "$apk"
-          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.35-SUPABASE.apk'
+          cp "$apk" 'app/build/outputs/apk/release/KAIROS-Movil-0.3.36-SUPABASE.apk'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Publicación de esta versión ya existente; no duplicar."
           else
-            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.35-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.35 · diagnóstico continuo SJM'               --notes 'Versión 0.3.35 (versionCode 38): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
+            gh release create "$tag"               'app/build/outputs/apk/release/KAIROS-Movil-0.3.36-SUPABASE.apk'               --repo "$GITHUB_REPOSITORY"               --target "$GITHUB_SHA"               --title 'KAIRÓS Móvil 0.3.36 · lectura compatible SJM'               --notes 'Versión 0.3.36 (versionCode 39): conserva pantalla de aplicación ya activa, verifica escritura local sin repetir una acción aceptada, comprueba pausa y voz al finalizar y durante navegación multimedia. Habilita el permiso de gestos autorizado por el propietario; el único gesto implementado es desplazamiento vertical limitado a Chrome. Requiere compatibilidad de servidor y verificación en Motorola antes de declarar funcionalidad integral.'               --prerelease
           fi
