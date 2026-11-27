@@ -40,13 +40,17 @@ final class AppWorkflowEngine {
     private long scrollStartedAt;
     private boolean scrollDown;
     private boolean scrollObserved;
+    private AccessibilityNodeInfo scrollOffsetSource;
+    private int scrollPreviousY=-1,scrollPreviousMax=-1;
 
     private void armChromeScroll(boolean down){
         scrollDown=down; scrollObserved=false; scrollStartedAt=SystemClock.uptimeMillis();
+        scrollOffsetSource=null;scrollPreviousY=-1;scrollPreviousMax=-1;
         pendingChromeScroll=this;
     }
     private void disarmChromeScroll(){
         if(pendingChromeScroll==this)pendingChromeScroll=null;
+        scrollOffsetSource=null;scrollPreviousY=-1;scrollPreviousMax=-1;
     }
     static void observeScrollEvent(AccessibilityEvent event){
         AppWorkflowEngine worker=pendingChromeScroll;
@@ -54,16 +58,33 @@ final class AppWorkflowEngine {
            event.getEventType()!=AccessibilityEvent.TYPE_VIEW_SCROLLED ||
            !"com.android.chrome".contentEquals(event.getPackageName()==null?"":event.getPackageName()) ||
            android.os.Build.VERSION.SDK_INT<28)return;
-        if(!ScrollProofPolicy.matches(worker.scrollDown,event.getScrollDeltaY(),
-            event.getEventTime()-worker.scrollStartedAt))return;
+        long elapsed=event.getEventTime()-worker.scrollStartedAt;
+        if(elapsed<0||elapsed>4000)return;
         if(CommandReceiptStore.isPaused(worker.service) || worker.isCommunicationActive() ||
            worker.foreground()==null)return;
-        // Require a web-content event, not movement of Chrome's toolbar or keyboard.
-        AccessibilityNodeInfo source=event.getSource();
-        for(int depth=0;source!=null && depth<8;depth++){
-            if(!"com.android.chrome".contentEquals(source.getPackageName()==null?"":source.getPackageName()) || source.isPassword())return;
-            if("android.webkit.WebView".contentEquals(source.getClassName()==null?"":source.getClassName())){
-                worker.scrollObserved=true;return;
+        // Only movement inside Chrome web content. Never use toolbar events.
+        AccessibilityNodeInfo original=event.getSource();
+        AccessibilityNodeInfo source=original;
+        for(int depth=0;source!=null&&depth<16;depth++){
+            if(!"com.android.chrome".equals(String.valueOf(source.getPackageName()))||source.isPassword())return;
+            if("android.webkit.WebView".equals(String.valueOf(source.getClassName()))){
+                int dy=event.getScrollDeltaY(),y=event.getScrollY(),max=event.getMaxScrollY();
+                if(ScrollProofPolicy.matches(worker.scrollDown,dy,elapsed)){
+                    worker.scrollObserved=true;return;
+                }
+                // Some virtual web nodes report positions rather than delta.
+                // Require two samples from the identical source in this gesture,
+                // a stable valid extent, and directional change. No raw data exported.
+                if(original!=null&&original.equals(worker.scrollOffsetSource)&&
+                   ScrollProofPolicy.matchesPositions(worker.scrollDown,dy,worker.scrollPreviousY,y,worker.scrollPreviousMax,max,elapsed)){
+                    worker.scrollObserved=true;return;
+                }
+                if(y>=0&&max>0&&y<=max){
+                    worker.scrollOffsetSource=original;worker.scrollPreviousY=y;worker.scrollPreviousMax=max;
+                }else{
+                    worker.scrollOffsetSource=null;worker.scrollPreviousY=-1;worker.scrollPreviousMax=-1;
+                }
+                return;
             }
             source=source.getParent();
         }
@@ -77,7 +98,7 @@ final class AppWorkflowEngine {
             disarmChromeScroll(); actionRetryStep=-1;actionRetries=0;
             if(index+1>=steps.length())finish(true,"CHROME_SCROLL_DIRECTIONAL_WEB_EVENT_OBSERVED");
             else handler.postDelayed(()->executeStep(index+1),350L);
-        }else if(attempt<6){
+        }else if(attempt<10){
             handler.postDelayed(()->verifyChromeScroll(index,attempt+1),350L);
         }else{
             finish(false,"CHROME_SCROLL_GESTURE_COMPLETED_FOREGROUND_CONFIRMED_MOVEMENT_UNVERIFIED");
@@ -744,6 +765,26 @@ final class AppWorkflowEngine {
         handler.postDelayed(()->executeStep(index+1),delay);
     }
 
+    /** Resolve a single visible web container before any fallback gesture. */
+    private AccessibilityNodeInfo findUniqueVisibleChromeWebView(AccessibilityNodeInfo root){
+        if(root==null||!"com.android.chrome".equals(target))return null;
+        ArrayDeque<AccessibilityNodeInfo> queue=new ArrayDeque<>();
+        queue.add(root);AccessibilityNodeInfo web=null;int inspected=0;
+        while(!queue.isEmpty()&&inspected++<500){
+            AccessibilityNodeInfo n=queue.removeFirst();
+            if(!target.equals(String.valueOf(n.getPackageName()))||n.isPassword())continue;
+            if(n.isVisibleToUser()&&n.isEnabled()&&"android.webkit.WebView".equals(String.valueOf(n.getClassName()))){
+                if(web!=null&&!web.equals(n))return null;
+                web=n;
+            }
+            for(int j=0;j<n.getChildCount();j++){
+                AccessibilityNodeInfo child=n.getChild(j);
+                if(child!=null){if(queue.size()>=500)return null;queue.addLast(child);}
+            }
+        }
+        return queue.isEmpty()?web:null;
+    }
+
     private boolean dispatchChromeScroll(int index,boolean down){
         if(finished || !"com.android.chrome".equals(target) ||
            CommandReceiptStore.isPaused(service) || isCommunicationActive())return false;
@@ -751,8 +792,10 @@ final class AppWorkflowEngine {
         if(current==null || !current.isVisibleToUser())return false;
         AccessibilityNodeInfo input=current.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
         if(input!=null && (input.isPassword() || input.isEditable()))return false;
+        AccessibilityNodeInfo web=findUniqueVisibleChromeWebView(current);
+        if(web==null)return false;
         Rect bounds=new Rect();
-        current.getBoundsInScreen(bounds);
+        web.getBoundsInScreen(bounds);
         android.util.DisplayMetrics dm=service.getResources().getDisplayMetrics();
         if(!bounds.intersect(0,0,dm.widthPixels,dm.heightPixels) ||
            bounds.width()<120 || bounds.height()<240)return false;
@@ -1012,7 +1055,7 @@ final class AppWorkflowEngine {
         // Never infer a target from a partially inspected tree or ambiguous nodes.
         if(!pending.isEmpty() || webCount>1)return null;
         if(webCount==1)return web;
-        return otherCount==1?other:null;
+        return null; // never scroll a Chrome toolbar or unidentified container
     }
 
     private static boolean equalsTarget(String prefix,String selector, AccessibilityNodeInfo node){
