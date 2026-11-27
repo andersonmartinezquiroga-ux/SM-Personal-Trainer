@@ -15,6 +15,7 @@ public final class OwnedDiagnosticProofSelfTest {
             AppWorkflowPolicy.isAllowedStep("verify_sjm_diagnostic","text:secret","") ||
             AppWorkflowPolicy.isAllowedStep("verify_sjm_diagnostic","","arbitrary"))
             throw new AssertionError("read-only action scope");
+        if(!AppWorkflowPolicy.isAllowedStep("run_sjm_diagnostic","","") || AppWorkflowPolicy.isAllowedStep("run_sjm_diagnostic","text:secret","") || AppWorkflowPolicy.isAllowedStep("run_sjm_diagnostic","","arbitrary"))throw new AssertionError("atomic diagnostic scope");
         System.out.println("SJM_DIAGNOSTIC_PROOF PASS");
     }
 }

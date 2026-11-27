@@ -56,6 +56,7 @@ public final class AppWorkflowPolicy {
     public static boolean isAllowedStep(String action,String selector,String value){
         if(action==null)return false;
         switch(action){
+            case "run_sjm_diagnostic":
             case "verify_sjm_diagnostic":
                 return (selector==null || selector.isEmpty()) && (value==null || value.isEmpty());
             case "tap":

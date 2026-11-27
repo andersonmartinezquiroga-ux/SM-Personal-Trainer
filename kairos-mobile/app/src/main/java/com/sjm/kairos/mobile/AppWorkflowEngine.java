@@ -119,7 +119,7 @@ final class AppWorkflowEngine {
             String selector=step.optString("selector","");
             String value=step.optString("value","");
             if(!AppWorkflowPolicy.isAllowedStep(action,selector,value))return false;
-            if("verify_sjm_diagnostic".equals(action) &&
+            if(("verify_sjm_diagnostic".equals(action) || "run_sjm_diagnostic".equals(action)) &&
                (!"com.android.chrome".equals(target) || sequence.length()!=1))return false;
             if(("youtube_play_video".equals(action) ||
                  "youtube_search_play".equals(action)) &&
@@ -149,6 +149,9 @@ final class AppWorkflowEngine {
         if(onlyStep!=null && "youtube_search_play".equals(onlyStep.optString("action",""))){
             worker.searchAndPlayYoutube(onlyStep.optString("value",""));
             return;
+        }
+        if(onlyStep!=null && "run_sjm_diagnostic".equals(onlyStep.optString("action",""))){
+            worker.startOwnedDiagnostic();return;
         }
         if(onlyStep!=null && "verify_sjm_diagnostic".equals(onlyStep.optString("action",""))){
             // Strictly read-only: do not launch Chrome or navigate if it is not visible.
@@ -415,6 +418,65 @@ final class AppWorkflowEngine {
         return safeClickableAncestor(candidate)==null?null:candidate;
     }
 
+    private boolean diagnosticContextAllowed(){
+        return !finished && !CommandReceiptStore.isPaused(service) && !isCommunicationActive();
+    }
+    private boolean exactDiagnosticUrl(AccessibilityNodeInfo root){
+        if(root==null)return false;
+        try{
+            java.util.List<AccessibilityNodeInfo> bars=root.findAccessibilityNodeInfosByViewId("com.android.chrome:id/url_bar");
+            if(bars==null || bars.size()!=1)return false;
+            AccessibilityNodeInfo bar=bars.get(0);
+            return bar.isVisibleToUser() && !bar.isPassword() && !bar.isFocused() &&
+                "com.android.chrome".equals(String.valueOf(bar.getPackageName())) &&
+                OwnedUrlProofPolicy.matches(OwnedDiagnosticProof.URL,bar.getText()==null?"":bar.getText().toString());
+        }catch(RuntimeException e){return false;}
+    }
+    private void startOwnedDiagnostic(){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_DIAGNOSTIC_CONTEXT_INTERRUPTED");return;}
+        if(exactDiagnosticUrl(foreground())){advanceOwnedDiagnostic(false,0);return;}
+        try{
+            Intent open=new Intent(Intent.ACTION_VIEW,Uri.parse(OwnedDiagnosticProof.URL));
+            open.setPackage("com.android.chrome");
+            open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            service.startActivity(open);
+            handler.postDelayed(()->awaitOwnedDiagnosticDestination(0),900L);
+        }catch(RuntimeException e){finish(false,"SJM_DIAGNOSTIC_LAUNCH_DENIED");}
+    }
+    private void awaitOwnedDiagnosticDestination(int attempt){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_DIAGNOSTIC_CONTEXT_INTERRUPTED");return;}
+        if(exactDiagnosticUrl(foreground())){advanceOwnedDiagnostic(false,0);return;}
+        if(attempt>=9){finish(false,"SJM_DIAGNOSTIC_DESTINATION_UNVERIFIED");return;}
+        handler.postDelayed(()->awaitOwnedDiagnosticDestination(attempt+1),650L);
+    }
+    /** One bounded local execution. No accepted click is replayed. */
+    private void advanceOwnedDiagnostic(boolean expanded,int attempt){
+        if(!diagnosticContextAllowed()){finish(false,"SJM_DIAGNOSTIC_CONTEXT_INTERRUPTED");return;}
+        AccessibilityNodeInfo root=foreground();
+        if(!exactDiagnosticUrl(root)){finish(false,"SJM_DIAGNOSTIC_DESTINATION_OR_FOREGROUND_CHANGED");return;}
+        try{
+            AccessibilityNodeInfo run=findOne(root,"text:Comprobar mi dispositivo",false);
+            if(run!=null && insideChromeWebView(run) && !run.isEditable() && !run.isPassword()){
+                AccessibilityNodeInfo button=safeClickableAncestor(run);
+                if(button!=null && insideChromeWebView(button) && exactDiagnosticUrl(foreground()) &&
+                    diagnosticContextAllowed() && button.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
+                    handler.postDelayed(()->verifySjmDiagnostic(0),400L);return;
+                }
+            }else if(!expanded){
+                AccessibilityNodeInfo summary=findOne(root,"text:Comprobar compatibilidad de este dispositivo (sin descargas)",false);
+                if(summary!=null && insideChromeWebView(summary) && !summary.isEditable() && !summary.isPassword()){
+                    AccessibilityNodeInfo button=safeClickableAncestor(summary);
+                    if(button!=null && insideChromeWebView(button) && exactDiagnosticUrl(foreground()) &&
+                        diagnosticContextAllowed() && button.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
+                        handler.postDelayed(()->advanceOwnedDiagnostic(true,0),400L);return;
+                    }
+                }
+            }
+        }catch(RuntimeException ignored){}
+        if(attempt>=6){finish(false,"SJM_DIAGNOSTIC_EXACT_CONTROL_NOT_VERIFIED");return;}
+        handler.postDelayed(()->advanceOwnedDiagnostic(expanded,attempt+1),500L);
+    }
+
     /** Read only the named public SJM diagnostic, on its exact approved URL.
      * Never return raw text, clipboard contents, account information or other page data. */
     private void verifySjmDiagnostic(int attempt){
@@ -437,6 +499,7 @@ final class AppWorkflowEngine {
             nodes.add(root);
             OwnedDiagnosticProof proof=new OwnedDiagnosticProof();
             int checked=0;
+            boolean truncated=false;
             while(!nodes.isEmpty() && checked++<500){
                 AccessibilityNodeInfo n=nodes.removeFirst();
                 if(!"com.android.chrome".equals(String.valueOf(n.getPackageName())) || n.isPassword())continue;
@@ -446,11 +509,11 @@ final class AppWorkflowEngine {
                 }
                 for(int i=0;i<n.getChildCount();i++){
                     AccessibilityNodeInfo child=n.getChild(i);
-                    if(child!=null && nodes.size()<500)nodes.addLast(child);
+                    if(child!=null){if(nodes.size()<500)nodes.addLast(child);else truncated=true;}
                 }
             }
             String receipt=proof.receipt();
-            if(receipt!=null && nodes.isEmpty()){
+            if(receipt!=null && nodes.isEmpty() && !truncated && diagnosticContextAllowed() && exactDiagnosticUrl(foreground())){
                 finish(true,receipt);return;
             }
         }catch(RuntimeException ignored){}
