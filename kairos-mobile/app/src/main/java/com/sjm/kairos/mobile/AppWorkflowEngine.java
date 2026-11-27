@@ -583,6 +583,10 @@ final class AppWorkflowEngine {
         }
         foregroundRetries=0;
         if(index>=steps.length()){
+            if(isExactPublicSearchTest()){
+                verifyPublicSearchResult(0);
+                return;
+            }
             // Proven that the target package is still visible; not an app-specific outcome.
             finish(true,"WORKFLOW_ACTIONS_ACCEPTED_FOREGROUND_CONFIRMED_"+steps.length());
             return;
@@ -779,6 +783,47 @@ final class AppWorkflowEngine {
         },4000L);
         if(!submitted)disarmChromeScroll();
         return submitted;
+    }
+
+    /** Proof is restricted to the existing owner-approved public test query. */
+    private boolean isExactPublicSearchTest(){
+        if(!"com.android.chrome".equals(target)||steps.length()!=3)return false;
+        JSONObject a=steps.optJSONObject(0),b=steps.optJSONObject(1),c=steps.optJSONObject(2);
+        return a!=null&&b!=null&&c!=null&&"wait".equals(a.optString("action"))&&
+            "400".equals(a.optString("value"))&&"type".equals(b.optString("action"))&&
+            PublicSearchProofPolicy.BAR.equals(b.optString("selector"))&&PublicSearchProofPolicy.QUERY.equals(b.optString("value"))&&
+            "ime_search".equals(c.optString("action"))&&PublicSearchProofPolicy.BAR.equals(c.optString("selector"));
+    }
+    private void verifyPublicSearchResult(int attempt){
+        if(finished)return;
+        if(!diagnosticContextAllowed()){finish(false,"PUBLIC_SEARCH_CONTEXT_INTERRUPTED");return;}
+        AccessibilityNodeInfo root=foreground();
+        if(root!=null){
+            try{
+                AccessibilityNodeInfo bar=findOne(root,PublicSearchProofPolicy.BAR,false);
+                if(bar!=null&&!bar.isFocused()&&!bar.isPassword()&&
+                    PublicSearchProofPolicy.matchesAddress(bar.getText())){
+                    ArrayDeque<AccessibilityNodeInfo> queue=new ArrayDeque<>();
+                    queue.add(root);
+                    int count=0;
+                    while(!queue.isEmpty()&&count++<500){
+                        AccessibilityNodeInfo n=queue.removeFirst();
+                        if(!target.equals(String.valueOf(n.getPackageName()))||n.isPassword())continue;
+                        if(n.isVisibleToUser()&&!n.isEditable()&&insideChromeWebView(n)&&
+                            (PublicSearchProofPolicy.isResultHeading(n.getText())||
+                             PublicSearchProofPolicy.isResultHeading(n.getContentDescription()))){
+                            finish(true,"PUBLIC_SEARCH_TYPED_READBACK_AND_RESULT_HEADING_OBSERVED");return;
+                        }
+                        for(int i=0;i<n.getChildCount();i++){
+                            AccessibilityNodeInfo child=n.getChild(i);
+                            if(child!=null&&queue.size()<500)queue.addLast(child);
+                        }
+                    }
+                }
+            }catch(RuntimeException ignored){}
+        }
+        if(attempt>=10){finish(false,"PUBLIC_SEARCH_DESTINATION_OR_RESULT_HEADING_UNVERIFIED");return;}
+        handler.postDelayed(()->verifyPublicSearchResult(attempt+1),650L);
     }
 
     private void verifyWrittenText(int index,String selector,String expected,int attempt){
