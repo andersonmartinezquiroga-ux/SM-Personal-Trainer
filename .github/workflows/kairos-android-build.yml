@@ -32,7 +32,7 @@ jobs:
       - name: Pruebas de navegación segura
         run: |
           mkdir -p build/policy-test
-          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/OwnedDiagnosticProof.java app/src/test/java/com/sjm/kairos/mobile/OwnedDiagnosticProofSelfTest.java app/src/main/java/com/sjm/kairos/mobile/OwnedUrlProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/OwnedUrlProofPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/VoiceActionPolicy.java app/src/test/java/com/sjm/kairos/mobile/VoiceActionPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/AppWorkflowPolicy.java app/src/test/java/com/sjm/kairos/mobile/AppWorkflowPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
+          javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/OwnedDiagnosticControlPolicy.java app/src/test/java/com/sjm/kairos/mobile/OwnedDiagnosticControlPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/OwnNotificationProof.java app/src/test/java/com/sjm/kairos/mobile/OwnNotificationProofSelfTest.java app/src/main/java/com/sjm/kairos/mobile/OwnedDiagnosticProof.java app/src/test/java/com/sjm/kairos/mobile/OwnedDiagnosticProofSelfTest.java app/src/main/java/com/sjm/kairos/mobile/OwnedUrlProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/OwnedUrlProofPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/VoiceActionPolicy.java app/src/test/java/com/sjm/kairos/mobile/VoiceActionPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/SjmNavigationPolicy.java app/src/main/java/com/sjm/kairos/mobile/ForegroundProofPolicy.java app/src/main/java/com/sjm/kairos/mobile/LocalInteractionPolicy.java app/src/main/java/com/sjm/kairos/mobile/AppWorkflowPolicy.java app/src/test/java/com/sjm/kairos/mobile/AppWorkflowPolicySelfTest.java app/src/main/java/com/sjm/kairos/mobile/LastResultText.java app/src/test/java/com/sjm/kairos/mobile/LastResultTextSelfTest.java app/src/test/java/com/sjm/kairos/mobile/NavigationPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/ForegroundProofPolicySelfTest.java app/src/test/java/com/sjm/kairos/mobile/LocalInteractionPolicySelfTest.java
           # Verificar que ningún componente informe una versión Android literal y anticuada.
           python3 - <<'PY'
           import pathlib,re
@@ -101,6 +101,8 @@ jobs:
           PY
           javac -d build/policy-test app/src/main/java/com/sjm/kairos/mobile/ScrollProofPolicy.java app/src/test/java/com/sjm/kairos/mobile/ScrollProofPolicySelfTest.java
           java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticProofSelfTest
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnedDiagnosticControlPolicySelfTest
+          java -cp build/policy-test com.sjm.kairos.mobile.OwnNotificationProofSelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.OwnedUrlProofPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.ScrollProofPolicySelfTest
           java -cp build/policy-test com.sjm.kairos.mobile.VoiceActionPolicySelfTest
