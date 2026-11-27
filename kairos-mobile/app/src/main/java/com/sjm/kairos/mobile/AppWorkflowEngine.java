@@ -450,22 +450,50 @@ final class AppWorkflowEngine {
         handler.postDelayed(()->awaitOwnedDiagnosticDestination(attempt+1),650L);
     }
     /** One bounded local execution. No accepted click is replayed. */
+    /** Resolve only the exact two owned diagnostic controls, using either
+     * accessibility name, and deduplicate matching children of the same button.
+     * Never choose among two different clickable controls or a truncated tree. */
+    private AccessibilityNodeInfo findOwnedDiagnosticControl(AccessibilityNodeInfo root,String label){
+        if(!OwnedDiagnosticControlPolicy.isAllowedLabel(label) || !exactDiagnosticUrl(root))return null;
+        ArrayDeque<AccessibilityNodeInfo> pending=new ArrayDeque<>();
+        pending.add(root);
+        AccessibilityNodeInfo match=null;
+        int inspected=0;
+        while(!pending.isEmpty() && inspected++<500){
+            AccessibilityNodeInfo node=pending.removeFirst();
+            if(!target.equals(String.valueOf(node.getPackageName())) || node.isPassword())continue;
+            if(node.isVisibleToUser() && !node.isEditable() && node.isEnabled() && insideChromeWebView(node) &&
+                OwnedDiagnosticControlPolicy.matches(label,node.getText(),node.getContentDescription())){
+                AccessibilityNodeInfo button=safeClickableAncestor(node);
+                if(button!=null && !button.isEditable() && insideChromeWebView(button)){
+                    if(match!=null && !match.equals(button))return null;
+                    match=button;
+                }
+            }
+            for(int i=0;i<node.getChildCount();i++){
+                AccessibilityNodeInfo child=node.getChild(i);
+                if(child!=null){if(pending.size()>=500)return null;pending.addLast(child);}
+            }
+        }
+        return pending.isEmpty()?match:null;
+    }
+
     private void advanceOwnedDiagnostic(boolean expanded,int attempt){
         if(!diagnosticContextAllowed()){finish(false,"SJM_DIAGNOSTIC_CONTEXT_INTERRUPTED");return;}
         AccessibilityNodeInfo root=foreground();
         if(!exactDiagnosticUrl(root)){finish(false,"SJM_DIAGNOSTIC_DESTINATION_OR_FOREGROUND_CHANGED");return;}
         try{
-            AccessibilityNodeInfo run=findOne(root,"text:Comprobar mi dispositivo",false);
-            if(run!=null && insideChromeWebView(run) && !run.isEditable() && !run.isPassword()){
-                AccessibilityNodeInfo button=safeClickableAncestor(run);
+            AccessibilityNodeInfo run=findOwnedDiagnosticControl(root,OwnedDiagnosticControlPolicy.RUN);
+            if(run!=null){
+                AccessibilityNodeInfo button=run;
                 if(button!=null && insideChromeWebView(button) && exactDiagnosticUrl(foreground()) &&
                     diagnosticContextAllowed() && button.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
                     handler.postDelayed(()->verifySjmDiagnostic(0),400L);return;
                 }
             }else if(!expanded){
-                AccessibilityNodeInfo summary=findOne(root,"text:Comprobar compatibilidad de este dispositivo (sin descargas)",false);
-                if(summary!=null && insideChromeWebView(summary) && !summary.isEditable() && !summary.isPassword()){
-                    AccessibilityNodeInfo button=safeClickableAncestor(summary);
+                AccessibilityNodeInfo summary=findOwnedDiagnosticControl(root,OwnedDiagnosticControlPolicy.EXPAND);
+                if(summary!=null){
+                    AccessibilityNodeInfo button=summary;
                     if(button!=null && insideChromeWebView(button) && exactDiagnosticUrl(foreground()) &&
                         diagnosticContextAllowed() && button.performAction(AccessibilityNodeInfo.ACTION_CLICK)){
                         handler.postDelayed(()->advanceOwnedDiagnostic(true,0),400L);return;
