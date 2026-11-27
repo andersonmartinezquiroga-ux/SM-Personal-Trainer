@@ -2,7 +2,7 @@ name: SJM Executor - safe preflight regression (no submissions)
 on:
   workflow_dispatch:
   push:
-    branches: [sjm-executor-render]
+    branches: [sjm-executor-render, 'lab/tusclases-visible-fields-20261126']
     paths:
       - 'sjm-executor/applicant.py'
       - 'sjm-executor/form_adapter.py'
@@ -28,10 +28,12 @@ jobs:
           python-version: '3.11'
       - name: Install local unit test prerequisites
         run: python -m pip install -r sjm-executor/requirements.txt
+      - name: Install Chromium for isolated DOM test
+        run: python -m playwright install --with-deps chromium
       - name: Run all security and form adapter tests (OFFLINE)
         working-directory: sjm-executor
         run: |
-          python -m unittest -v test_applicant test_form_adapter test_submit_ypai test_pulse_ack test_workflow_engine.WorkflowTests
+          python -m unittest -v test_applicant test_form_adapter test_submit_ypai test_pulse_ack test_workflow_engine.WorkflowTests test_workflow_engine.LocalWizardTests.test_tusclases_visible_metadata_skips_hidden_and_values
       - name: Record non-submission evidence
         if: success()
         run: |
