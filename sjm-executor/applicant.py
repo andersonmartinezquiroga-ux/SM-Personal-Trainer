@@ -461,6 +461,28 @@ def public_field_metadata(node):
     }""".replace("\\s","\\\\s"))
 
 
+def visible_tusclases_wizard_fields(page):
+    """Bounded public metadata only; exclude hidden, disabled and action controls."""
+    return page.evaluate("""() => {
+      const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
+      return inputs.filter(el => el.getClientRects().length &&
+        getComputedStyle(el).visibility !== 'hidden' && !el.disabled &&
+        el.getAttribute('aria-disabled') !== 'true' &&
+        !['hidden','submit','button','reset','password','file'].includes((el.type||'').toLowerCase())
+      ).slice(0,45).map(el => ({
+        name: (el.getAttribute('name')||el.id||'').slice(0,90),
+        type: (el.getAttribute('type')||el.tagName.toLowerCase()).slice(0,32),
+        label: (el.getAttribute('aria-label')||
+          Array.from(el.labels||[]).map(l=>l.innerText).join(' ')||
+          el.getAttribute('placeholder')||'').trim().slice(0,120),
+        required: el.hasAttribute('required')||el.getAttribute('aria-required')==='true',
+        identity:el.getAttribute('name')?'name':el.id?'id':'unidentified',
+        custom_choice: el.getAttribute('role')==='combobox'||el.hasAttribute('aria-autocomplete'),
+        visible:true,enabled:true
+      }));
+    }""")
+
+
 def inspect_local_combobox_choices(page, name):
     """Read a bounded public option list from an offline, unfilled form."""
     forms=[f for f in page.locator("form").all() if f.is_visible()]
@@ -723,8 +745,16 @@ def inspect(url, fields=None):
             result["public_optional_marketing_prechecked"]=observed["optional_marketing_checked"]
         result["has_apply_link"]=page.locator('a[href$="/apply"], a[href*="/application"]').count()>0
         result["fields"]=[]
-        for node in page.locator("input, select, textarea").all()[:45]:
-            result["fields"].append(public_field_metadata(node))
+        if (url=="https://www.tusclases.co/anunciarse/profesor-particular"
+                and urlparse(page.url).hostname=="www.tusclases.co"
+                and urlparse(page.url).path.rstrip("/") == "/anunciarse/profesor-particular"
+                and not result["challenge_detected"] and not result["source_access_blocked"]):
+            # Do not let hidden wizard fields consume the first 45 controls.
+            # This is a public initial-step snapshot, not full-form evidence.
+            result["fields"]=visible_tusclases_wizard_fields(page)
+        else:
+            for node in page.locator("input, select, textarea").all()[:45]:
+                result["fields"].append(public_field_metadata(node))
         # Only public field names/labels are collected. Never return or persist entered values.
         # This lets Control 360 stop BEFORE requesting forbidden personal details.
         result["required_fields"]=[
