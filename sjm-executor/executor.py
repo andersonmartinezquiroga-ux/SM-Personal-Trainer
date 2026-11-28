@@ -8,6 +8,9 @@ def run(url, output, submit=False, allow_host='127.0.0.1'):
     parsed=urlparse(url)
     if parsed.scheme not in ('http','https') or parsed.hostname != allow_host:
         raise ValueError('Host not authorized. Set --allow-host explicitly for a verified destination.')
+    # Fail before even starting a browser or navigating to a third-party site.
+    if submit and parsed.hostname not in ('localhost', '127.0.0.1'):
+        raise ValueError('External form submission disabled: requires site-specific reviewed workflow.')
     result={'url':url,'time_utc':datetime.now(timezone.utc).isoformat(),'submitted':False,'mode':'submit' if submit else 'dry-run'}
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True, executable_path=os.getenv('CHROMIUM_PATH') or None, args=['--no-sandbox'])
@@ -19,9 +22,7 @@ def run(url, output, submit=False, allow_host='127.0.0.1'):
         result['forms']=page.locator('form').count()
         result['inputs']=page.locator('input, textarea, select').count()
         if submit:
-            # Submit is restricted to the included localhost test form. No real-world applications.
-            if parsed.hostname not in ('localhost','127.0.0.1'):
-                raise ValueError('External form submission disabled: requires site-specific reviewed workflow.')
+            # Only the included localhost test form can be submitted.
             page.locator('input[name="name"]').fill('SJM Test')
             page.locator('input[name="email"]').fill('test@example.invalid')
             page.locator('button[type="submit"]').click()
