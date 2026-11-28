@@ -164,6 +164,29 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):_safe_fields({"email":""})
         with self.assertRaises(ValueError):_safe_fields({1:"value"})
 
+    def test_sensitive_identity_financial_and_signature_fields_rejected(self):
+        forbidden = (
+            "passport_number", "nationalId", "government_id",
+            "identity_number", "document_number", "date_of_birth",
+            "birthDate", "bankAccount", "account_number",
+            "routingNumber", "iban", "swift_code", "apiKey",
+            "secret_key", "e_signature", "securityQuestion",
+            "security_answer", "pin", "dob", "cvc",
+        )
+        for field in forbidden:
+            with self.subTest(field=field), self.assertRaisesRegex(
+                ValueError, "owner_consent_or_credentials_required"
+            ):
+                _safe_fields({field: "example"})
+        # Ordinary profile details still work for separately allowlisted
+        # offline drafts, including fields containing the letters "pin".
+        self.assertEqual(
+            _safe_fields({"name":"Person", "shippingCity":"Bogota",
+                          "exerciseSpecialty":"Mobility"}),
+            {"name":"Person", "shippingCity":"Bogota",
+             "exerciseSpecialty":"Mobility"}
+        )
+
     def test_unapproved_source_rejected_before_browser(self):
         with patch("workflow_engine.inspect") as browser:
             with self.assertRaises(ValueError):
