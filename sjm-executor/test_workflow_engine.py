@@ -27,6 +27,34 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(r["submitted"])
         self.assertFalse(r["completion_verified"])
 
+    def test_consent_does_not_override_missing_form_metadata(self):
+        with patch("workflow_engine.inspect", return_value=source()):
+            result = prepare_workflow(WELLONIS)
+        self.assertEqual(result["workflow_stage"], "owner_authorization_required")
+        self.assertEqual(result["next_action"], "inspect_complete_form_metadata")
+        self.assertFalse(result["full_form_readiness"]["metadata_complete"])
+        self.assertFalse(result["submitted"])
+
+    def test_consent_cannot_request_authorization_before_required_fields(self):
+        meta = [{"name":"email","required":True}]
+        with patch("workflow_engine.inspect", return_value=source(
+            fields=meta, required_fields=[{"name":"email"}],
+            unidentified_required_count=0)):
+            result = prepare_workflow(WELLONIS)
+        self.assertEqual(result["workflow_stage"], "owner_authorization_required")
+        self.assertEqual(result["next_action"], "prepare_required_fields_for_owner_review")
+        self.assertEqual(result["full_form_readiness"]["required_field_names_missing"], ["email"])
+        self.assertFalse(result["submitted"])
+
+    def test_consent_with_completed_nonrequired_metadata_requests_owner_review(self):
+        with patch("workflow_engine.inspect", return_value=source(
+            fields=[{"name":"nickname","required":False}],
+            required_fields=[], unidentified_required_count=0)):
+            result = prepare_workflow(WELLONIS)
+        self.assertEqual(result["workflow_stage"], "owner_authorization_required")
+        self.assertEqual(result["next_action"], "review_terms_and_authorize_specific_case")
+        self.assertFalse(result["submitted"])
+
     def test_missing_metadata_never_claims_form_ready(self):
         public = source(consent_or_captcha_present=False,
                         adapter_summary={"required_approval_scopes":[]})
