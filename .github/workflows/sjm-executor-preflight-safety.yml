@@ -5,6 +5,9 @@ on:
     branches: [sjm-executor-render]
     paths:
       - 'sjm-executor/applicant.py'
+      - 'sjm-executor/submit_ypai.py'
+      - 'sjm-executor/test_submit_ypai.py'
+      - 'sjm-executor/requirements.txt'
       - 'sjm-executor/form_adapter.py'
       - 'sjm-executor/workflow_engine.py'
       - 'sjm-executor/test_workflow_engine.py'
