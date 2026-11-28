@@ -63,9 +63,32 @@ def prepare_workflow(url, requested_fields=None):
     # Only explicitly optional fields with complete public metadata may be
     # deferred. Unknown field identities are not silently treated as optional.
     metadata = public.get("fields")
-    metadata_complete = (not partial_wizard and isinstance(metadata, list)
-        and bool(metadata) and isinstance(required, list)
-        and type(unknown) is int and unknown == 0)
+    # The inspector caps its required-field summary. Compare the complete
+    # visible metadata against that summary so a truncated or corrupted list
+    # never becomes an apparently review-ready form.
+    valid_fields = [
+        x for x in metadata
+        if isinstance(x, dict) and isinstance(x.get("name"), str)
+        and x["name"].strip() and type(x.get("required")) is bool
+    ] if isinstance(metadata, list) else []
+    field_names = [x["name"] for x in valid_fields]
+    required_from_fields = {x["name"] for x in valid_fields if x["required"]}
+    valid_required = [
+        x["name"] for x in required
+        if isinstance(x, dict) and isinstance(x.get("name"), str)
+        and x["name"].strip()
+    ] if isinstance(required, list) else []
+    metadata_complete = (
+        not partial_wizard
+        and isinstance(metadata, list) and bool(metadata)
+        and len(valid_fields) == len(metadata)
+        and len(set(field_names)) == len(field_names)
+        and isinstance(required, list)
+        and len(valid_required) == len(required)
+        and len(set(valid_required)) == len(valid_required)
+        and set(valid_required) == required_from_fields
+        and type(unknown) is int and unknown == 0
+    )
     known_optional = {
         x["name"] for x in metadata
         if isinstance(x,dict) and isinstance(x.get("name"),str)
