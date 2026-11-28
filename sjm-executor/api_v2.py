@@ -48,6 +48,15 @@ def normalize_role_result(result):
         return dict(result, submitted=False, automatic_retry_allowed=False)
     return dict(result, **submission_outcome_uncertain())
 
+def release_commit():
+    """Validated build identity for comparing GitHub to the running service.
+
+    No environment credentials or untrusted upstream values are disclosed.
+    Missing or invalid Render metadata never becomes proof of deployment.
+    """
+    sha = os.environ.get("RENDER_GIT_COMMIT", "")
+    return sha if re.fullmatch(r"[0-9a-f]{40}", sha) else "unversioned"
+
 def approved_case_keys():
     raw = os.environ.get("YPAI_APPROVED_CASES", "")
     return {x.strip() for x in raw.split(",") if x.strip()}
@@ -177,8 +186,7 @@ class API(BaseHTTPRequestHandler):
         # The runtime Git SHA distinguishes a repaired browser adapter from a
         # previously failing release. Never trust a version supplied by a job site.
         if self.path.split("?", 1)[0] == "/jobs/prepare" and status in (200, 502) and isinstance(body, dict):
-            release = os.environ.get("RENDER_GIT_COMMIT", "")
-            body = {**body, "adapter_version": release if re.fullmatch(r"[0-9a-f]{7,40}", release) else "unversioned"}
+            body = {**body, "adapter_version": release_commit()}
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
         try:
             # A peer may disconnect while headers are being written, not only
@@ -278,6 +286,7 @@ class API(BaseHTTPRequestHandler):
                 "service": "sjm-playwright-executor",
                 "status": "ready",
                 "version": "autonomy-prepare-workflow-v1",
+                "release_commit": release_commit(),
                 "external_submission": "disabled_without_exact_case_approval",
                 "approved_case_count": len(approvals),
                 "ypai_role_allowlist": sorted(ROLE_CONFIG),
