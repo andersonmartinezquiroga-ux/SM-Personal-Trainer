@@ -124,6 +124,10 @@ def prepare_workflow(url, requested_fields=None):
         stage = "draft_filled_not_submitted"
     elif not metadata_complete:
         stage = "incomplete_form_metadata"
+    elif pending_required:
+        # A visible form is NOT ready for final review while required fields
+        # remain empty, even if no draft was requested from this endpoint.
+        stage = "required_fields_unfilled"
     else:
         stage = "form_ready_for_owner_review"
 
@@ -149,6 +153,7 @@ def prepare_workflow(url, requested_fields=None):
         else "resolve_remaining_required_fields" if fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing)
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
         else "inspect_complete_form_metadata" if not metadata_complete
+        else "prepare_required_fields_for_owner_review" if pending_required
         else "review_optional_fields_before_submission" if optional_missing
         else "review_form_and_authorize_submission"
     )
