@@ -219,6 +219,20 @@ class API(BaseHTTPRequestHandler):
             for token in tokens
         )
 
+    def authorized_for_job(self):
+        """Read-only inspector credentials cannot prepare or draft browser forms.
+
+        /signals/pulse and /jobs/inspect remain explicitly read-only.  All
+        other non-submission job routes require the executor's distinct token.
+        Submission endpoints keep their separate SUBMISSION_TOKEN gate.
+        """
+        if self.path == "/jobs/inspect":
+            return self.authorized()
+        token = os.environ.get("EXECUTOR_TOKEN", "")
+        return bool(token) and secrets.compare_digest(
+            self.headers.get("Authorization", ""), "Bearer " + token
+        )
+
     def authorized_submission(self):
         token = os.environ.get("SUBMISSION_TOKEN", "")
         return bool(token) and secrets.compare_digest(
@@ -362,7 +376,7 @@ class API(BaseHTTPRequestHandler):
             finally:
                 lock.release()
 
-        if not self.authorized():
+        if not self.authorized_for_job():
             return self.reply(401, {"error": "unauthorized"})
         try:
             params = None
