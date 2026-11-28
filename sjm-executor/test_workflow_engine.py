@@ -98,6 +98,34 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(r["completion_verified"])
         self.assertFalse(r["submitted"])
 
+    def test_readonly_form_with_unfilled_required_fields_cannot_prompt_submit(self):
+        with patch("workflow_engine.inspect", return_value=source(
+            consent_or_captcha_present=False,
+            adapter_summary={"required_approval_scopes":[]},
+            fields=[{"name":"name","required":True},
+                    {"name":"email","required":True}],
+            required_fields=[{"name":"name"},{"name":"email"}],
+            unidentified_required_count=0)):
+            r = prepare_workflow(WELLONIS)
+        self.assertEqual(r["workflow_stage"], "required_fields_unfilled")
+        self.assertEqual(r["next_action"], "prepare_required_fields_for_owner_review")
+        self.assertEqual(r["full_form_readiness"]["required_field_names_missing"],
+                         ["email","name"])
+        self.assertFalse(r["submitted"])
+        self.assertFalse(r["completion_verified"])
+        self.assertEqual(r["workflow_steps"][-2]["status"], "not_executed")
+
+    def test_optional_only_readonly_form_can_be_reviewed_without_submission(self):
+        with patch("workflow_engine.inspect", return_value=source(
+            consent_or_captcha_present=False,
+            adapter_summary={"required_approval_scopes":[]},
+            fields=[{"name":"nickname","required":False}],
+            required_fields=[], unidentified_required_count=0)):
+            r = prepare_workflow(WELLONIS)
+        self.assertEqual(r["workflow_stage"], "form_ready_for_owner_review")
+        self.assertFalse(r["submitted"])
+        self.assertEqual(r["workflow_steps"][-2]["status"], "not_executed")
+
     def test_draft_can_fill_text_without_being_submission(self):
         with patch("workflow_engine.inspect",
                    return_value=source(consent_or_captcha_present=False,
