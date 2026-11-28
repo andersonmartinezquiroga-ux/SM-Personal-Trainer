@@ -49,6 +49,42 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(r["next_action"], "inspect_complete_form_metadata")
             self.assertFalse(r["full_form_readiness"]["metadata_complete"])
 
+    def test_truncated_required_field_summary_cannot_reach_owner_review(self):
+        meta = [{"name":"field"+str(i),"required":True} for i in range(41)]
+        public = source(consent_or_captcha_present=False,
+                        adapter_summary={"required_approval_scopes":[]},
+                        fields=meta,
+                        required_fields=[{"name":item["name"]} for item in meta[:40]],
+                        unidentified_required_count=0)
+        with patch("workflow_engine.inspect",return_value=public):
+            r = prepare_workflow(WELLONIS)
+        self.assertEqual(r["workflow_stage"],"incomplete_form_metadata")
+        self.assertEqual(r["next_action"],"inspect_complete_form_metadata")
+        self.assertFalse(r["full_form_readiness"]["metadata_complete"])
+        self.assertFalse(r["submitted"])
+
+    def test_corrupted_or_mismatched_metadata_not_review_ready(self):
+        records = [
+            ([{"name":"name","required":True}], []),
+            ([{"name":"name","required":False}], [{"name":"name"}]),
+            ([{"name":"name","required":True}], [{"name":"wrong"}]),
+            ([{"name":"name","required":False}, {"name":"name","required":False}], []),
+            ([{"name":"name","required":None}], []),
+            ([{"name":"","required":False}], []),
+            ([None], []),
+        ]
+        for fields, required in records:
+            with self.subTest(fields=fields,required=required):
+                public = source(consent_or_captcha_present=False,
+                                adapter_summary={"required_approval_scopes":[]},
+                                fields=fields,required_fields=required,
+                                unidentified_required_count=0)
+                with patch("workflow_engine.inspect",return_value=public):
+                    r = prepare_workflow(WELLONIS)
+                self.assertEqual(r["workflow_stage"],"incomplete_form_metadata")
+                self.assertFalse(r["full_form_readiness"]["metadata_complete"])
+                self.assertFalse(r["submitted"])
+
     def test_complete_metadata_can_reach_review_but_never_submits(self):
         with patch("workflow_engine.inspect", return_value=source(
             consent_or_captcha_present=False,
