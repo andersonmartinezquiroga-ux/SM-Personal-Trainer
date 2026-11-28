@@ -160,10 +160,13 @@ def prepare_workflow(url, requested_fields=None):
         else "inspect_remaining_wizard_steps" if partial_wizard and stage == "interactive_form_or_login_required"
         else "owner_login_or_challenge" if stage in (
             "human_challenge_required", "interactive_form_or_login_required")
-        else "resolve_remaining_required_fields" if fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing)
-        else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
+        # Consent review is never the NEXT action while a required or
+        # incomplete form is still unresolved. Stage can still record that
+        # a separate owner authorization will be necessary later.
+        else "resolve_remaining_required_fields" if fields and (pending_required or unresolved_missing)
         else "inspect_complete_form_metadata" if not metadata_complete
         else "prepare_required_fields_for_owner_review" if pending_required
+        else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
         else "review_optional_fields_before_submission" if optional_missing
         else "review_form_and_authorize_submission"
     )
