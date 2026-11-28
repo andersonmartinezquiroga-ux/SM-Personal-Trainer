@@ -56,6 +56,33 @@ class ApiAuthorizationTests(unittest.TestCase):
         self.assertFalse(handler.authorized_for_job())
         self.assertFalse(handler.authorized())
 
+    def test_healthz_release_commit_matches_only_verified_full_sha(self):
+        valid = "86ff616f749fc713075769acb45bf61d8008b27e"
+        with patch.dict("os.environ", {"RENDER_GIT_COMMIT": valid}, clear=True):
+            handler = self.handler("/healthz", "")
+            handler.reply = Mock(side_effect=lambda status, body: body)
+            result = handler.do_GET()
+            self.assertEqual(result["release_commit"], valid)
+            self.assertEqual(result["service"], "sjm-playwright-executor")
+            self.assertEqual(result["external_submission"], "disabled_without_exact_case_approval")
+
+        for invalid in ("", "short", "abc1234", "Z" * 40, "a" * 41):
+            with self.subTest(commit=invalid), patch.dict(
+                "os.environ", {"RENDER_GIT_COMMIT": invalid}, clear=True
+            ):
+                handler = self.handler("/healthz", "")
+                handler.reply = Mock(side_effect=lambda status, body: body)
+                self.assertEqual(handler.do_GET()["release_commit"], "unversioned")
+
+    def test_prepare_response_carries_same_validated_release_identity(self):
+        valid = "86ff616f749fc713075769acb45bf61d8008b27e"
+        with patch.dict("os.environ", {"RENDER_GIT_COMMIT": valid}, clear=True):
+            from api_v2 import release_commit
+            self.assertEqual(release_commit(), valid)
+        with patch.dict("os.environ", {"RENDER_GIT_COMMIT": "bad-token"}, clear=True):
+            from api_v2 import release_commit
+            self.assertEqual(release_commit(), "unversioned")
+
     @patch.dict("os.environ", {
         "INSPECTOR_TOKEN": "inspector-unit-secret",
     }, clear=True)
