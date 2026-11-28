@@ -27,6 +27,41 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(r["submitted"])
         self.assertFalse(r["completion_verified"])
 
+    def test_missing_metadata_never_claims_form_ready(self):
+        public = source(consent_or_captcha_present=False,
+                        adapter_summary={"required_approval_scopes":[]})
+        with patch("workflow_engine.inspect", return_value=public):
+            r = prepare_workflow(WELLONIS)
+        self.assertEqual(r["workflow_stage"], "incomplete_form_metadata")
+        self.assertEqual(r["next_action"], "inspect_complete_form_metadata")
+        self.assertFalse(r["full_form_readiness"]["metadata_complete"])
+        self.assertFalse(r["submitted"])
+
+    def test_unknown_required_and_boolean_count_fail_closed(self):
+        for unknown in (None, 1, False):
+            with self.subTest(unknown=unknown), patch("workflow_engine.inspect",
+                return_value=source(consent_or_captcha_present=False,
+                                    adapter_summary={"required_approval_scopes":[]},
+                                    fields=[{"name":"name","required":False}],
+                                    required_fields=[], unidentified_required_count=unknown)):
+                r = prepare_workflow(WELLONIS)
+            self.assertEqual(r["workflow_stage"], "incomplete_form_metadata")
+            self.assertEqual(r["next_action"], "inspect_complete_form_metadata")
+            self.assertFalse(r["full_form_readiness"]["metadata_complete"])
+
+    def test_complete_metadata_can_reach_review_but_never_submits(self):
+        with patch("workflow_engine.inspect", return_value=source(
+            consent_or_captcha_present=False,
+            adapter_summary={"required_approval_scopes":[]},
+            fields=[{"name":"name","required":False}],
+            required_fields=[], unidentified_required_count=0)):
+            r = prepare_workflow(WELLONIS)
+        self.assertEqual(r["workflow_stage"], "form_ready_for_owner_review")
+        self.assertTrue(r["full_form_readiness"]["metadata_complete"])
+        self.assertEqual(r["workflow_steps"][-2]["status"], "not_executed")
+        self.assertFalse(r["completion_verified"])
+        self.assertFalse(r["submitted"])
+
     def test_draft_can_fill_text_without_being_submission(self):
         with patch("workflow_engine.inspect",
                    return_value=source(consent_or_captcha_present=False,
