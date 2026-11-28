@@ -63,11 +63,14 @@ def prepare_workflow(url, requested_fields=None):
     # Only explicitly optional fields with complete public metadata may be
     # deferred. Unknown field identities are not silently treated as optional.
     metadata = public.get("fields")
+    metadata_complete = (not partial_wizard and isinstance(metadata, list)
+        and bool(metadata) and isinstance(required, list)
+        and type(unknown) is int and unknown == 0)
     known_optional = {
         x["name"] for x in metadata
         if isinstance(x,dict) and isinstance(x.get("name"),str)
         and x.get("required") is False
-    } if not partial_wizard and isinstance(metadata,list) and isinstance(required,list) and unknown==0 else set()
+    } if metadata_complete else set()
     optional_missing = [x for x in missing if x in known_optional and x not in required_names]
     unresolved_missing = [x for x in missing if x not in optional_missing]
     public["draft_verification"]["optional_missing_field_names"] = optional_missing
@@ -75,7 +78,7 @@ def prepare_workflow(url, requested_fields=None):
     public["full_form_readiness"] = {
         "required_field_names_missing":pending_required,
         "unidentified_required_count":unknown if isinstance(unknown,int) and unknown>=0 else None,
-        "metadata_complete":not partial_wizard and isinstance(required,list) and unknown==0,
+        "metadata_complete":metadata_complete,
         "full_form_verified":False
     }
     required_scopes = summary.get("required_approval_scopes") or []
@@ -92,10 +95,12 @@ def prepare_workflow(url, requested_fields=None):
         stage = "interactive_form_or_login_required"
     elif public.get("consent_or_captcha_present") or required_scopes:
         stage = "owner_authorization_required"
-    elif fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing or len(filled) != len(fields)):
+    elif fields and (pending_required or not metadata_complete or unresolved_missing or len(filled) != len(fields)):
         stage = "draft_partial_not_submitted"
     elif fields:
         stage = "draft_filled_not_submitted"
+    elif not metadata_complete:
+        stage = "incomplete_form_metadata"
     else:
         stage = "form_ready_for_owner_review"
 
@@ -120,6 +125,7 @@ def prepare_workflow(url, requested_fields=None):
             "human_challenge_required", "interactive_form_or_login_required")
         else "resolve_remaining_required_fields" if fields and (pending_required or type(unknown) is not int or unknown != 0 or not isinstance(required, list) or unresolved_missing)
         else "review_terms_and_authorize_specific_case" if stage == "owner_authorization_required"
+        else "inspect_complete_form_metadata" if not metadata_complete
         else "review_optional_fields_before_submission" if optional_missing
         else "review_form_and_authorize_submission"
     )
