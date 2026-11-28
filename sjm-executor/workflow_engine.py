@@ -12,8 +12,16 @@ SAFE_FIELD_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]{0,89}$")
 UNSAFE_FIELD_NAMES = (
     "password", "passcode", "otp", "token", "captcha",
     "creditcard", "cardnumber", "cvv", "terms", "consent",
-    "agreement", "privacy", "ssn", "documentid"
+    "agreement", "privacy", "ssn", "documentid",
+    # Never auto-fill identity, financial, authentication or legal-signature
+    # fields, even in an offline draft. They require direct owner handling.
+    "passport", "nationalid", "governmentid", "identitynumber",
+    "documentnumber", "dateofbirth", "birthdate", "bankaccount",
+    "accountnumber", "routingnumber", "iban", "swiftcode",
+    "apikey", "secretkey", "signature", "securityquestion",
+    "securityanswer"
 )
+UNSAFE_EXACT_FIELD_NAMES = frozenset(("pin", "dob", "cvc"))
 
 def _safe_fields(value):
     if value is None:
@@ -25,7 +33,9 @@ def _safe_fields(value):
         if not isinstance(k, str) or not SAFE_FIELD_NAME.fullmatch(k):
             raise ValueError("unsafe_workflow_field_name")
         key = re.sub(r"[^a-z]", "", k.lower())
-        if any(part in key for part in UNSAFE_FIELD_NAMES):
+        if key in UNSAFE_EXACT_FIELD_NAMES or any(
+            part in key for part in UNSAFE_FIELD_NAMES
+        ):
             raise ValueError("owner_consent_or_credentials_required")
         if not isinstance(v, str) or not 1 <= len(v) <= 300:
             raise ValueError("invalid_workflow_field_value")
